@@ -1,0 +1,18 @@
+{
+    "name": "Konfus.NodeGraphEditor_OLD",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a12eaae3e2daff6439ff758147ef19cb"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

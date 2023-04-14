@@ -1,0 +1,16 @@
+{
+    "name": "Konfus.SensorToolkit",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a88015c3e00dffd48a3c7daec3b0969d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
