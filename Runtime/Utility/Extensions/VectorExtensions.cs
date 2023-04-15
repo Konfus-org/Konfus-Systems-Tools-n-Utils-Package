@@ -18,13 +18,13 @@ namespace Konfus.Utility.Extensions
             point = dir + pivot; // calculate rotated point
         }
         
-        public static void Snap(this ref Vector3 v, float snapValue)
+        public static void Snap(this ref Vector3 v, float snapValue, float offset = 0)
         {
             var snappedVector = new Vector3
             (
-                snapValue * Mathf.Round(v.x / snapValue),
-                snapValue * Mathf.Round(v.y / snapValue),
-                snapValue * Mathf.Round(v.z / snapValue)
+                snapValue * Mathf.RoundToInt(v.x / snapValue) + offset,
+                snapValue * Mathf.RoundToInt(v.y / snapValue) + offset,
+                snapValue * Mathf.RoundToInt(v.z / snapValue) + offset
             );
 
             v = snappedVector;

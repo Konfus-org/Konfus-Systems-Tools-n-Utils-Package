@@ -3,41 +3,41 @@ using UnityEngine;
 
 namespace Konfus.Systems.Grid
 {
-    [ExecuteInEditMode] public class SnapToGrid : MonoBehaviour
+    [ExecuteInEditMode] 
+    public class SnapToGrid : MonoBehaviour
     {
+        [Header("Settings")]
+        [SerializeField]
+        private bool snapPosToGrid = true;
+        [SerializeField]
+        private bool sizeScaleToGrid = true;
+        
+        [Header("Dependencies")]
         [SerializeField]
         private GridBase grid;
 
-        public bool useLocalPos = true;
-        public bool snapToGrid = true;
-        public bool sizeToGrid = true;
+
+        private float _transformChangeDelta;
+        private Vector3 _lastPosition;
         
         // Adjust size and gridPosition
         private void Update()
         {
+            if (grid == null || !transform.hasChanged) return;
+            transform.hasChanged = false;
             Snap();
         }
 
-        public void Snap()
+        private void Snap()
         {
-            if (snapToGrid)
+            if (snapPosToGrid)
             {
-                if (useLocalPos)
-                {
-                    Vector3 position = transform.localPosition;
-                    position.Snap(grid.CellSize);
-                    transform.localPosition = position;
-                }
-                else
-                {
-                    Vector3 position = transform.position;
-                    position.Snap(grid.CellSize);
-                    transform.position = position;
-                }
-                
+                Vector3 position = transform.position;
+                position.Snap(grid.CellSize);
+                transform.position = position;
             }
 
-            if (sizeToGrid)
+            if (sizeScaleToGrid)
             {
                 Vector3 localScale = transform.localScale;
                 localScale.Snap(grid.CellSize);

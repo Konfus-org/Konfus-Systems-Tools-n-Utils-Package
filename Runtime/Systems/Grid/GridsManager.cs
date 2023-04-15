@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace Konfus.Systems.Grid
 {
-    [ExecuteInEditMode] public class GridsManager : MonoBehaviour
+    [ExecuteInEditMode] 
+    public class GridsManager : MonoBehaviour
     {
         [SerializeField]
         protected SerializableDict<string, GridBase> grids;

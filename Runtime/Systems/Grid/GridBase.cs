@@ -11,11 +11,12 @@ namespace Konfus.Systems.Grid
     [ExecuteInEditMode]
     public abstract class GridBase : MonoBehaviour
     {
-        [Header("Debug")]
+        [Header("Settings")]
         [PropertyOrder(2), SerializeField, Tooltip("Can also update this by pressing ctrl and scaling the transform this script is attached to.")] 
         private float cellSize = 1f;
         [PropertyOrder(2), SerializeField, Tooltip("Can also update this by scaling the transform this script is attached to.")] 
         private Vector3Int scale = Vector3Int.one * 10;
+        [Header("Debug")]
         [PropertyOrder(3), SerializeField]
         private bool drawGrid = true;
         [PropertyOrder(3), SerializeField]
@@ -186,11 +187,13 @@ namespace Konfus.Systems.Grid
 
         private void ListenForScaleChanges()
         {
+            // transform scale changed
             if (transform.hasChanged)
             {
                 if (transform.localScale != Scale) OnTransformScaleChanged();
                 transform.hasChanged = false;
             }
+            // grid inspector scale value changed
             else if (transform.localScale != Scale) OnGridScaleChanged();
         }
 
