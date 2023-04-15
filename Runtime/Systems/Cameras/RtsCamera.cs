@@ -19,7 +19,9 @@ namespace Konfus.Systems.Cameras
         [SerializeField] 
         private float sensitivityX = 2f;
         [SerializeField] 
-        public float sensitivityY = 2f;
+        private float sensitivityY = 2f;
+        [SerializeField] 
+        private float moveSpeed = 1f;
 
         [Header("Dependencies")] 
         [SerializeField]
@@ -78,7 +80,19 @@ namespace Konfus.Systems.Cameras
 
         private void Move()
         {
-            transform.Translate(new Vector3(_moveInput.x, 0, _moveInput.y), Space.World);
+            Transform camTransform = mainCamera.transform;
+            Vector3 camForward = camTransform.forward;
+            Vector3 camRight = camTransform.right;
+            
+            camForward.y = 0; 
+            camRight.y = 0;
+            camForward.Normalize();
+            camRight.Normalize();
+            
+            Vector3 moveDir = camForward * _moveInput.y + camRight * _moveInput.x;
+            Vector3 moveTo = new (moveDir.x, 0, moveDir.z);
+            
+            transform.Translate(moveTo * moveSpeed, Space.World);
         }
     }
 }
