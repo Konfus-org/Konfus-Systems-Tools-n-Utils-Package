@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
-    [CreateAssetMenu(fileName = "New State Machine", menuName = "State Machine/New State Machine", order = 1)]
+    [CreateAssetMenu(fileName = "New State Machine", menuName = "Konfus/State Machine/New State Machine", order = 1)]
     public class StateMachine : Graph.Graph
     {
         [SerializeField, HideInInspector] private bool _hasBeenInitialised = false;

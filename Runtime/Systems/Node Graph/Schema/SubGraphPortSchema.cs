@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.Node_Graph.Schema
 {
-    [CreateAssetMenu(fileName = "SubGraphPortSchema", menuName = "NGP/Schema/SubGraphPortSchema", order = 0)]
+    //[CreateAssetMenu(fileName = "SubGraphPortSchema", menuName = "NGP/Schema/SubGraphPortSchema", order = 0)]
     public class SubGraphPortSchema : ScriptableObject
     {
         public const string EgressPortDataFieldName = nameof(egressPortData);

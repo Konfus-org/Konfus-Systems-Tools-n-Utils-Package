@@ -5,6 +5,18 @@ namespace Konfus.Utility.Extensions
 {
     public static class TransformExtensions
     {
+        public static void Face(this Transform t, Transform target)
+        {
+            Vector3 dir = target.position - t.position;
+            t.rotation = Quaternion.FromToRotation(target.transform.up, dir);
+        }
+        
+        public static void Face(this Transform t, Vector3 target, Vector3 up)
+        {
+            Vector3 dir = target - t.position;
+            t.rotation = Quaternion.FromToRotation(up, dir);
+        }
+        
         public static bool IsFacing(this Transform t, Transform target)
         {
             return Vector3.Angle(t.forward, target.position - t.position) < 10;

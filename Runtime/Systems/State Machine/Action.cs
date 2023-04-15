@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
-    //[InlineEditor, CreateAssetMenu(fileName = "New Action", menuName = "State Machine/New State Machine")]
+    [InlineEditor, CreateAssetMenu(fileName = "New Action", menuName = "Konfus/State Machine/New State Machine")]
     public abstract class Action : ScriptableObject
     {
         public abstract void OnEnter(StateEngine engine);

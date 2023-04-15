@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.Node_Graph.Schema
 {
-    [CreateAssetMenu(fileName = "PortIdentifier", menuName = "NGP/Port Identifier")]
+    //[CreateAssetMenu(fileName = "PortIdentifier", menuName = "NGP/Port Identifier")]
     public class PortIdentifier : ScriptableObject
     {
         [SerializeField] private string identifier;

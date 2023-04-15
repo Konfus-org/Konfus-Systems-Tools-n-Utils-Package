@@ -1,5 +1,4 @@
-﻿using Konfus.Utility.Serialization;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
