@@ -1,23 +1,26 @@
 using Cinemachine;
 using UnityEngine;
 
-public class RtsCamera : MonoBehaviour
+namespace Konfus.Systems.Cameras
 {
-    [SerializeField]
-    private ICinemachineCamera cinemachineCamera;
-
-    public void OnMouseInput(Vector2 mouseInput)
+    public class RtsCamera : MonoBehaviour
     {
+        [SerializeField]
+        private ICinemachineCamera cinemachineCamera;
+
+        public void OnMouseInput(Vector2 mouseInput)
+        {
         
-    }
+        }
     
-    public void OnMoveInput(Vector2 moveInput)
-    {
+        public void OnMoveInput(Vector2 moveInput)
+        {
         
-    }
+        }
 
-    private void Update()
-    {
+        private void Update()
+        {
         
+        }
     }
 }
