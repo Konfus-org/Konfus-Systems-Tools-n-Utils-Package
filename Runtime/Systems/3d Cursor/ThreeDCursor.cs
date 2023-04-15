@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using Konfus.Systems.ThreeDCursor;
 using UnityEngine;
 
-namespace Konfus_Systems_Tools_n__Utils_Package.Runtime.Systems._3d_Cursor
+namespace Konfus.Systems.ThreeDCursor
 {
     public class ThreeDCursor : MonoBehaviour
     {
