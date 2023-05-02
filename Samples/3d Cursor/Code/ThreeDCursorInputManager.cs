@@ -1,7 +1,7 @@
 using Konfus.Systems.ThreeDCursor;
 using UnityEngine;
 
-namespace Konfus_Systems_Tools_n__Utils_Package.Samples._3d_Cursor.Code
+namespace Konfus_Systems_Tools_n_Utils_Package.Samples._3d_Cursor.Code
 {
     /// <summary>
     /// Example of how to use the 3d cursor, I don't recommend doing this exactly I would at least

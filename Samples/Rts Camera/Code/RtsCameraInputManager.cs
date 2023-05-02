@@ -1,7 +1,7 @@
 ﻿using Konfus.Systems.Cameras;
 using UnityEngine;
 
-namespace Konfus_Systems_Tools_n__Utils_Package.Samples.Rts_Camera.Code
+namespace Konfus_Systems_Tools_n_Utils_Package.Samples.Rts_Camera.Code
 {
     /// <summary>
     /// Sample usage of rts camera, I don't recommend using this as is!
@@ -23,9 +23,9 @@ namespace Konfus_Systems_Tools_n__Utils_Package.Samples.Rts_Camera.Code
             bool leftClick = Input.GetButton("Left Click");
             float zoom = Input.GetAxis("Mouse ScrollWheel");
             
-            if (rightClick || leftClick) rtsCamera.OnRotateInput(new Vector2(mouseX, mouseY));
+            if (rightClick || leftClick) rtsCamera.OnRotateInput(new Vector2(mouseX, mouseY).normalized);
             else rtsCamera.OnRotateInput(Vector2.zero);
-            rtsCamera.OnMoveInput(new Vector2(moveX, moveY));
+            rtsCamera.OnMoveInput(new Vector2(moveX, moveY).normalized);
             rtsCamera.OnZoomInput(zoom);
         }
     }

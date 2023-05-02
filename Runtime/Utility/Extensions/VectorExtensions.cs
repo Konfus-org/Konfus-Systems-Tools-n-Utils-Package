@@ -5,7 +5,6 @@ namespace Konfus.Utility.Extensions
 {
     public static class Vector3Extensions 
     {
-
         public static Vector3 RandomVector3(MinMaxFloat x, MinMaxFloat y, MinMaxFloat z)
         {
             return new Vector3(Random.Range(x.min, x.max), Random.Range(y.min, y.max), Random.Range(z.min, z.max));

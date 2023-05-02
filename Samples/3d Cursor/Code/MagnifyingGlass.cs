@@ -1,7 +1,7 @@
 using Konfus.Utility.Extensions;
 using UnityEngine;
 
-namespace Konfus_Systems_Tools_n__Utils_Package.Samples._3d_Cursor.Code
+namespace Konfus_Systems_Tools_n_Utils_Package.Samples._3d_Cursor.Code
 {
     public class MagnifyingGlass : MonoBehaviour
     {
