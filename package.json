@@ -2,11 +2,11 @@
     "name": "com.konfus.systemstoolsnutils",
     "displayName": "Konfus Systems, Tools, n' Utils",
     "version": "1.0.0",
-    "unity": "2022",
+    "unity": "2022.3",
     "description": "All my reusable systems, tools, and utilities in one place",
     "keywords": [
-        "Game Systems",
-	  "Editor Tools",
+        "Game Systems", 
+        "Editor Tools",
         "Utility"
     ],
     "author": {

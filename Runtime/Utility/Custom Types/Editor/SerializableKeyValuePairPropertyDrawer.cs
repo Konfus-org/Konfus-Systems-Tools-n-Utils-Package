@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Utility.Serialization.Editor
+namespace Konfus.Utility.Custom_Types.Editor
 {
     [CustomPropertyDrawer(typeof(SerializableKeyValuePair<,>), true)]
     public class SerializableKeyValuePairPropertyDrawer : PropertyDrawer

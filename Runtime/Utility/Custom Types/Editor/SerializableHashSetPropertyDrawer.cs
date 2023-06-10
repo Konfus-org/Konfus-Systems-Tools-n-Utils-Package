@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Utility.Serialization.Editor
+namespace Konfus.Utility.Custom_Types.Editor
 {
     [CustomPropertyDrawer(typeof(SerializableHashSet<>), true)]
     public class SerializableHashSetPropertyDrawer : PropertyDrawer

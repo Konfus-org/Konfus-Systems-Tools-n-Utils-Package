@@ -1,9 +1,20 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Code.Scripts.Konfus.Systems.AI
+namespace Konfus.Systems.AI
 {
-    public class Brain : MonoBehaviour, IBrain
+    /// <summary>
+    /// Abstract class that houses one reference to an <see cref="Agent"/>.
+    /// This class is meant to be inherited by a 'Controller' of sorts that will control
+    /// the agent. The controlled agent can be changed at runtime.
+    /// </summary>
+    public abstract class Brain : MonoBehaviour
     {
-        public IAgent ControlledAgent { get; protected set; }
+        [SerializeField] 
+        private Agent controlledAgent;
+        public Agent ControlledAgent 
+        { 
+            get => controlledAgent;
+            protected set => controlledAgent = value;
+        }
     }
 }

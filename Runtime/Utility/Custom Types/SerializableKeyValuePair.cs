@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Konfus.Utility.Serialization
+namespace Konfus.Utility.Custom_Types
 {
     [Serializable]
     public class SerializableKeyValuePair<TKey, TValue>

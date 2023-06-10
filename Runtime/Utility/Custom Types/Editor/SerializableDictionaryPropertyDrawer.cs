@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Konfus.Utility.Serialization.Editor
+namespace Konfus.Utility.Custom_Types.Editor
 {
     [CustomPropertyDrawer(typeof(SerializableDict<,>), true)]
     public class SerializableDictionaryPropertyDrawer : PropertyDrawer

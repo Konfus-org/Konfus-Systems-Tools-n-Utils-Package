@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Konfus.Systems.Blackboard.Variables;
-using Konfus.Utility.Serialization;
+using Konfus.Utility.Custom_Types;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Konfus.Systems.FX
 {
     [Serializable]
-    public class FxSystemEffect : Effect
+    public class MultiEffect : Effect
     {
         [SerializeField]
         private FxSystem fxSystem;

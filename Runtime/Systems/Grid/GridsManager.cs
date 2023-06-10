@@ -1,4 +1,4 @@
-using Konfus.Utility.Serialization;
+using Konfus.Utility.Custom_Types;
 using UnityEngine;
 
 namespace Konfus.Systems.Grid
