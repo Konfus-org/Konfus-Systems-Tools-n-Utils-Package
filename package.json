@@ -5,7 +5,8 @@
     "unity": "2022.3",
     "description": "All my reusable systems, tools, and utilities in one place",
     "dependencies": {
-        "odininspector": "3.1.13"
+        "com.konfus.odininspector": "https://github.com/Konfus-dev/Odin-Inspector-and-Serializer.git",
+        "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync"
     },
     "keywords": [
         "Game Systems", 
