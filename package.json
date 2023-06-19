@@ -6,7 +6,7 @@
     "description": "All my reusable systems, tools, and utilities in one place",
     "dependencies": {
         "com.konfus.odininspector": "https://github.com/Konfus-dev/Odin-Inspector-and-Serializer.git",
-        "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync"
+        "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git"
     },
     "keywords": [
         "Game Systems", 
