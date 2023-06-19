@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Konfus.Systems.Graph.Attributes;
-using Konfus.Systems.Graph;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Konfus.Systems.State_Machine
 {
-    [Serializable, Node("#9c0000", inputPortName = "From")]
-    /*[CreateAssetMenu(fileName = "New State", menuName = "State Machine/New State")]*/
-    public class State : INode /*: ScriptableObject*/
+    [Serializable]
+    public class State /*: ScriptableObject*/
     {
         [SerializeField]
         private List<Action> actions;
-        [PortList, SerializeReference]
+        [SerializeField]
         private List<Transition> transitions;
 
         public List<Transition> GetTransitions() => transitions;

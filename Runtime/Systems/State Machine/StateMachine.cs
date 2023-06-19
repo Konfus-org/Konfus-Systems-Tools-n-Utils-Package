@@ -1,15 +1,10 @@
-﻿using System.Diagnostics;
-using Konfus.Systems.Graph;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
     [CreateAssetMenu(fileName = "New State Machine", menuName = "Konfus/State Machine/New State Machine", order = 1)]
-    public class StateMachine : Graph.Graph
+    public class StateMachine : ScriptableObject
     {
-        [SerializeField, HideInInspector] private bool _hasBeenInitialised = false;
-
         private StartingState _startingState;
         private State _currentState;
         
@@ -45,18 +40,6 @@ namespace Konfus.Systems.State_Machine
                 engine.stateEvents[_currentState.name].TriggerEnterEvent();*/
             
             _currentState.OnEnter(engine);
-        }
-        
-        [Conditional("UNITY_EDITOR")]
-        private void OnValidate()
-        {
-            if (_hasBeenInitialised) return;
-            
-            _hasBeenInitialised = true;
-            CreateSerializedObject();
-            AddNode(new Node(new StartingState()));
-            ForceSerializationUpdate();
-            AssetDatabase.SaveAssets();
         }
     }
 }

@@ -1,16 +1,11 @@
 ﻿using System;
-using Konfus.Systems.Graph;
-using Konfus.Systems.Graph.Attributes;
-using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
-    [Serializable, Node("#007bbd", inputPortName = "From")]
-    public class Transition : INode
+    [Serializable]
+    public class Transition
     {
-        [Port("To"), SerializeReference]
         public State to;
-        
         public Condition condition;
 
         public void OnEnter(StateEngine engine)

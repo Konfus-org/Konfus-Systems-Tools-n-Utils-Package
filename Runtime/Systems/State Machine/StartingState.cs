@@ -1,14 +1,12 @@
 ﻿using System;
-using Konfus.Systems.Graph;
-using Konfus.Systems.Graph.Attributes;
 using UnityEngine;
 
 namespace Konfus.Systems.State_Machine
 {
-    [Serializable, Node("#008225", nodeName: "Start", createInputPort = false)]
-    public class StartingState : INode
+    [Serializable]
+    public class StartingState
     {
-        [Port("To"), SerializeReference]
+        [SerializeField]
         public State startAt;
     }
 }
