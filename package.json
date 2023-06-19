@@ -5,7 +5,7 @@
     "unity": "2022.3",
     "description": "All my reusable systems, tools, and utilities in one place",
     "dependencies": {
-        "https://github.com/Konfus-dev/Odin-Inspector-and-Serializer.git": "3.1.13"
+        "odininspector": "3.1.13"
     },
     "keywords": [
         "Game Systems", 
