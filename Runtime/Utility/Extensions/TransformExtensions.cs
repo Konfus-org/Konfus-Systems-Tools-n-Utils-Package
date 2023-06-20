@@ -10,7 +10,7 @@ namespace Konfus.Utility.Extensions
             Vector3 dir = target.position - t.position;
             t.rotation = Quaternion.FromToRotation(target.transform.up, dir);
         }
-        
+
         public static void Face(this Transform t, Vector3 target, Vector3 up)
         {
             Vector3 dir = target - t.position;

@@ -13,8 +13,7 @@ namespace Konfus.Systems.Modular_Agents
         {
             foreach (IAgentInputModule inputModule in _inputModules)
             {
-                if (inputModule.AssociatedInputType != input.GetType()) continue;
-                inputModule.OnInput(input);
+                inputModule.OnInputFromAgent(input);
                 return;
             }
         }
@@ -29,18 +28,12 @@ namespace Konfus.Systems.Modular_Agents
             foreach (IAgentModule module in modules)
             {
                 module.Initialize(this);
-                switch (module)
-                {
-                    case IAgentInputModule inputModule:
-                        inputModules.Add(inputModule);
-                        break;
-                    case IAgentUpdateModule updateModule:
-                        updateModules.Add(updateModule);
-                        break;
-                    case IAgentPhysicsModule physicsModule:
-                        physicsModules.Add(physicsModule);
-                        break;
-                }
+                if (module is IAgentInputModule inputModule)
+                    inputModules.Add(inputModule);
+                if (module is IAgentUpdateModule updateModule)
+                    updateModules.Add(updateModule);
+                if (module is IAgentPhysicsModule physicsModule) 
+                    physicsModules.Add(physicsModule);
             }
             
             _inputModules = inputModules.ToArray();

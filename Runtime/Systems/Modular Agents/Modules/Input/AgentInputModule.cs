@@ -1,20 +1,17 @@
-﻿using System;
-using Konfus.Systems.AI;
+﻿using Konfus.Systems.AI;
 using UnityEngine;
 
 namespace Konfus.Systems.Modular_Agents
 {
     public abstract class AgentInputModule<TInput> : MonoBehaviour, IAgentInputModule
     {
-        public Type AssociatedInputType => typeof(TInput);
-
-        public void OnInput(IAgentInput input)
+        public void OnInputFromAgent(IAgentInput input)
         {
             if (input.GetType() != typeof(TInput)) return;
-            ProcessInput((TInput)input);
+            ProcessInputFromAgent((TInput)input);
         }
 
         public abstract void Initialize(ModularAgent modularAgent);
-        protected abstract void ProcessInput(TInput input);
+        protected abstract void ProcessInputFromAgent(TInput input);
     }
 }
