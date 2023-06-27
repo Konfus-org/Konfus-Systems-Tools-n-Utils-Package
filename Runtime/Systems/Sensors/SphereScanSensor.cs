@@ -22,10 +22,10 @@ namespace Konfus.Systems.Sensor_Toolkit
         {
             isTriggered = false;
 
-            if (sensorType == Type.Standard)
+            if (sensorType == Type.Standard && sensorLength != 0)
             {
-                if (Physics.SphereCast(new Ray(transform.position + Vector3.forward * sensorRadius/2, transform.forward), sensorRadius, out RaycastHit hit, sensorLength,
-                        detectionFilter, QueryTriggerInteraction.Ignore))
+                var ray = new Ray(transform.position + Vector3.forward * sensorRadius / 2, transform.forward);
+                if (Physics.SphereCast(ray, sensorRadius, out RaycastHit hit, sensorLength, detectionFilter, QueryTriggerInteraction.Ignore))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject };
@@ -36,7 +36,11 @@ namespace Konfus.Systems.Sensor_Toolkit
             }
             else
             {
-                RaycastHit[] hitsArray = Physics.SphereCastAll(transform.position + Vector3.forward * sensorRadius/2, sensorRadius, transform.forward, sensorLength,
+                RaycastHit[] hitsArray = Physics.SphereCastAll(
+                    transform.position + Vector3.forward * sensorRadius/2, 
+                    sensorRadius, 
+                    transform.forward, 
+                    sensorLength,
                     detectionFilter, QueryTriggerInteraction.Ignore);
                 if (hitsArray.Length > 0)
                 {
@@ -51,7 +55,12 @@ namespace Konfus.Systems.Sensor_Toolkit
                         return 0;
                     });
 
-                    hits = hitsArray.Select(hit => new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject }).ToArray();
+                    hits = hitsArray.Select(hit => new Hit() 
+                    {
+                        point = hit.point, 
+                        normal = hit.normal, 
+                        gameObject = hit.collider.gameObject 
+                    }).ToArray();
                     isTriggered = true;
                     return true;
                 }
@@ -66,11 +75,7 @@ namespace Konfus.Systems.Sensor_Toolkit
             Scan();
 
             Gizmos.color = nothingDetectedColor;
-            if (!isTriggered)
-            {
-            }
-            else
-                Gizmos.color = detectedSomethingColor;
+            if (isTriggered) Gizmos.color = detectedSomethingColor;
 
             float length = sensorLength;
             
@@ -78,10 +83,15 @@ namespace Konfus.Systems.Sensor_Toolkit
             {
                 case Type.Standard:
                 {
-                    Gizmos.matrix *= Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    if (isTriggered) length = Vector3.Distance(transform.position, hits.First().point);
-                    Gizmos.DrawLine(Vector3.zero, new Vector3(0, 0, length));
-                    Gizmos.DrawWireSphere(Vector3.zero + Vector3.forward * length, sensorRadius);
+                    if (isTriggered)
+                    {
+                        Gizmos.DrawLine(transform.position, hits.First().point);
+                        Gizmos.DrawWireSphere(hits.First().point, sensorRadius);
+                    }
+                    else
+                    {
+                        Gizmos.DrawLine(transform.position, transform.position + transform.forward);
+                    }
                     break;
                 }
                 case Type.Full:
@@ -89,17 +99,16 @@ namespace Konfus.Systems.Sensor_Toolkit
                     if (isTriggered)
                     {
                         foreach (Hit hit in hits)
-                            Gizmos.DrawSphere(hit.point == default ? hit.gameObject.transform.position : hit.point, 0.2f);
+                            Gizmos.DrawSphere(hit.point, 0.2f);
                     }
                     
-                    float halfThin = sensorRadius;
                     Gizmos.matrix *= Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    Gizmos.DrawLine(Vector3.up * halfThin, Vector3.up * halfThin + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.up * halfThin, -Vector3.up * halfThin + Vector3.forward * length);
-                    Gizmos.DrawLine(Vector3.right * halfThin, Vector3.right * halfThin + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.right * halfThin, -Vector3.right * halfThin + Vector3.forward * length);
-                    Gizmos.DrawWireSphere(Vector3.forward * sensorRadius/2, sensorRadius);
-                    Gizmos.DrawWireSphere(Vector3.zero + Vector3.forward * length, sensorRadius);
+                    Gizmos.DrawLine(Vector3.up * sensorRadius, Vector3.up * sensorRadius + Vector3.forward * length);
+                    Gizmos.DrawLine(-Vector3.up * sensorRadius, -Vector3.up * sensorRadius + Vector3.forward * length);
+                    Gizmos.DrawLine(Vector3.right * sensorRadius, Vector3.right * sensorRadius + Vector3.forward * length);
+                    Gizmos.DrawLine(-Vector3.right * sensorRadius, -Vector3.right * sensorRadius + Vector3.forward * length);
+                    Gizmos.DrawWireSphere(Vector3.zero, sensorRadius);
+                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length), sensorRadius);
                     break;
                 }
             }

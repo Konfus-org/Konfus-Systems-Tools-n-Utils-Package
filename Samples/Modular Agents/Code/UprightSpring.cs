@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
 {
-    public class UprightSpring : AgentInputModule<MovementInput>, IAgentPhysicsModule
+    public class UprightSpring : AgentInputModule<BasicLocomotionInput>, IAgentPhysicsModule
     {
         [SerializeField]
         private float uprightSpringStrength;
@@ -19,10 +19,10 @@ namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
             _rb = modularAgent.GetComponent<Rigidbody>();
         }
 
-        protected override void ProcessInputFromAgent(MovementInput input)
+        protected override void ProcessInputFromAgent(BasicLocomotionInput input)
         {
-            if (input.Value == Vector2.zero) return;
-            _targetLookDir = new Vector3(input.Value.x, 0, input.Value.y);
+            if (input.MoveInput == Vector2.zero) return;
+            _targetLookDir = new Vector3(input.MoveInput.x, 0, input.MoveInput.y);
         }
 
         public void OnAgentFixedUpdate()

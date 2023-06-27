@@ -1,30 +1,29 @@
 ﻿using Konfus.Systems.Modular_Agents;
+using Konfus.Systems.Sensor_Toolkit;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
 {
     [RequireComponent(typeof(Rigidbody))] 
-    //[RequireComponent(typeof(UprightSpring))]
-    public class RigidbodyBasicLocomotion : AgentInputModule<MovementInput>, IAgentPhysicsModule
+    [RequireComponent(typeof(UprightSpring))]
+    public class RigidbodyBasicLocomotion : AgentInputModule<BasicLocomotionInput>, IAgentPhysicsModule, IAgentUpdateModule
     {
         [Header("Rotation")]
         [SerializeField] 
         private RotateMode rotateMode;
-        [SerializeField, DisableIf(nameof(rotateMode), RotateMode.Disabled)]
-        private Transform cameraTransform;
         [SerializeField, DisableIf(nameof(rotateMode), RotateMode.Disabled)] 
         private float rotationSpeed = 5f;
         
         [Header("Leaning")] 
         [SerializeField] 
-        private float maxLeanAngle = 45f;
-        [SerializeField] 
-        private float leanSpeed = 10f;
+        private float leanAmount = 1f;
 
         [Header("Movement")]
         [SerializeField] 
         private MoveMode moveMode;
+        [SerializeField, EnableIf(nameof(moveMode), MoveMode.RelativeToCamera)]
+        private Transform cameraTransform;
         [SerializeField]
         private AnimationCurve accelerationCurve;
         [SerializeField] 
@@ -33,14 +32,33 @@ namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
         private float acceleration = 10f;
         [SerializeField] 
         private float deceleration = 10f;
+        
+        [Header("Jumping")]
+        [SerializeField] 
+        private float jumpForce = 5f;
+        [SerializeField] 
+        private float coyoteTime = 0.1f;
+        [SerializeField]
+        private float jumpTime = 0.5f;
+        [SerializeField]
+        private AnimationCurve jumpHeightCurve;
 
-        private Rigidbody _rb;
-        private Quaternion _initialRotation;
-
-        private Vector2 _moveInput;
-        private Vector3 _targetVelocity;
+        [Header("Sensors")] 
+        [SerializeField]
+        private ScanSensor groundSensor;
+        
         private float _currentSpeed;
-
+        private float _jumpAirTime;
+        private float _coyoteTimer;
+        
+        private bool _isJumping;
+        private bool _jumpInput;
+        
+        private Vector2 _moveInput;
+        private Vector3 _moveDir;
+        private Vector3 _targetVelocity;
+        private Rigidbody _rb;
+        
         private enum RotateMode
         {
             TowardMoveInput,
@@ -56,19 +74,30 @@ namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
         public override void Initialize(ModularAgent modularAgent)
         {
             _rb = modularAgent.GetComponent<Rigidbody>();
-            _initialRotation = _rb.transform.rotation;
+        }
+
+        public void OnAgentUpdate()
+        {
+            // Update move direction based off move input
+            _moveDir = CalculateMoveDirection(_moveInput);
+
+            // Run jump logic
+            bool canJump = CanJump();
+            if (canJump) StartJump();
+            else if (groundSensor.isTriggered) StopJump();
         }
 
         public void OnAgentFixedUpdate()
         {
-            Vector3 moveDir = CalculateMoveDirection(_moveInput);
-            Move(moveDir);
-            Rotate(moveDir);
+            Move(_moveDir);
+            Rotate(_moveDir);
+            if (_isJumping) PerformJump();
         }
 
-        protected override void ProcessInputFromAgent(MovementInput input)
+        protected override void ProcessInputFromAgent(BasicLocomotionInput input)
         {
-            _moveInput = input.Value;
+            _moveInput = input.MoveInput;
+            _jumpInput = input.JumpInput;
         }
 
         private Vector3 CalculateMoveDirection(Vector2 input)
@@ -130,42 +159,63 @@ namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
             // Apply acceleration to reach the desired velocity
             Vector3 velocityChange = desiredVelocity - currentVelocity;
             velocityChange.y = 0f; // Ignore changes in the vertical direction
-            _rb.AddForce(velocityChange.normalized * currentAcceleration, ForceMode.Acceleration);
 
             // Apply deceleration to gradually slow down when there is no input
             if (dir.magnitude < 0.01f)
             {
                 Vector3 decelerationForce = -currentVelocity.normalized * deceleration;
                 decelerationForce.y = 0f; // Ignore deceleration in the vertical direction
+                // Using AddForceAtPosition in order to both move the player and cause the play to lean in the direction of input.
                 _rb.AddForce(decelerationForce, ForceMode.Acceleration);
+                /*_rb.AddForceAtPosition(
+                    decelerationForce, 
+                    transform.position + new Vector3(0f, transform.localScale.y * leanAmount, 0f)
+                ); */
+            }
+            // Apply acceleration with input
+            else
+            {
+                // Using AddForceAtPosition in order to both move the player and cause the play to lean in the direction of input.
+                _rb.AddTorque(new Vector3(-dir.y, 0, -dir.x) * leanAmount);
+                _rb.AddForce(velocityChange.normalized * currentAcceleration, ForceMode.Acceleration);
+                /*_rb.AddForceAtPosition(
+                    velocityChange.normalized * currentAcceleration, 
+                    transform.position + new Vector3(0f, transform.localScale.y * leanAmount, 0f)
+                ); */
             }
 
             // Clamp the velocity to the maximum speed
             _rb.velocity = Vector3.ClampMagnitude(_rb.velocity, maxSpeed);
         }
-
-        private void LeanInDirectionOfMovement(Vector3 dir)
+        
+        private void StartJump()
         {
-            Vector3 velocity = _rb.velocity;
-            velocity.y = 0f; // Ignore vertical velocity
+            _isJumping = true;
+            _rb.AddForce(Vector3.up * jumpForce + _moveDir/2, ForceMode.VelocityChange);
+        }
 
-            if (velocity != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(velocity, Vector3.up);
-                Quaternion leanRotation = Quaternion.RotateTowards(transform.rotation, targetRotation, leanSpeed * Time.fixedDeltaTime);
+        private void PerformJump()
+        {
+            float normalizedTime = _jumpAirTime / jumpTime;
+            float jumpHeightMultiplier = jumpHeightCurve.Evaluate(normalizedTime);
+            float jumpForceApplied = jumpForce * jumpHeightMultiplier;
             
-                // Calculate lean angle based on rotation difference
-                float leanAngle = Quaternion.Angle(_initialRotation, leanRotation);
-                leanAngle = Mathf.Clamp(leanAngle, 0f, maxLeanAngle);
-            
-                // Apply lean rotation
-                transform.rotation = Quaternion.Euler(0f, 0f, leanAngle);
-            }
-            else
-            {
-                // Reset to initial rotation if not moving
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, _initialRotation, leanSpeed * Time.fixedDeltaTime);
-            }
+            _jumpAirTime += Time.fixedDeltaTime;
+                
+            _rb.AddForce(Vector3.up * jumpForceApplied + _moveDir/2, ForceMode.Acceleration);
+        }
+
+        private void StopJump()
+        {
+            _isJumping = false;
+            _jumpAirTime = 0f;
+            _coyoteTimer = coyoteTime;
+        }
+
+        private bool CanJump()
+        {
+            groundSensor.Scan();
+            return !_isJumping && _jumpInput && _jumpAirTime < jumpTime && (groundSensor.isTriggered || _coyoteTimer > 0f);
         }
     }
 }

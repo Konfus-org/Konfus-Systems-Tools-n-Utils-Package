@@ -1,0 +1,20 @@
+{
+    "name": "ModularAgentsSample",
+    "rootNamespace": "Konfus",
+    "references": [
+        "GUID:f2eda83c27523d74eb3fed7e6703a9f1",
+        "GUID:d99a0a0dca7b42e40a7decdb2027d059",
+        "GUID:199bf63ec6655c24c869f4c7a735e8a1",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:a88015c3e00dffd48a3c7daec3b0969d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
