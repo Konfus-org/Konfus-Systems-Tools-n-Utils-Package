@@ -9,8 +9,19 @@ namespace Konfus.Utility.Extensions
         {
             return task.ContinueWith(t =>
             {
-                if (t.IsFaulted || t.IsCanceled || t.Exception != null)
+                if (t.IsFaulted || t.Exception != null)
                 {
+                    AggregateException aggException = t.Exception.Flatten();
+                    foreach (Exception exception in aggException.InnerExceptions)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            "Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                    }
+                    return;
+                }
+                if (t.IsCanceled)
+                {
+                    System.Diagnostics.Debug.WriteLine("Continue in background canceled.");
                     return;
                 }
                 action(t.Result);
@@ -20,15 +31,15 @@ namespace Konfus.Utility.Extensions
         // https://github.com/thedillonb/CodeHub/blob/master/CodeHub.Core/Utils/FireAndForgetTask.cs
         public static void FireAndForget(this Task task)
         {
-            return task.ContinueWith(t =>
+            task.ContinueWith(t =>
             {
-                if (t.IsFaulted)
+                if (t.IsFaulted || t.Exception != null)
                 {
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
                         System.Diagnostics.Debug.WriteLine(
-                            "Fire and Forget failed: " + exception.Message + " - " + exception.StackTrace);
+                            "Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
                     }
                 }
                 else if (t.IsCanceled)
