@@ -1,0 +1,16 @@
+{
+    "name": "Editor.Oscillator",
+    "rootNamespace": "Konfus",
+    "references": [
+        "GUID:58bb60be28737d44f892e85871b9e752"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
