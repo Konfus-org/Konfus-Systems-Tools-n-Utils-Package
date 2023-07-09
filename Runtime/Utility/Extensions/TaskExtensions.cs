@@ -18,7 +18,7 @@ namespace Konfus.Utility.Extensions
         }
  
         // https://github.com/thedillonb/CodeHub/blob/master/CodeHub.Core/Utils/FireAndForgetTask.cs
-        public static Task FireAndForget(this Task task)
+        public static void FireAndForget(this Task task)
         {
             return task.ContinueWith(t =>
             {
