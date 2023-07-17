@@ -53,8 +53,15 @@ namespace Konfus.Systems.Sensor_Toolkit
                 {
                     if (hit.collider.gameObject != hitInfo.collider.gameObject)
                     {
-                        // Is obstructed removing hit...
-                        hitsToRemove.Add(hitInfo);
+                        float distHit = Vector3.Distance(transform.position, hitInfo.transform.position);
+                        float distObstruct = Vector3.Distance(transform.position, hit.transform.position);
+                        //only remove hit if hit is further away than obstruction in same direction
+                        //without this, valid hits are being removed also when obstruction is found after valid hit
+                        if (distHit > distObstruct)
+                        {
+                            // Is obstructed removing hit...
+                            hitsToRemove.Add(hitInfo);
+                        }
                     }
                 }
             }
