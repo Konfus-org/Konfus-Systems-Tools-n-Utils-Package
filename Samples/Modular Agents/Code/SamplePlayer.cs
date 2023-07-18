@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace Konfus_Systems_Tools_n_Utils.Samples.Modular_Agents
 {
-    public class Player : Brain
+    public class SamplePlayer : Brain
     {
         private Vector2 _lastMoveInput = Vector2.zero;
         
