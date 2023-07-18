@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using Konfus.Systems.AI;
+using UnityEngine;
 
 namespace Konfus.Systems.Modular_Agents
 {
-    public class ModularAgent : Agent
+    public class ModularAgent : MonoBehaviour, IAgent
     {
         private IAgentInputModule[] _inputModules;
         private IAgentUpdateModule[] _updateModules;
         private IAgentPhysicsModule[] _physicsModules;
 
-        public override void OnInput(IAgentInput input)
+        public void OnInput(IAgentInput input)
         {
             foreach (IAgentInputModule inputModule in _inputModules)
             {

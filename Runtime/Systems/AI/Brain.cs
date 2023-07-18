@@ -9,7 +9,7 @@ namespace Konfus.Systems.AI
     /// </summary>
     public abstract class Brain : MonoBehaviour, IBrain
     {
-        [SerializeField] 
+        [SerializeField]
         private IAgent controlledAgent;
         public IAgent ControlledAgent 
         { 
