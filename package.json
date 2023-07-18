@@ -1,7 +1,7 @@
 {
     "name": "com.konfus.systemstoolsnutils",
     "displayName": "Konfus Systems, Tools, n' Utils",
-    "version": "1.0.4",
+    "version": "1.1.0",
     "unity": "2022.3",
     "description": "All my reusable systems, tools, and utilities in one place",
     "dependencies": {
@@ -15,5 +15,32 @@
     "author": {
         "name": "Konfus",
         "url": "https://github.com/Konfus-dev"
-     }
+     },
+    "samples": [
+        {
+            "displayName": "3d Cursor",
+            "description": "Simple example of how to use the 3d cursor sysem.",
+            "path": "Samples~/3d Cursor"
+        },
+        {
+            "displayName": "Grid System",
+            "description": "Simple example of how to use the grid system.",
+            "path": "Samples~/Grid System"
+        },
+        {
+            "displayName": "Modular Agents",
+            "description": "Simple example of how to use the modular agent system.",
+            "path": "Samples~/Modular Agents"
+        },
+        {
+            "displayName": "Rts Camera",
+            "description": "Simple example of how to use the rts camera system.",
+            "path": "Samples~/Rts Camera"
+        },
+        {
+            "displayName": "Sensors",
+            "description": "Simple example of how to use the sensor system.",
+            "path": "Samples~/Sensors"
+        }
+    ]
 }
