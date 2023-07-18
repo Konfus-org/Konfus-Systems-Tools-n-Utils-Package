@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace Konfus.Utility.Design_Patterns
 {
-    [ExecuteInEditMode]
     /// <summary>
     /// Inherit from if you want a singleton GameObject.
     /// </summary>
