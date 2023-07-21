@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Konfus.Utility.Extensions
 {
     public static class TaskExtensions
     {
-        public static Task ContinueInBackground<T>(this Task<T> task, Action<T> action)
+        /// <summary>
+        /// Runs task in the background
+        /// </summary>
+        /// <param name="task"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task ContinueInBackground<T>(this Task<T> task)
         {
             return task.ContinueWith(t =>
             {
@@ -14,21 +23,58 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        System.Diagnostics.Debug.WriteLine(
-                            "Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.Log("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
                     }
                     return;
                 }
                 if (t.IsCanceled)
                 {
-                    System.Diagnostics.Debug.WriteLine("Continue in background canceled.");
+                    Debug.Log("Continue in background canceled.");
                     return;
                 }
-                action(t.Result);
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
- 
-        // https://github.com/thedillonb/CodeHub/blob/master/CodeHub.Core/Utils/FireAndForgetTask.cs
+
+        /// <summary>
+        /// Will configure the task to not require the captured context to continue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ConfiguredTaskAwaitable<T> ContinueOnAnyContext<T>(this Task<T> task)
+        {
+            return task.ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        /// <summary>
+        /// Will configure the task to not require the captured context to continue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ConfiguredTaskAwaitable ContinueOnAnyContext(this Task task)
+        {
+            return task.ConfigureAwait(continueOnCapturedContext: false);
+        }
+        /// <summary>
+        /// Will configure the task to require the captured context to continue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ConfiguredTaskAwaitable<T> ContinueOnSameContext<T>(this Task<T> task)
+        {
+            return task.ConfigureAwait(continueOnCapturedContext: true);
+        }
+
+        /// <summary>
+        /// Will configure the task to require the captured context to continue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ConfiguredTaskAwaitable ContinueOnSameContext(this Task task)
+        {
+            return task.ConfigureAwait(continueOnCapturedContext: true);
+        }
+        
+        /// <summary>
+        /// Fires task off without having to await it
+        /// </summary>
+        /// <param name="task"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FireAndForget(this Task task)
         {
             task.ContinueWith(t =>
@@ -38,13 +84,12 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        System.Diagnostics.Debug.WriteLine(
-                            "Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.Log("Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
                     }
                 }
                 else if (t.IsCanceled)
                 {
-                    System.Diagnostics.Debug.WriteLine("Fire and forget canceled.");
+                    Debug.Log("Fire and forget canceled.");
                 }
             });
         }
