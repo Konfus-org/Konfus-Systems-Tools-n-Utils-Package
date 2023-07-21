@@ -14,6 +14,34 @@ namespace Konfus.Utility.Extensions
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task ContinueInBackground(this Task task)
+        {
+            return task.ContinueWith(t =>
+            {
+                if (t.IsFaulted || t.Exception != null)
+                {
+                    AggregateException aggException = t.Exception.Flatten();
+                    foreach (Exception exception in aggException.InnerExceptions)
+                    {
+                        Debug.Log("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                    }
+                    return;
+                }
+                if (t.IsCanceled)
+                {
+                    Debug.Log("Continue in background canceled.");
+                    return;
+                }
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+        
+        /// <summary>
+        /// Runs task in the background
+        /// </summary>
+        /// <param name="task"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task ContinueInBackground<T>(this Task<T> task)
         {
             return task.ContinueWith(t =>
