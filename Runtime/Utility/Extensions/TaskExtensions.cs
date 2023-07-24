@@ -51,13 +51,13 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.Log("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.LogError("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
                     }
                     return;
                 }
                 if (t.IsCanceled)
                 {
-                    Debug.Log("Continue in background canceled.");
+                    Debug.LogError("Continue in background canceled.");
                     return;
                 }
             }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -112,12 +112,12 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.Log("Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.LogError("Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
                     }
                 }
                 else if (t.IsCanceled)
                 {
-                    Debug.Log("Fire and forget canceled.");
+                    Debug.LogError("Fire and forget canceled.");
                 }
             });
         }
