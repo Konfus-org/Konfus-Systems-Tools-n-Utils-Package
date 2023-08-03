@@ -100,7 +100,6 @@ namespace Konfus.Systems.Grid
         
         protected void Generate(Func<Vector3Int, INode> createNode)
         {
-            Debug.Log("Situation");
             _nodes = new INode[(int)Scale.x, (int)Scale.y, (int)Scale.z];
             for (int x = 0; x < _nodes.GetLength(0); x++)
             {
