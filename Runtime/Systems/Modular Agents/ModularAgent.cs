@@ -10,7 +10,7 @@ namespace Konfus.Systems.Modular_Agents
         private IAgentUpdateModule[] _updateModules;
         private IAgentPhysicsModule[] _physicsModules;
 
-        public void OnInput(IAgentInput input)
+        public override void OnInput(IAgentInput input)
         {
             foreach (IAgentInputModule inputModule in _inputModules)
             {
