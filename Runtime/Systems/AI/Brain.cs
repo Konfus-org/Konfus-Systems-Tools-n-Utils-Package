@@ -11,10 +11,6 @@ namespace Konfus.Systems.AI
     {
         [SerializeField]
         private Agent controlledAgent;
-        public IAgent ControlledAgent
-        { 
-            get => controlledAgent;
-            protected set => controlledAgent = value;
-        }
+        public IAgent ControlledAgent => controlledAgent;
     }
 }

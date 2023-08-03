@@ -1,10 +1,12 @@
-﻿namespace Konfus.Systems.AI
+﻿using UnityEngine;
+
+namespace Konfus.Systems.AI
 {
     /// <summary>
     /// Abstract agent class that simply takes input, the inheriting class decides how to deal with the input.
     /// </summary>
-    public class Agent : Monobehavior, IAgent
+    public abstract class Agent : MonoBehaviour, IAgent
     {
-        abstract void OnInput(IAgentInput input);
+        public abstract void OnInput(IAgentInput input);
     }
 }
