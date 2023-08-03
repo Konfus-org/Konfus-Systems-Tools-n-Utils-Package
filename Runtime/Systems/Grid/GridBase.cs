@@ -145,15 +145,15 @@ namespace Konfus.Systems.Grid
                 // Draw cell position label...
                 Vector3 handlePos = nodePos;
                 if (!handlePos.IsInViewOfSceneCamera(35)) continue;
-                // Handles.Label(handlePos, node.GetGridPosition().ToString(), style: new GUIStyle()
-                // {
-                //     fontSize = 12,
-                //     alignment = TextAnchor.MiddleCenter,
-                //     normal = new GUIStyleState()
-                //     {
-                //         textColor = gridCellLabelColor
-                //     }
-                // });
+                Handles.Label(handlePos, node.GetGridPosition().ToString(), style: new GUIStyle()
+                {
+                    fontSize = 12,
+                    alignment = TextAnchor.MiddleCenter,
+                    normal = new GUIStyleState()
+                    {
+                        textColor = gridCellLabelColor
+                    }
+                });
             }
         }
 
