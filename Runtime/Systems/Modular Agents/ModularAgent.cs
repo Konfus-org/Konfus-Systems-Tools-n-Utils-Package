@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.Modular_Agents
 {
-    public class ModularAgent : MonoBehaviour, IAgent
+    public class ModularAgent : Agent
     {
         private IAgentInputModule[] _inputModules;
         private IAgentUpdateModule[] _updateModules;
