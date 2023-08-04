@@ -26,7 +26,6 @@ namespace Konfus.Systems.Grid
                 
                 Vector3Int[] potentialNeighborPositions =
                 {
-                    // Straight connections
                     GridPosition + new Vector3Int(0, 1, 0), 
                     GridPosition + new Vector3Int(0, -1, 0),
                     GridPosition + new Vector3Int(1, 0, 0), 

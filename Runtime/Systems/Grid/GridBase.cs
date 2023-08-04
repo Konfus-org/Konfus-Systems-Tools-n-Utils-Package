@@ -21,11 +21,9 @@ namespace Konfus.Systems.Grid
         [PropertyOrder(3), SerializeField]
         private bool drawGrid = true;
         [PropertyOrder(3), SerializeField]
+        private bool drawNodes = false;
+        [PropertyOrder(3), SerializeField]
         private bool drawGridCellLabels = false;
-        [PropertyOrder(4), SerializeField]
-        private Color gridColor = Color.white;
-        [PropertyOrder(4), SerializeField]
-        private Color gridCellLabelColor = new Color(0, 1, 0.328f);
 
         public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
         public Vector3Int Scale => scale;
@@ -123,14 +121,14 @@ namespace Konfus.Systems.Grid
         protected virtual void DrawGridGizmos()
         {
             // Can we draw right now?
-            if (!drawGrid || _nodes == null) return;
+            if ((!drawGrid && !drawNodes) || _nodes == null) return;
             
             // Draw the cells
             foreach (INode node in Nodes)
             {
                 if (node == null) continue;
                 
-                // Draw cell...
+                // Convert to gizmo space to local...
                 Quaternion nodeRot = transform.rotation;
                 Vector3 nodePos = WorldPosFromGridPos(node.GridPosition);
                 Vector3 nodeScale = new Vector3(1, 1, 1) * cellSize;
@@ -140,13 +138,12 @@ namespace Konfus.Systems.Grid
                     nodeScale = new Vector3(1, 0, 1) * cellSize;
                     nodePos.y -= cellSize / 2;
                 }
-            
-                Gizmos.color = gridColor;
+
+                Gizmos.color = Color.white;
                 Gizmos.matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
-                Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
                 
-                // Draw node...
-                DrawGridNode(node);
+                if (drawGrid) Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+                if (drawNodes) DrawGridNode(node);
                 
                 // Do we want to draw the labels?
                 if (!drawGridCellLabels) continue;
@@ -160,7 +157,7 @@ namespace Konfus.Systems.Grid
                     alignment = TextAnchor.MiddleCenter,
                     normal = new GUIStyleState()
                     {
-                        textColor = gridCellLabelColor
+                        textColor = Color.green
                     }
                 });
             }
@@ -168,7 +165,25 @@ namespace Konfus.Systems.Grid
 
         protected virtual void DrawGridNode(INode node)
         {
-            // by default we don't do anything...
+            Quaternion nodeRot = transform.rotation;
+            Vector3 nodePos = WorldPosFromGridPos(node.GridPosition);
+            Vector3 nodeScale = new Vector3(1, 1, 1) * CellSize;
+
+            if (_nodes.GetLength(1) == 1) // 2D
+            {
+                nodeScale = new Vector3(1, 0, 1) * CellSize;
+                nodePos.y -= CellSize / 2;
+            }
+
+            Gizmos.color = Color.cyan;
+
+            foreach (INode nodeNeighbor in node.Neighbors)
+            {
+                Gizmos.DrawRay(Vector3.zero, nodeNeighbor.WorldPosition - node.WorldPosition);
+            }
+
+            Gizmos.matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
+            Gizmos.DrawCube(Vector3.zero, Vector3.one * 0.1f);
         }
         
         private void Update()
