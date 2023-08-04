@@ -35,27 +35,44 @@ namespace Konfus.Systems.Grid
             return _neighbors;
         }
 
-        public void CalculateNeighbors(INode.NumberConnections numberConnections)
+        public void CalculateNeighbors(INode.ConnectionType connectionType)
         {
-            if (numberConnections == INode.NumberConnections.Zero) return;
-
+            // No connections
+            if (connectionType == INode.ConnectionType.None) return;
+            
             Vector3Int[] potentialNeighborPositions =
             {
-                // TODO: Finish adding 3D support to this!s
-                _gridPosition + new Vector3Int(0, 1, 0), _gridPosition + new Vector3Int(0, -1, 0),
-                _gridPosition + new Vector3Int(1, 0, 0), _gridPosition + new Vector3Int(-1, 0, 0),
-                _gridPosition + new Vector3Int(1, -1, 0), _gridPosition + new Vector3Int(-1, 1, 0),
-                _gridPosition + new Vector3Int(1, 1, 0), _gridPosition + new Vector3Int(-1, -1, 0)
+                // Straight connections
+                _gridPosition + new Vector3Int(0, 1, 0), 
+                _gridPosition + new Vector3Int(0, -1, 0),
+                _gridPosition + new Vector3Int(1, 0, 0), 
+                _gridPosition + new Vector3Int(-1, 0, 0),
+                _gridPosition + new Vector3Int(0, 0, 1), 
+                _gridPosition + new Vector3Int(0, 0, -1),
+                // Horizontal connections
+                _gridPosition + new Vector3Int(1, -1, 0), 
+                _gridPosition + new Vector3Int(-1, 1, 0),
+                _gridPosition + new Vector3Int(1, 1, 0),
+                _gridPosition + new Vector3Int(-1, -1, 0),
+                _gridPosition + new Vector3Int(1, -1, 1), 
+                _gridPosition + new Vector3Int(-1, 1, 1),
+                _gridPosition + new Vector3Int(1, 1, 1),
+                _gridPosition + new Vector3Int(-1, -1, 1),
+                _gridPosition + new Vector3Int(1, -1, -1), 
+                _gridPosition + new Vector3Int(-1, 1, -1),
+                _gridPosition + new Vector3Int(1, 1, -1),
+                _gridPosition + new Vector3Int(-1, -1, -1)
             };
 
             for (int p = 0; p < potentialNeighborPositions.Length; p++)
             {
-                if (numberConnections != INode.NumberConnections.Eight && p >= 4) return;
+                if (connectionType != INode.ConnectionType.Horizontal && p >= 6) return;
                 
                 Vector3Int potentialNeighborPosition = potentialNeighborPositions[p];
                 if (_grid.InGridBounds(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z))
                 {
-                    AddNeighbor(_grid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z));
+                    var neighbor = _grid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z);
+                    if (neighbor != null) AddNeighbor(neighbor);
                 }
             }
         }

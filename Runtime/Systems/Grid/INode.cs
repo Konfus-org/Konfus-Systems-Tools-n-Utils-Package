@@ -5,14 +5,14 @@ namespace Konfus.Systems.Grid
 {
     public interface INode
     {
-        public enum NumberConnections
+        public enum ConnectionType
         {
-            Zero, Four, Eight
+            None, Straight, Horizontal
         }
         
         Vector3Int GetGridPosition();
         Vector3 GetWorldPosition();
-        void CalculateNeighbors(NumberConnections numberConnections);
+        void CalculateNeighbors(ConnectionType connectionType);
         void AddNeighbor(INode n);
         void AddNeighbors(List<INode> nList);
         IList<TNode> GetNeighbors<TNode>() where TNode : INode;

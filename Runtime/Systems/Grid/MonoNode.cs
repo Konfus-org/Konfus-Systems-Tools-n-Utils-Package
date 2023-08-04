@@ -14,8 +14,8 @@ namespace Konfus.Systems.Grid
         public Vector3Int GetGridPosition() => _node.GetGridPosition();
         public Vector3 GetWorldPosition() => _node.GetWorldPosition();
 
-        public void CalculateNeighbors(INode.NumberConnections numberConnections) =>
-            _node.CalculateNeighbors(numberConnections);
+        public void CalculateNeighbors(INode.ConnectionType connectionType) =>
+            _node.CalculateNeighbors(connectionType);
        
         public IList<TNode> GetNeighbors<TNode>() where TNode : INode => 
             _node.GetNeighbors<TNode>();
