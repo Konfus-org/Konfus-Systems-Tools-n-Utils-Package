@@ -23,6 +23,8 @@ namespace Konfus.Systems.Grid
         [PropertyOrder(3), SerializeField]
         private bool drawNodes = false;
         [PropertyOrder(3), SerializeField]
+        private bool drawNodeConnections = false;
+        [PropertyOrder(3), SerializeField]
         private bool drawGridCellLabels = false;
 
         public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
@@ -121,7 +123,10 @@ namespace Konfus.Systems.Grid
         protected virtual void DrawGridGizmos()
         {
             // Can we draw right now?
-            if ((!drawGrid && !drawNodes) || _nodes == null) return;
+            bool canDraw = 
+                (drawGrid || drawNodes || drawGridCellLabels || drawNodeConnections) 
+                && _nodes != null;
+            if (!canDraw) return;
             
             // Draw the cells
             foreach (INode node in Nodes)
@@ -139,51 +144,66 @@ namespace Konfus.Systems.Grid
                     nodePos.y -= cellSize / 2;
                 }
 
-                Gizmos.color = Color.white;
-                Gizmos.matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
+                var matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
+                Gizmos.matrix = matrix;
+                Handles.matrix = matrix;
                 
-                if (drawGrid) Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+                // Draw grid, nodes, and labels
+                if (drawGrid) DrawGridCell(node);
                 if (drawNodes) DrawGridNode(node);
-                
-                // Do we want to draw the labels?
-                if (!drawGridCellLabels) continue;
-                
-                // Draw cell position label...
-                Vector3 handlePos = nodePos;
-                if (!handlePos.IsInViewOfSceneCamera(35)) continue;
-                Handles.Label(handlePos, node.GridPosition.ToString(), style: new GUIStyle()
-                {
-                    fontSize = 12,
-                    alignment = TextAnchor.MiddleCenter,
-                    normal = new GUIStyleState()
-                    {
-                        textColor = Color.green
-                    }
-                });
+                if (drawNodeConnections) DrawGridNodeConnections(node);
+                if (drawGridCellLabels && nodePos.IsInViewOfSceneCamera(35)) DrawGridCellLabel(node);
             }
         }
 
+        /// <summary>
+        /// Draws grid cell in current cell local space.
+        /// </summary>
+        protected virtual void DrawGridCell(INode cellNode)
+        {
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
+        }
+
+        /// <summary>
+        /// Draws grid cell label in node local space.
+        /// </summary>
+        protected virtual void DrawGridCellLabel(INode cellNode)
+        {
+            // Draw cell position label...
+            Handles.Label(Vector3.zero, cellNode.GridPosition.ToString(), style: new GUIStyle()
+            {
+                fontSize = 12,
+                alignment = TextAnchor.MiddleCenter,
+                normal = new GUIStyleState()
+                {
+                    textColor = Color.green
+                }
+            });
+        }
+        
+        /// <summary>
+        /// Draws grid node in node local space.
+        /// </summary>
         protected virtual void DrawGridNode(INode node)
         {
-            Quaternion nodeRot = transform.rotation;
-            Vector3 nodePos = WorldPosFromGridPos(node.GridPosition);
-            Vector3 nodeScale = new Vector3(1, 1, 1) * CellSize;
+            var blueColor = Color.blue;
+            Gizmos.color = new Color(blueColor.r, blueColor.g, blueColor.b, 0.15f);
+            Gizmos.DrawCube(Vector3.zero, Vector3.one * 0.1f);
+        }
 
-            if (_nodes.GetLength(1) == 1) // 2D
-            {
-                nodeScale = new Vector3(1, 0, 1) * CellSize;
-                nodePos.y -= CellSize / 2;
-            }
-
-            Gizmos.color = Color.cyan;
-
+        /// <summary>
+        /// Draws grid node connections in node local space.
+        /// </summary>
+        protected virtual void DrawGridNodeConnections(INode node)
+        {
+            Gizmos.color = Color.gray;
             foreach (INode nodeNeighbor in node.Neighbors)
             {
-                Gizmos.DrawRay(Vector3.zero, nodeNeighbor.WorldPosition - node.WorldPosition);
+                Gizmos.DrawRay(
+                    from: Vector3.zero,
+                    direction: (nodeNeighbor.WorldPosition - node.WorldPosition) * CellSize * 0.5f);
             }
-
-            Gizmos.matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
-            Gizmos.DrawCube(Vector3.zero, Vector3.one * 0.1f);
         }
         
         private void Update()
