@@ -4,7 +4,8 @@ namespace Konfus.Systems.Grid
 {
     public interface INode
     {
-        Vector3Int GetGridPosition();
-        Vector3 GetWorldPosition();
+        Vector3Int GridPosition { get; }
+        Vector3 WorldPosition { get; }
+        INode[] Neighbors { get; }
     }
 }

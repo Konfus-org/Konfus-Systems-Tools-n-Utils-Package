@@ -1,17 +1,21 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Konfus.Systems.Grid
 {
     public class MonoNode : MonoBehaviour, INode
     {
-        private readonly Node _node;
-        public MonoNode(GridBase owningGrid, Vector3Int gridPositionOnGrid)
+        [SerializeField]
+        private GridBase grid;
+        
+        private INode _node;
+        
+        public Vector3Int GridPosition => _node.GridPosition;
+        public Vector3 WorldPosition => transform.position;
+        public INode[] Neighbors => _node.Neighbors;
+        
+        private void Start()
         {
-            _node = new Node(owningGrid, gridPositionOnGrid);
+            _node = new Node(grid, grid.GridPosFromWorldPos(WorldPosition));
         }
-
-        public Vector3Int GetGridPosition() => _node.GetGridPosition();
-        public Vector3 GetWorldPosition() => _node.GetWorldPosition();
     }
 }

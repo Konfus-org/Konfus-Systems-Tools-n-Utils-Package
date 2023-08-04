@@ -67,10 +67,10 @@ namespace Konfus.Systems.Grid
             z = Mathf.FloorToInt(worldPosition.z / cellSize);
         }
 
-        public Vector3 GridPosFromWorldPos(Vector3 worldPosition)
+        public Vector3Int GridPosFromWorldPos(Vector3 worldPosition)
         {
             GridPosFromWorldPos(worldPosition, out int x, out int y, out int z);
-            return new Vector3(x, y, z);
+            return new Vector3Int(x, y, z);
         }
 
         public void SetNode(int x, int y, int z, INode value)
@@ -132,7 +132,7 @@ namespace Konfus.Systems.Grid
                 
                 // Draw cell...
                 Quaternion nodeRot = transform.rotation;
-                Vector3 nodePos = WorldPosFromGridPos(node.GetGridPosition());
+                Vector3 nodePos = WorldPosFromGridPos(node.GridPosition);
                 Vector3 nodeScale = new Vector3(1, 1, 1) * cellSize;
 
                 if (_nodes.GetLength(1) == 1) // 2D
@@ -154,7 +154,7 @@ namespace Konfus.Systems.Grid
                 // Draw cell position label...
                 Vector3 handlePos = nodePos;
                 if (!handlePos.IsInViewOfSceneCamera(35)) continue;
-                Handles.Label(handlePos, node.GetGridPosition().ToString(), style: new GUIStyle()
+                Handles.Label(handlePos, node.GridPosition.ToString(), style: new GUIStyle()
                 {
                     fontSize = 12,
                     alignment = TextAnchor.MiddleCenter,
