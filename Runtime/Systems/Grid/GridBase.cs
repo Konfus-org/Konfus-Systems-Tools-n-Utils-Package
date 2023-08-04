@@ -90,6 +90,11 @@ namespace Konfus.Systems.Grid
             if(InGridBounds(x, y, z)) return _nodes[x, y, z];
             return null;
         }
+        
+        public INode GetNode(Vector3Int gridPosition)
+        {
+            return GetNode(gridPosition.x, gridPosition.y, gridPosition.z);
+        }
 
         public INode GetNode(Vector3 worldPosition)
         {
@@ -135,11 +140,14 @@ namespace Konfus.Systems.Grid
                     nodeScale = new Vector3(1, 0, 1) * cellSize;
                     nodePos.y -= cellSize / 2;
                 }
-                
+            
                 Gizmos.color = gridColor;
                 Gizmos.matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
                 Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-
+                
+                // Draw node...
+                DrawGridNode(node);
+                
                 // Do we want to draw the labels?
                 if (!drawGridCellLabels) continue;
                 
@@ -158,6 +166,11 @@ namespace Konfus.Systems.Grid
             }
         }
 
+        protected virtual void DrawGridNode(INode node)
+        {
+            // by default we don't do anything...
+        }
+        
         private void Update()
         {
             EditorUpdate();
