@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
-using MartianChild.Utility.Design_Patterns;
+using Konfus.Systems.Grid;
+using Konfus.Utility.Design_Patterns;
+using MartianChild.Utility.Grid_System;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace MartianChild.Utility.Grid_System.Pathfinding
+namespace Konfus.Systems.Pathfinding
 {
     [ExecuteInEditMode] public class PathManager : Singleton<PathManager>
     {
@@ -16,18 +18,16 @@ namespace MartianChild.Utility.Grid_System.Pathfinding
         private static AStarGrid _aStarGrid;
         private Pathfinder _pathfinder;
 
+        /*
         [Header("A Star Settings")] 
         public int moveStraightCost = 10;
-        public int moveDiagonalCost = 14;
-        public Node.NumberConnections numberNodeConnections;
-        public LayerMask traversableLayers;
+        public int moveDiagonalCost = 14;*/
         
         
-        private void Awake()
+        private void Start()
         {
-            base.Awake();
             _aStarGrid = gridsManager.GetGrid<AStarGrid>("A Star Grid");
-            _pathfinder = new Pathfinder(_aStarGrid, moveStraightCost, moveDiagonalCost);
+            _pathfinder = new Pathfinder(_aStarGrid);
         }
 
         public AStarGrid GetAStarGrid()

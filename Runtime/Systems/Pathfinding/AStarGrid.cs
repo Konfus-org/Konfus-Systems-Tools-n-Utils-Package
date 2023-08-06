@@ -1,43 +1,42 @@
-using System;
-using MartianChild.Utility.Physics;
-using MartianChild.Utility.Unity_Extensions;
+using Konfus.Systems.Grid;
+using MartianChild.Utility.Grid_System;
 using UnityEngine;
 
-namespace MartianChild.Utility.Grid_System.Pathfinding
+namespace Konfus.Systems.Pathfinding
 {
-    public class AStarGrid : Grid
+    public class AStarGrid : GridBase
     {
         [Header("Dependencies")]
         [SerializeField]
         private PathManager pathManager;
-        private PathNode[,] _pathNodes;
 
-        public sealed override void Generate()
+        protected override void Generate()
+        {
+            Generate(pos => new PathNode(this, pos));
+        }
+
+        /*
         {
             base.Initialize();
             base.Generate((grid, gridPosition) => new PathNode(grid, gridPosition), OnNodeAdded);
             CalculateNodeConnections();
-        }
+        }*/
 
-        public PathNode GetPathNode(int x, int y)
+        public PathNode GetPathNode(int x, int y, int z)
         {
-            return GetGridObject(x, y) as PathNode;
-        }
-
-        public PathNode[,] GetPathNodes()
-        {
-            return _pathNodes;
+            return (PathNode)GetNode(x, y, z);
         }
 
         public void ResetPathNodes()
         {
-            foreach (PathNode pathNode in _pathNodes)
+            foreach (var node in Nodes)
             {
+                var pathNode = (PathNode)node;
                 pathNode.Reset();
             }
         }
 
-        private void CalculateNodeConnections()
+        /*private void CalculateNodeConnections()
         {
             _pathNodes = new PathNode[gridObjs.GetLength(0), gridObjs.GetLength(1)];
             Array.Copy(gridObjs, _pathNodes, gridObjs.Length);
@@ -71,6 +70,6 @@ namespace MartianChild.Utility.Grid_System.Pathfinding
                     pathNode.type = PathNode.Type.Air;
                     break;
             }
-        }
+        }*/
     }
 }

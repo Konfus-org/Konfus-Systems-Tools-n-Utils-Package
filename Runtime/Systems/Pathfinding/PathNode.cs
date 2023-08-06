@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Konfus.Systems.Grid;
+using UnityEngine;
 
 namespace MartianChild.Utility.Grid_System
 {
@@ -6,7 +7,7 @@ namespace MartianChild.Utility.Grid_System
     {
         public enum Type
         {
-            NonTraversable,
+            Solid,
             Water,
             Air,
             Land
@@ -18,7 +19,7 @@ namespace MartianChild.Utility.Grid_System
         public int Cost => distFromStartNode + estDistToDestinationNode; //f
         public PathNode link;
         
-        public PathNode(Grid grid, Vector2Int gridPosition) : base(grid, gridPosition)
+        public PathNode(GridBase grid, Vector3Int gridPosition) : base(grid, gridPosition)
         {
             type = Type.Land;
             estDistToDestinationNode = 0;

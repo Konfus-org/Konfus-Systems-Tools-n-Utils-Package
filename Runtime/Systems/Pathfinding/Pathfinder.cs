@@ -1,45 +1,46 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Konfus.Systems.Grid;
+using MartianChild.Utility.Grid_System;
 using UnityEngine;
 
-namespace MartianChild.Utility.Grid_System.Pathfinding
+namespace Konfus.Systems.Pathfinding
 {
     public class Pathfinder
     {
-        private readonly int _moveStraightCost;
-        private readonly int _moveDiagonalCost;
+        private readonly int _moveToFaceNeighborCost;
+        private readonly int _moveToEdgeNeighborCost;
+        private readonly int _moveToCornerNeighborCost;
 
         private readonly AStarGrid _aStarGrid;
 
         private List<PathNode> _openList;
         private List<PathNode> _closedList;
 
-        public Pathfinder(AStarGrid grid, int moveStraightCost, int moveDiagonalCost)
+        public Pathfinder(AStarGrid grid)
         {
-            _moveDiagonalCost = moveDiagonalCost;
-            _moveStraightCost = moveStraightCost;
             _aStarGrid = grid;
         }
 
         public List<Vector3> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition,
             PathNode.Type[] traversableTypes)
         {
-            _aStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY);
-            _aStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY);
+            _aStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY, out int startZ);
+            _aStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY, out int endZ);
 
-            List<PathNode> path = FindPath(startX, startY, endX, endY, traversableTypes);
+            List<PathNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
 
-            return path?.Select(pathNode => pathNode.GetWorldPosition()).ToList();
+            return path?.Select(pathNode => pathNode.WorldPosition).ToList();
         }
 
-        public List<PathNode> FindPath(int startX, int startY, int endX, int endY, PathNode.Type[] traversableTypes)
+        public List<PathNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, PathNode.Type[] traversableTypes)
         {
-            PathNode startNode = _aStarGrid.GetPathNode(startX, startY);
-            PathNode endNode = _aStarGrid.GetPathNode(endX, endY);
+            PathNode startNode = _aStarGrid.GetPathNode(startX, startY, startZ);
+            PathNode endNode = _aStarGrid.GetPathNode(endX, endY, endZ);
 
-            if (startNode == null || endNode == null) // Invalid Path
-                return null;
-
+            // invalid path
+            if (startNode == null || endNode == null) return null;
 
             _openList = new List<PathNode> {startNode};
             _closedList = new List<PathNode>();
@@ -57,8 +58,9 @@ namespace MartianChild.Utility.Grid_System.Pathfinding
                 _openList.Remove(currentNode);
                 _closedList.Add(currentNode);
 
-                foreach (PathNode neighbourNode in currentNode.GetNeighbors<PathNode>())
+                foreach (INode node in currentNode.Neighbors)
                 {
+                    var neighbourNode = (PathNode)node;
                     if (_closedList.Contains(neighbourNode)) continue;
                     if (!traversableTypes.Contains(neighbourNode.type))
                     {
@@ -98,10 +100,22 @@ namespace MartianChild.Utility.Grid_System.Pathfinding
 
         private int CalculateDistanceCost(PathNode a, PathNode b)
         {
-            int xDistance = Mathf.Abs(a.GetGridPosition().x - a.GetGridPosition().x);
-            int yDistance = Mathf.Abs(a.GetGridPosition().y - a.GetGridPosition().y);
-            int remaining = Mathf.Abs(xDistance - yDistance);
-            return _moveDiagonalCost * Mathf.Min(xDistance, yDistance) + _moveStraightCost * remaining;
+            int xDistance = Mathf.Abs(a.GridPosition.x - a.GridPosition.x);
+            int yDistance = Mathf.Abs(a.GridPosition.y - a.GridPosition.y);
+            int zDistance = Mathf.Abs(a.GridPosition.z - a.GridPosition.z);
+            //int remaining = Mathf.Abs(xDistance - yDistance - zDistance);
+
+            var minimum = Math.Min(Math.Min(xDistance, yDistance), zDistance);
+            var maximum = Math.Max(Math.Max(xDistance, yDistance), zDistance);
+
+            var tripleAxis = minimum;
+            var doubleAxis = xDistance + yDistance + zDistance - maximum - 2 * minimum;
+            var singleAxis = maximum - doubleAxis - tripleAxis;
+
+            var approximation = _moveToFaceNeighborCost * singleAxis 
+                                + _moveToEdgeNeighborCost * doubleAxis 
+                                + _moveToCornerNeighborCost * tripleAxis;
+            return approximation;
         }
 
         private PathNode GetLowestFCostNode(List<PathNode> pathNodeList)

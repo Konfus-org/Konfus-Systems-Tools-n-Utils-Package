@@ -1,8 +1,9 @@
 {
-    "name": "Util",
-    "rootNamespace": "MartianChild",
+    "name": "Pathfinding",
+    "rootNamespace": "Konfus",
     "references": [
-        "GUID:48c9f6afdac61634db0e0f241c7d4d51"
+        "GUID:88359f01967ee784f9587c0ced4b2dbd",
+        "GUID:a88015c3e00dffd48a3c7daec3b0969d"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
