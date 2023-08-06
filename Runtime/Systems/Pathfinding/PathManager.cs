@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Konfus.Systems.Grid;
 using Konfus.Utility.Design_Patterns;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,8 +12,7 @@ namespace Konfus.Systems.Pathfinding
         
         [Header("Dependencies")] 
         [SerializeField]
-        private GridsManager gridsManager;
-        private static AStarGrid _aStarGrid;
+        private AStarGrid aStarGrid;
         private Pathfinder _pathfinder;
 
         /*
@@ -25,15 +23,12 @@ namespace Konfus.Systems.Pathfinding
         
         private void Start()
         {
-            _aStarGrid = gridsManager.GetGrid<AStarGrid>("A Star Grid");
-            _pathfinder = new Pathfinder(_aStarGrid);
+            _pathfinder = new Pathfinder(aStarGrid);
         }
 
         public AStarGrid GetAStarGrid()
         {
-            if (_aStarGrid == null) 
-                _aStarGrid = gridsManager.GetGrid<AStarGrid>("A Star Grid");
-            return _aStarGrid;
+            return aStarGrid;
         }
         
         public List<Vector3> FindPath(GameObject requester, Vector3 startWorldPosition, Vector3 desiredWorldDestination, int[] traversableNodeTypes)

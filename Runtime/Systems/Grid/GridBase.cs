@@ -102,6 +102,7 @@ namespace Konfus.Systems.Grid
             return GetNode(x, y, z);
         }
         
+        [Button]
         protected abstract void Generate();
         
         protected void Generate(Func<Vector3Int, INode> createNode)
