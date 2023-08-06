@@ -37,7 +37,7 @@ namespace Konfus.Systems.Pathfinding
             return _aStarGrid;
         }
         
-        public List<Vector3> FindPath(GameObject requester, Vector3 startWorldPosition, Vector3 desiredWorldDestination, PathNode.Type[] traversableNodeTypes)
+        public List<Vector3> FindPath(GameObject requester, Vector3 startWorldPosition, Vector3 desiredWorldDestination, int[] traversableNodeTypes)
         {
             List<Vector3> path = _pathfinder.FindPath(startWorldPosition, desiredWorldDestination, traversableNodeTypes);
             onPathFoundEvent.Invoke(requester, path);
