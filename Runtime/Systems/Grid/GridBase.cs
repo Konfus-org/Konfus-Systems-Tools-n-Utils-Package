@@ -62,13 +62,10 @@ namespace Konfus.Systems.Grid
 
         public void GridPosFromWorldPos(Vector3 worldPosition, out int x, out int y, out int z)
         {
-            // First remove the origin offset from the position and remove the rotation
-            Vector3 localPosition = transform.InverseTransformPoint(worldPosition)/CellSize;
-            
             // Convert to grid position
-            x = Mathf.FloorToInt(localPosition.x / CellSize);
-            y = Mathf.FloorToInt(localPosition.y / CellSize);
-            z = Mathf.FloorToInt(localPosition.z / CellSize);
+            x = Mathf.FloorToInt((worldPosition.x - transform.position.x) / CellSize);
+            y = Mathf.FloorToInt((worldPosition.y - transform.position.y) / CellSize);
+            z = Mathf.FloorToInt((worldPosition.z - transform.position.z) / CellSize);
         }
 
         public Vector3Int GridPosFromWorldPos(Vector3 worldPosition)
