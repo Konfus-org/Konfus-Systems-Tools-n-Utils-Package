@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace MartianChild.Utility.Grid_System
 {
+    // TODO: make an interface so this isn't tied to the grid system
     public class PathNode : Node
     {
         public int DistFromStartNode; //g

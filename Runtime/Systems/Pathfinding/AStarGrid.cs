@@ -1,15 +1,11 @@
 using Konfus.Systems.Grid;
 using MartianChild.Utility.Grid_System;
-using UnityEngine;
 
 namespace Konfus.Systems.Pathfinding
 {
+    // TODO: Make an interface so this isn't tied to grid system...
     public class AStarGrid : GridBase
     {
-        [Header("Dependencies")]
-        [SerializeField]
-        private PathManager pathManager;
-
         protected override void Generate()
         {
             Generate(pos => new PathNode(this, pos));
