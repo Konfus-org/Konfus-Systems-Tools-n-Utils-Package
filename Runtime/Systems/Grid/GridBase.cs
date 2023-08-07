@@ -137,7 +137,7 @@ namespace Konfus.Systems.Grid
                 
                 // Convert to gizmo space to local...
                 Quaternion nodeRot = transform.rotation;
-                Vector3 nodePos = WorldPosFromGridPos(node.GridPosition);
+                Vector3 nodePos = node.WorldPosition;
                 Vector3 nodeScale = new Vector3(1, 1, 1) * cellSize;
 
                 if (_nodes.GetLength(1) == 1) // 2D

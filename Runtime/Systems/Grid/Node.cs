@@ -16,8 +16,8 @@ namespace Konfus.Systems.Grid
 
         public GridBase OwningGrid => _grid;
         public Vector3Int GridPosition => _gridPosition;
-        public Vector3 WorldPosition => _grid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         
+        public virtual Vector3 WorldPosition => _grid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         public virtual INode[] Neighbors
         {
             get
