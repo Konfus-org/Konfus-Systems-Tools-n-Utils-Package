@@ -103,7 +103,7 @@ namespace Konfus.Systems.Grid
             return GetNode(x, y, z);
         }
         
-        [Button]
+        [PropertyOrder(10), Button(size: ButtonSizes.Large)]
         protected abstract void Generate();
         
         protected void Generate(Func<Vector3Int, INode> createNode)
@@ -135,26 +135,39 @@ namespace Konfus.Systems.Grid
             {
                 if (node == null) continue;
                 
-                // Convert to gizmo space to local...
-                Quaternion nodeRot = transform.rotation;
-                Vector3 nodePos = node.WorldPosition;
-                Vector3 nodeScale = new Vector3(1, 1, 1) * cellSize;
+                // Convert to gizmo space to grid local space...
+                Quaternion cellRot = transform.rotation;
+                Vector3 cellPos = WorldPosFromGridPos(node.GridPosition);
+                Vector3 cellScale = new Vector3(1, 1, 1) * cellSize;
 
                 if (_nodes.GetLength(1) == 1) // 2D
                 {
-                    nodeScale = new Vector3(1, 0, 1) * cellSize;
+                    cellScale = new Vector3(1, 0, 1) * cellSize;
+                    cellPos.y -= cellSize / 2;
+                }
+
+                var cellMatrix = Matrix4x4.TRS(cellPos, cellRot, cellScale);
+                Gizmos.matrix = cellMatrix;
+                Handles.matrix = cellMatrix;
+                
+                // Draw cells and labels
+                if (drawGrid) DrawGridCell(node);
+                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(35)) DrawGridCellLabel(node);
+                
+                // Convert to gizmo space to node local space...
+                Vector3 nodePos = node.WorldPosition;
+
+                if (_nodes.GetLength(1) == 1) // 2D
+                {
                     nodePos.y -= cellSize / 2;
                 }
 
-                var matrix = Matrix4x4.TRS(nodePos, nodeRot, nodeScale);
-                Gizmos.matrix = matrix;
-                Handles.matrix = matrix;
+                var nodeMatrix = Matrix4x4.TRS(nodePos, cellRot, cellScale);
+                Gizmos.matrix = nodeMatrix;
                 
-                // Draw grid, nodes, and labels
-                if (drawGrid) DrawGridCell(node);
+                // Draw nodes and node connections
                 if (drawNodes) DrawGridNode(node);
                 if (drawNodeConnections) DrawGridNodeConnections(node);
-                if (drawGridCellLabels && nodePos.IsInViewOfSceneCamera(35)) DrawGridCellLabel(node);
             }
         }
 
