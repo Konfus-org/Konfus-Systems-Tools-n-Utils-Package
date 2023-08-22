@@ -77,8 +77,8 @@ namespace Konfus.Systems.Pathfinding
                 }
             }
 
-            // Out of nodes on the openList
-            return null;
+            // No path found...
+            return new List<PathNode>();
         }
 
         private List<PathNode> CalculatePath(PathNode endNode, Dictionary<PathNode, PathNode> validLinkedNodes)
