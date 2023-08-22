@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Konfus.Utility.Design_Patterns;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Konfus.Systems.Pathfinding
 {
-    [ExecuteInEditMode] public class PathManager : Singleton<PathManager>
+    [ExecuteInEditMode] public class PathManager : MonoBehaviour
     {
         public PathEvent onPathFoundEvent;
         
