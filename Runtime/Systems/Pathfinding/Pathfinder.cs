@@ -15,9 +15,6 @@ namespace Konfus.Systems.Pathfinding
 
         private readonly AStarGrid _aStarGrid;
 
-        private List<PathNode> _openList;
-        private List<PathNode> _closedList;
-
         public Pathfinder(AStarGrid grid)
         {
             _aStarGrid = grid;
@@ -41,29 +38,30 @@ namespace Konfus.Systems.Pathfinding
             // invalid path
             if (startNode == null || endNode == null) return null;
 
-            _openList = new List<PathNode> {startNode};
-            _closedList = new List<PathNode>();
+            var validLinkedNodes = new Dictionary<PathNode, PathNode>();
+            var openList = new HashSet<PathNode> {startNode};
+            var closedList = new HashSet<PathNode>();
 
             _aStarGrid.ResetPathNodes();
 
             startNode.DistFromStartNode = 0;
             startNode.EstDistToDestinationNode = CalculateDistanceCost(startNode, endNode);
 
-            while (_openList.Count > 0)
+            while (openList.Count > 0)
             {
-                PathNode currentNode = GetLowestFCostNode(_openList);
-                if (currentNode == endNode) return CalculatePath(endNode);
+                PathNode currentNode = GetLowestFCostNode(openList);
+                if (currentNode == endNode) return CalculatePath(endNode, validLinkedNodes);
 
-                _openList.Remove(currentNode);
-                _closedList.Add(currentNode);
+                openList.Remove(currentNode);
+                closedList.Add(currentNode);
 
                 foreach (INode node in currentNode.Neighbors)
                 {
                     var neighbourNode = (PathNode)node;
-                    if (_closedList.Contains(neighbourNode)) continue;
+                    if (closedList.Contains(neighbourNode)) continue;
                     if (!traversableTypes.Contains(neighbourNode.Type))
                     {
-                        _closedList.Add(neighbourNode);
+                        closedList.Add(neighbourNode);
                         continue;
                     }
 
@@ -71,11 +69,11 @@ namespace Konfus.Systems.Pathfinding
                                          CalculateDistanceCost(currentNode, neighbourNode);
                     if (tentativeGCost >= neighbourNode.DistFromStartNode) continue;
 
-                    neighbourNode.Link = currentNode;
+                    validLinkedNodes[neighbourNode] = currentNode;
                     neighbourNode.DistFromStartNode = tentativeGCost;
                     neighbourNode.EstDistToDestinationNode = CalculateDistanceCost(neighbourNode, endNode);
 
-                    if (!_openList.Contains(neighbourNode)) _openList.Add(neighbourNode);
+                    openList.Add(neighbourNode);
                 }
             }
 
@@ -83,14 +81,14 @@ namespace Konfus.Systems.Pathfinding
             return null;
         }
 
-        private List<PathNode> CalculatePath(PathNode endNode)
+        private List<PathNode> CalculatePath(PathNode endNode, Dictionary<PathNode, PathNode> validLinkedNodes)
         {
             List<PathNode> path = new List<PathNode> {endNode};
             PathNode currentNode = endNode;
-            while (currentNode.Link != null)
+            while (validLinkedNodes.TryGetValue(currentNode, out var node))
             {
-                path.Add(currentNode.Link);
-                currentNode = currentNode.Link;
+                path.Add(node);
+                currentNode = node;
             }
 
             path.Reverse();
@@ -99,9 +97,9 @@ namespace Konfus.Systems.Pathfinding
 
         private int CalculateDistanceCost(PathNode a, PathNode b)
         {
-            int xDistance = Mathf.Abs(a.GridPosition.x - a.GridPosition.x);
-            int yDistance = Mathf.Abs(a.GridPosition.y - a.GridPosition.y);
-            int zDistance = Mathf.Abs(a.GridPosition.z - a.GridPosition.z);
+            int xDistance = Mathf.Abs(a.GridPosition.x - b.GridPosition.x);
+            int yDistance = Mathf.Abs(a.GridPosition.y - b.GridPosition.y);
+            int zDistance = Mathf.Abs(a.GridPosition.z - b.GridPosition.z);
             //int remaining = Mathf.Abs(xDistance - yDistance - zDistance);
 
             var minimum = Math.Min(Math.Min(xDistance, yDistance), zDistance);
@@ -111,20 +109,20 @@ namespace Konfus.Systems.Pathfinding
             var doubleAxis = xDistance + yDistance + zDistance - maximum - 2 * minimum;
             var singleAxis = maximum - doubleAxis - tripleAxis;
 
-            var approximation = _moveToFaceNeighborCost * singleAxis 
-                                + _moveToEdgeNeighborCost * doubleAxis 
-                                + _moveToCornerNeighborCost * tripleAxis;
+            var approximation = _moveToFaceNeighborCost * singleAxis + 
+                                _moveToEdgeNeighborCost * doubleAxis + 
+                                _moveToCornerNeighborCost * tripleAxis;
             return approximation;
         }
 
-        private PathNode GetLowestFCostNode(List<PathNode> pathNodeList)
+        private PathNode GetLowestFCostNode(IEnumerable<PathNode> pathNodeList)
         {
-            PathNode lowestFCostNode = pathNodeList[0];
-            for (int i = 1; i < pathNodeList.Count; i++)
+            PathNode lowestFCostNode = pathNodeList.First();
+            foreach (var pathNode in pathNodeList)
             {
-                if (pathNodeList[i].Cost < lowestFCostNode.Cost) lowestFCostNode = pathNodeList[i];
+                if (pathNode.Cost < lowestFCostNode.Cost) lowestFCostNode = pathNode;
             }
-
+            
             return lowestFCostNode;
         }
     }
