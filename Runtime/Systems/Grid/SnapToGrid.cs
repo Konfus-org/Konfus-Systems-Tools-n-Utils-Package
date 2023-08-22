@@ -1,7 +1,7 @@
 using Konfus.Utility.Extensions;
 using UnityEngine;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.ThreeDGrid
 {
     [ExecuteInEditMode] 
     public class SnapToGrid : MonoBehaviour
@@ -14,7 +14,7 @@ namespace Konfus.Systems.Grid
         
         [Header("Dependencies")]
         [SerializeField]
-        private GridBase grid;
+        private Grid grid;
 
 
         private float _transformChangeDelta;

@@ -1,5 +1,6 @@
-﻿using Konfus.Systems.Grid;
+﻿using Konfus.Systems.ThreeDGrid;
 using UnityEngine;
+using Grid = Konfus.Systems.ThreeDGrid.Grid;
 
 namespace MartianChild.Utility.Grid_System
 {
@@ -13,7 +14,7 @@ namespace MartianChild.Utility.Grid_System
         public virtual int Type => 0;
         public virtual int TypeTraversalCost => 0;
         
-        public PathNode(GridBase grid, Vector3Int gridPosition) : base(grid, gridPosition)
+        public PathNode(Grid grid, Vector3Int gridPosition) : base(grid, gridPosition)
         {
             EstDistToDestinationNode = 0;
             DistFromStartNode = int.MaxValue;

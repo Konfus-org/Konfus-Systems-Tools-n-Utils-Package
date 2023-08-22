@@ -7,10 +7,10 @@ using Sirenix.Utilities;
 using UnityEngine;
 using UnityEditor;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.ThreeDGrid
 {
     [ExecuteInEditMode]
-    public abstract class GridBase : MonoBehaviour
+    public abstract class Grid : MonoBehaviour
     {
         [Header("Settings")]
         [PropertyOrder(2), SerializeField, Tooltip("Can also update this by pressing ctrl and scaling the transform this script is attached to.")] 

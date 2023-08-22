@@ -1,36 +1,36 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.ThreeDGrid
 {
     public class Node : INode
     {
-        private readonly GridBase _grid;
+        private readonly Grid _grid;
         private readonly Vector3Int _gridPosition;
 
-        public Node(GridBase owningGrid, Vector3Int gridPositionOnGrid)
+        public Node(Grid owningGrid, Vector3Int gridPositionOnGrid)
         {
             _grid = owningGrid;
             _gridPosition = gridPositionOnGrid;
         }
 
-        public GridBase OwningGrid => _grid;
+        public Grid OwningGrid => _grid;
         
         public Vector3Int GridPosition => _gridPosition;
         public virtual Vector3 WorldPosition => _grid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         
-        public virtual INode[] Neighbors
+        public INode[] Neighbors
         {
             get
             {
-                _neighbors ??= CalculateNeighbors();
+                if (_neighbors == null) CalculateNeighbors();
                 return _neighbors;
             }
             set => _neighbors = value;
         }
         private INode[] _neighbors;
 
-        private INode[] CalculateNeighbors()
+        public virtual void CalculateNeighbors()
         {
             var neighbors = new List<INode>();
                 
@@ -56,7 +56,7 @@ namespace Konfus.Systems.Grid
                 if (neighbor != null) neighbors.Add(neighbor);
             }
                 
-            return neighbors.ToArray();
+            Neighbors = neighbors.ToArray();
         }
     }
 }

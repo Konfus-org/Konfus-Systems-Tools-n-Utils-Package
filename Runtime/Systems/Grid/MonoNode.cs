@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.ThreeDGrid
 {
     public class MonoNode : MonoBehaviour, INode
     {
         [SerializeField]
-        private GridBase grid;
+        private Grid grid;
         
         private INode _node;
         

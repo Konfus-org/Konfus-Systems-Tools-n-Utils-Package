@@ -1,10 +1,10 @@
-using Konfus.Systems.Grid;
+using Grid = Konfus.Systems.ThreeDGrid.Grid;
 using MartianChild.Utility.Grid_System;
 
 namespace Konfus.Systems.Pathfinding
 {
     // TODO: Make an interface so this isn't tied to grid system...
-    public class AStarGrid : GridBase
+    public class AStarGrid : Grid
     {
         protected override void Generate()
         {
