@@ -10,8 +10,6 @@ namespace MartianChild.Utility.Grid_System
         public int EstDistToDestinationNode; //h
         public int Cost => DistFromStartNode + EstDistToDestinationNode + TypeTraversalCost; //f
         
-        //public PathNode PathLink;
-        
         public virtual int Type => 0;
         public virtual int TypeTraversalCost => 0;
         
