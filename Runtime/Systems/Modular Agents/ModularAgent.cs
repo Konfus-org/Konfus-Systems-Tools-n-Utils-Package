@@ -14,7 +14,7 @@ namespace Konfus.Systems.Modular_Agents
         {
             foreach (IAgentInputModule inputModule in _inputModules)
             {
-                inputModule.OnInputFromAgent(input);
+                if (inputModule.OnInputFromAgent(input)) return;
             }
         }
 

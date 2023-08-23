@@ -7,6 +7,10 @@ namespace Konfus.Systems.AI
     /// </summary>
     public abstract class Agent : MonoBehaviour, IAgent
     {
+        /// <summary>
+        /// Takes an input to process.
+        /// </summary>
+        /// <param name="input">The input to be handled</param>
         public abstract void OnInput(IAgentInput input);
     }
 }

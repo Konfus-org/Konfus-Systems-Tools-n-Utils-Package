@@ -4,6 +4,6 @@ namespace Konfus.Systems.Modular_Agents
 {
     public interface IAgentInputModule : IAgentModule
     {
-        void OnInputFromAgent(IAgentInput input);
+        bool OnInputFromAgent(IAgentInput input);
     }
 }
