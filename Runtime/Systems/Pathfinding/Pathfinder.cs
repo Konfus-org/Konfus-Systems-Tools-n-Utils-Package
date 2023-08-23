@@ -36,7 +36,7 @@ namespace Konfus.Systems.Pathfinding
             PathNode endNode = _aStarGrid.GetPathNode(endX, endY, endZ);
 
             // invalid path
-            if (startNode == null || endNode == null || !traversableTypes.Contains(startNode.Type)) return new List<PathNode>();
+            if (startNode == null || endNode == null || !traversableTypes.Contains(endNode.Type)) return new List<PathNode>();
 
             var validLinkedNodes = new Dictionary<PathNode, PathNode>();
             var openList = new HashSet<PathNode> {startNode};
