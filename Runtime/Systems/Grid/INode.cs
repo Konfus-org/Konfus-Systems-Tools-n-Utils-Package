@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.ThreeDGrid
+namespace Konfus.Systems.Grid
 {
     public interface INode
     {

@@ -7,10 +7,10 @@ using Sirenix.Utilities;
 using UnityEngine;
 using UnityEditor;
 
-namespace Konfus.Systems.ThreeDGrid
+namespace Konfus.Systems.Grid
 {
     [ExecuteInEditMode]
-    public abstract class Grid : MonoBehaviour
+    public abstract class ThreeDGrid : MonoBehaviour, IGrid
     {
         [Header("Settings")]
         [PropertyOrder(2), SerializeField, Tooltip("Can also update this by pressing ctrl and scaling the transform this script is attached to.")] 
@@ -27,7 +27,7 @@ namespace Konfus.Systems.ThreeDGrid
         [PropertyOrder(3), SerializeField]
         private bool drawGridCellLabels = false;
 
-        public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
+        public IEnumerable<INode> Nodes => _nodes.Cast<ThreeDNode>();
         public Vector3Int Scale => scale;
         public float CellSize => cellSize;
         

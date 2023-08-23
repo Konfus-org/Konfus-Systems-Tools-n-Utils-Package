@@ -1,10 +1,11 @@
 using Konfus.Utility.Extensions;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-namespace Konfus.Systems.ThreeDGrid
+namespace Konfus.Systems.Grid
 {
     [ExecuteInEditMode] 
-    public class SnapToGrid : MonoBehaviour
+    public class SnapToThreeDGrid : MonoBehaviour
     {
         [Header("Settings")]
         [SerializeField]
@@ -12,9 +13,10 @@ namespace Konfus.Systems.ThreeDGrid
         [SerializeField]
         private bool sizeScaleToGrid = true;
         
+        [FormerlySerializedAs("grid")]
         [Header("Dependencies")]
         [SerializeField]
-        private Grid grid;
+        private ThreeDGrid threeDGrid;
 
 
         private float _transformChangeDelta;
@@ -23,7 +25,7 @@ namespace Konfus.Systems.ThreeDGrid
         // Adjust size and gridPosition
         private void Update()
         {
-            if (grid == null || !transform.hasChanged) return;
+            if (threeDGrid == null || !transform.hasChanged) return;
             transform.hasChanged = false;
             Snap();
         }
@@ -33,14 +35,14 @@ namespace Konfus.Systems.ThreeDGrid
             if (snapPosToGrid)
             {
                 Vector3 position = transform.position;
-                position.Snap(grid.CellSize);
+                position.Snap(threeDGrid.CellSize);
                 transform.position = position;
             }
 
             if (sizeScaleToGrid)
             {
                 Vector3 localScale = transform.localScale;
-                localScale.Snap(grid.CellSize);
+                localScale.Snap(threeDGrid.CellSize);
                 transform.localScale = localScale;
             }
         }
