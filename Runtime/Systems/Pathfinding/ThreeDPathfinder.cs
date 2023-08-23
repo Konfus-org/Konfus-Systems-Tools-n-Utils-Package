@@ -25,39 +25,39 @@ namespace Konfus.Systems.Pathfinding
             threeDaStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY, out int startZ);
             threeDaStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY, out int endZ);
 
-            List<PathThreeDNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
+            List<ThreeDPathNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
 
             return path?.Select(pathNode => pathNode.WorldPosition).ToList();
         }
 
-        public List<PathThreeDNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, int[] traversableTypes)
+        public List<ThreeDPathNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, int[] traversableTypes)
         {
-            PathThreeDNode startThreeDNode = threeDaStarGrid.GetPathNode(startX, startY, startZ);
-            PathThreeDNode endThreeDNode = threeDaStarGrid.GetPathNode(endX, endY, endZ);
+            ThreeDPathNode startNode = threeDaStarGrid.GetPathNode(startX, startY, startZ);
+            ThreeDPathNode endNode = threeDaStarGrid.GetPathNode(endX, endY, endZ);
 
             // invalid path
-            if (startThreeDNode == null || endThreeDNode == null || !traversableTypes.Contains(endThreeDNode.Type)) return new List<PathThreeDNode>();
+            if (startNode == null || endNode == null || !traversableTypes.Contains(endNode.Type)) return new List<ThreeDPathNode>();
 
-            var validLinkedNodes = new Dictionary<PathThreeDNode, PathThreeDNode>();
-            var openList = new HashSet<PathThreeDNode> {startThreeDNode};
-            var closedList = new HashSet<PathThreeDNode>();
+            var validLinkedNodes = new Dictionary<ThreeDPathNode, ThreeDPathNode>();
+            var openList = new HashSet<ThreeDPathNode> {startNode};
+            var closedList = new HashSet<ThreeDPathNode>();
 
             threeDaStarGrid.ResetPathNodes();
 
-            startThreeDNode.DistFromStartNode = 0;
-            startThreeDNode.EstDistToDestinationNode = CalculateDistanceCost(startThreeDNode, endThreeDNode);
+            startNode.DistFromStartNode = 0;
+            startNode.EstDistToDestinationNode = CalculateDistanceCost(startNode, endNode);
 
             while (openList.Count > 0)
             {
-                PathThreeDNode currentThreeDNode = GetLowestFCostNode(openList);
-                if (currentThreeDNode == endThreeDNode) return CalculatePath(endThreeDNode, validLinkedNodes);
+                ThreeDPathNode currentNode = GetLowestFCostNode(openList);
+                if (currentNode == endNode) return CalculatePath(endNode, validLinkedNodes);
 
-                openList.Remove(currentThreeDNode);
-                closedList.Add(currentThreeDNode);
+                openList.Remove(currentNode);
+                closedList.Add(currentNode);
 
-                foreach (INode node in currentThreeDNode.Neighbors)
+                foreach (INode node in currentNode.Neighbors)
                 {
-                    var neighbourNode = (PathThreeDNode)node;
+                    var neighbourNode = (ThreeDPathNode)node;
                     if (closedList.Contains(neighbourNode)) continue;
                     if (!traversableTypes.Contains(neighbourNode.Type))
                     {
@@ -65,37 +65,37 @@ namespace Konfus.Systems.Pathfinding
                         continue;
                     }
 
-                    int tentativeGCost = currentThreeDNode.DistFromStartNode +
-                                         CalculateDistanceCost(currentThreeDNode, neighbourNode);
+                    int tentativeGCost = currentNode.DistFromStartNode +
+                                         CalculateDistanceCost(currentNode, neighbourNode);
                     if (tentativeGCost >= neighbourNode.DistFromStartNode) continue;
 
-                    validLinkedNodes[neighbourNode] = currentThreeDNode;
+                    validLinkedNodes[neighbourNode] = currentNode;
                     neighbourNode.DistFromStartNode = tentativeGCost;
-                    neighbourNode.EstDistToDestinationNode = CalculateDistanceCost(neighbourNode, endThreeDNode);
+                    neighbourNode.EstDistToDestinationNode = CalculateDistanceCost(neighbourNode, endNode);
 
                     openList.Add(neighbourNode);
                 }
             }
 
             // No path found...
-            return new List<PathThreeDNode>();
+            return new List<ThreeDPathNode>();
         }
 
-        private List<PathThreeDNode> CalculatePath(PathThreeDNode endThreeDNode, Dictionary<PathThreeDNode, PathThreeDNode> validLinkedNodes)
+        private List<ThreeDPathNode> CalculatePath(ThreeDPathNode endNode, Dictionary<ThreeDPathNode, ThreeDPathNode> validLinkedNodes)
         {
-            List<PathThreeDNode> path = new List<PathThreeDNode> {endThreeDNode};
-            PathThreeDNode currentThreeDNode = endThreeDNode;
-            while (validLinkedNodes.TryGetValue(currentThreeDNode, out var node))
+            List<ThreeDPathNode> path = new List<ThreeDPathNode> {endNode};
+            ThreeDPathNode currentNode = endNode;
+            while (validLinkedNodes.TryGetValue(currentNode, out var node))
             {
                 path.Add(node);
-                currentThreeDNode = node;
+                currentNode = node;
             }
 
             path.Reverse();
             return path;
         }
 
-        private int CalculateDistanceCost(PathThreeDNode a, PathThreeDNode b)
+        private int CalculateDistanceCost(ThreeDPathNode a, ThreeDPathNode b)
         {
             int xDistance = Mathf.Abs(a.GridPosition.x - b.GridPosition.x);
             int yDistance = Mathf.Abs(a.GridPosition.y - b.GridPosition.y);
@@ -115,15 +115,15 @@ namespace Konfus.Systems.Pathfinding
             return approximation;
         }
 
-        private PathThreeDNode GetLowestFCostNode(IEnumerable<PathThreeDNode> pathNodeList)
+        private ThreeDPathNode GetLowestFCostNode(IEnumerable<ThreeDPathNode> pathNodeList)
         {
-            PathThreeDNode lowestFCostThreeDNode = pathNodeList.First();
+            ThreeDPathNode lowestFCostNode = pathNodeList.First();
             foreach (var pathNode in pathNodeList)
             {
-                if (pathNode.Cost < lowestFCostThreeDNode.Cost) lowestFCostThreeDNode = pathNode;
+                if (pathNode.Cost < lowestFCostNode.Cost) lowestFCostNode = pathNode;
             }
             
-            return lowestFCostThreeDNode;
+            return lowestFCostNode;
         }
     }
 }

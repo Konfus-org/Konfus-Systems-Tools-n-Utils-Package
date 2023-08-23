@@ -152,7 +152,7 @@ namespace Konfus.Systems.Grid
                 
                 // Draw cells and labels
                 if (drawGrid) DrawGridCell(node);
-                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(35)) DrawGridCellLabel(node);
+                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(10)) DrawGridCellLabel(node);
                 
                 // Convert to gizmo space to node local space...
                 Vector3 nodePos = node.WorldPosition;
@@ -241,6 +241,7 @@ namespace Konfus.Systems.Grid
 
         private void ListenForCtrlPressed()
         {
+            // TODO: get this to work!
             Event e = Event.current;
             if (e != null && (e.keyCode != KeyCode.LeftControl || e.keyCode != KeyCode.RightControl))
             {

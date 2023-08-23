@@ -7,7 +7,7 @@ namespace Konfus.Systems.Pathfinding
     {
         protected override void Generate()
         {
-            Generate(pos => new PathThreeDNode(this, pos));
+            Generate(pos => new ThreeDPathNode(this, pos));
         }
 
         /*
@@ -17,16 +17,16 @@ namespace Konfus.Systems.Pathfinding
             CalculateNodeConnections();
         }*/
 
-        public PathThreeDNode GetPathNode(int x, int y, int z)
+        public ThreeDPathNode GetPathNode(int x, int y, int z)
         {
-            return (PathThreeDNode)GetNode(x, y, z);
+            return (ThreeDPathNode)GetNode(x, y, z);
         }
 
         public void ResetPathNodes()
         {
             foreach (var node in Nodes)
             {
-                var pathNode = (PathThreeDNode)node;
+                var pathNode = (ThreeDPathNode)node;
                 pathNode.Reset();
             }
         }

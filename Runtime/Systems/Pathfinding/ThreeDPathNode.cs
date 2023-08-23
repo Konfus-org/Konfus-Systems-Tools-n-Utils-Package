@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MartianChild.Utility.Grid_System
 {
     // TODO: make an interface so this isn't tied to the grid system
-    public class PathThreeDNode : ThreeDNode
+    public class ThreeDPathNode : ThreeDNode
     {
         public int DistFromStartNode; //g
         public int EstDistToDestinationNode; //h
@@ -13,12 +13,11 @@ namespace MartianChild.Utility.Grid_System
         public virtual int Type => 0;
         public virtual int TypeTraversalCost => 0;
         
-        public PathThreeDNode(ThreeDGrid threeDGrid, Vector3Int gridPosition) : base(threeDGrid, gridPosition)
+        public ThreeDPathNode(ThreeDGrid threeDGrid, Vector3Int gridPosition) : base(threeDGrid, gridPosition)
         {
             EstDistToDestinationNode = 0;
             DistFromStartNode = int.MaxValue;
         }
-
         
         public void Reset()
         {
