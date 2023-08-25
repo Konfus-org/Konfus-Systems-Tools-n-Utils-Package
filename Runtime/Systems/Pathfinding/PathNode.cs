@@ -9,7 +9,7 @@ namespace Konfus.Systems.Grid
         public int EstDistToDestinationNode; //h
         public int Cost => DistFromStartNode + EstDistToDestinationNode + TypeTraversalCost; //f
         
-        public virtual int Type => 0;
+        public virtual int Type { get; set; }
         public virtual int TypeTraversalCost => 0;
         
         public PathNode(Grid grid, Vector3Int gridPosition) : base(grid, gridPosition)
