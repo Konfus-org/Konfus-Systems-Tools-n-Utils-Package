@@ -5,17 +5,17 @@ namespace Konfus.Systems.Grid
 {
     public class ThreeDNode : INode
     {
-        private readonly ThreeDGrid threeDGrid;
+        private readonly ThreeDGrid _threeDGrid;
         private readonly Vector3Int _gridPosition;
 
         public ThreeDNode(ThreeDGrid owningThreeDGrid, Vector3Int gridPositionOnGrid)
         {
-            threeDGrid = owningThreeDGrid;
+            _threeDGrid = owningThreeDGrid;
             _gridPosition = gridPositionOnGrid;
         }
 
         public Vector3Int GridPosition => _gridPosition;
-        public virtual Vector3 WorldPosition => threeDGrid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
+        public virtual Vector3 WorldPosition => _threeDGrid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         
         public INode[] Neighbors
         {
@@ -44,13 +44,13 @@ namespace Konfus.Systems.Grid
                 
             foreach (var potentialNeighborPosition in potentialNeighborPositions)
             {
-                bool isPosInGridBounds = threeDGrid.InGridBounds(
+                bool isPosInGridBounds = _threeDGrid.InGridBounds(
                     potentialNeighborPosition.x,
                     potentialNeighborPosition.y,
                     potentialNeighborPosition.z);
                 if (!isPosInGridBounds) continue;
                     
-                var neighbor = threeDGrid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z);
+                var neighbor = _threeDGrid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z);
                 if (neighbor != null) neighbors.Add(neighbor);
             }
                 
