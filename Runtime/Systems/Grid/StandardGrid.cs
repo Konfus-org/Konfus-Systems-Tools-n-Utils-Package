@@ -1,6 +1,6 @@
 ﻿namespace Konfus.Systems.Grid
 {
-    public class StandardThreeDGrid : ThreeDGrid
+    public class StandardGrid : Grid
     {
         private void Start()
         {
@@ -9,7 +9,7 @@
         
         protected override void Generate()
         {
-            Generate((pos) => new ThreeDNode(this, pos));
+            Generate((pos) => new Node(this, pos));
         }
     }
 }

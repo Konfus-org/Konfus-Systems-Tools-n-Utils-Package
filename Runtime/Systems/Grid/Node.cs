@@ -3,19 +3,19 @@ using UnityEngine;
 
 namespace Konfus.Systems.Grid
 {
-    public class ThreeDNode : INode
+    public class Node : INode
     {
-        private readonly ThreeDGrid _threeDGrid;
+        private readonly Grid grid;
         private readonly Vector3Int _gridPosition;
 
-        public ThreeDNode(ThreeDGrid owningThreeDGrid, Vector3Int gridPositionOnGrid)
+        public Node(Grid owningGrid, Vector3Int gridPositionOnGrid)
         {
-            _threeDGrid = owningThreeDGrid;
+            grid = owningGrid;
             _gridPosition = gridPositionOnGrid;
         }
 
         public Vector3Int GridPosition => _gridPosition;
-        public virtual Vector3 WorldPosition => _threeDGrid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
+        public virtual Vector3 WorldPosition => grid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         
         public INode[] Neighbors
         {
@@ -44,13 +44,13 @@ namespace Konfus.Systems.Grid
                 
             foreach (var potentialNeighborPosition in potentialNeighborPositions)
             {
-                bool isPosInGridBounds = _threeDGrid.InGridBounds(
+                bool isPosInGridBounds = grid.InGridBounds(
                     potentialNeighborPosition.x,
                     potentialNeighborPosition.y,
                     potentialNeighborPosition.z);
                 if (!isPosInGridBounds) continue;
                     
-                var neighbor = _threeDGrid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z);
+                var neighbor = grid.GetNode(potentialNeighborPosition.x, potentialNeighborPosition.y, potentialNeighborPosition.z);
                 if (neighbor != null) neighbors.Add(neighbor);
             }
                 

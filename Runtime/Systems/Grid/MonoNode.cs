@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Konfus.Systems.Grid
 {
-    public class ThreeDMonoNode : MonoBehaviour, INode
+    public class MonoNode : MonoBehaviour, INode
     {
         [SerializeField]
-        private ThreeDGrid grid;
+        private Grid grid;
         private INode _node;
         
         public Vector3Int GridPosition => _node.GridPosition;
@@ -15,7 +14,7 @@ namespace Konfus.Systems.Grid
         
         private void Start()
         {
-            _node = new ThreeDNode(grid, grid.GridPosFromWorldPos(WorldPosition));
+            _node = new Node(grid, grid.GridPosFromWorldPos(WorldPosition));
         }
     }
 }

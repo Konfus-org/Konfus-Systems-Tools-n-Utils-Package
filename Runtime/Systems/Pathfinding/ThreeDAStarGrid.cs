@@ -1,13 +1,13 @@
-using MartianChild.Utility.Grid_System;
+using Konfus.Systems.Grid;
 
 namespace Konfus.Systems.Pathfinding
 {
     // TODO: Make an interface so this isn't tied to grid system...
-    public class ThreeDAStarGrid : Grid.ThreeDGrid
+    public class ThreeDAStarGrid : Grid.Grid
     {
         protected override void Generate()
         {
-            Generate(pos => new ThreeDPathNode(this, pos));
+            Generate(pos => new PathNode(this, pos));
         }
 
         /*
@@ -17,16 +17,16 @@ namespace Konfus.Systems.Pathfinding
             CalculateNodeConnections();
         }*/
 
-        public ThreeDPathNode GetPathNode(int x, int y, int z)
+        public PathNode GetPathNode(int x, int y, int z)
         {
-            return (ThreeDPathNode)GetNode(x, y, z);
+            return (PathNode)GetNode(x, y, z);
         }
 
         public void ResetPathNodes()
         {
             foreach (var node in Nodes)
             {
-                var pathNode = (ThreeDPathNode)node;
+                var pathNode = (PathNode)node;
                 pathNode.Reset();
             }
         }

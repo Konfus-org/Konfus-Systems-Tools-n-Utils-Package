@@ -10,7 +10,7 @@ using UnityEditor;
 namespace Konfus.Systems.Grid
 {
     [ExecuteInEditMode]
-    public abstract class ThreeDGrid : MonoBehaviour, IGrid
+    public abstract class Grid : MonoBehaviour, IGrid
     {
         [Header("Settings")]
         [PropertyOrder(2), SerializeField, Tooltip("Can also update this by pressing ctrl and scaling the transform this script is attached to.")] 
@@ -27,7 +27,7 @@ namespace Konfus.Systems.Grid
         [PropertyOrder(3), SerializeField]
         private bool drawGridCellLabels = false;
 
-        public IEnumerable<INode> Nodes => _nodes.Cast<ThreeDNode>();
+        public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
         public Vector3Int Scale => scale;
         public float CellSize => cellSize;
         
@@ -78,6 +78,11 @@ namespace Konfus.Systems.Grid
         {
             if(!InGridBounds(x, y, z)) return;
             _nodes[x, y, z] = value;
+        }
+        
+        public void SetNode(Vector3Int gridPosition, INode value)
+        {
+            SetNode(gridPosition.x, gridPosition.y, gridPosition.z, value);
         }
 
         public void SetNode(Vector3 worldPosition, INode value)

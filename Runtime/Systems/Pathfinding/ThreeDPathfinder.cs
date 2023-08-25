@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Konfus.Systems.Grid;
-using MartianChild.Utility.Grid_System;
 using UnityEngine;
 
 namespace Konfus.Systems.Pathfinding
@@ -25,22 +24,22 @@ namespace Konfus.Systems.Pathfinding
             threeDaStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY, out int startZ);
             threeDaStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY, out int endZ);
 
-            List<ThreeDPathNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
+            List<PathNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
 
             return path?.Select(pathNode => pathNode.WorldPosition).ToList();
         }
 
-        public List<ThreeDPathNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, int[] traversableTypes)
+        public List<PathNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, int[] traversableTypes)
         {
-            ThreeDPathNode startNode = threeDaStarGrid.GetPathNode(startX, startY, startZ);
-            ThreeDPathNode endNode = threeDaStarGrid.GetPathNode(endX, endY, endZ);
+            PathNode startNode = threeDaStarGrid.GetPathNode(startX, startY, startZ);
+            PathNode endNode = threeDaStarGrid.GetPathNode(endX, endY, endZ);
 
             // invalid path
-            if (startNode == null || endNode == null || !traversableTypes.Contains(endNode.Type)) return new List<ThreeDPathNode>();
+            if (startNode == null || endNode == null || !traversableTypes.Contains(endNode.Type)) return new List<PathNode>();
 
-            var validLinkedNodes = new Dictionary<ThreeDPathNode, ThreeDPathNode>();
-            var openList = new HashSet<ThreeDPathNode> {startNode};
-            var closedList = new HashSet<ThreeDPathNode>();
+            var validLinkedNodes = new Dictionary<PathNode, PathNode>();
+            var openList = new HashSet<PathNode> {startNode};
+            var closedList = new HashSet<PathNode>();
 
             threeDaStarGrid.ResetPathNodes();
 
@@ -49,7 +48,7 @@ namespace Konfus.Systems.Pathfinding
 
             while (openList.Count > 0)
             {
-                ThreeDPathNode currentNode = GetLowestFCostNode(openList);
+                PathNode currentNode = GetLowestFCostNode(openList);
                 if (currentNode == endNode) return CalculatePath(endNode, validLinkedNodes);
 
                 openList.Remove(currentNode);
@@ -57,7 +56,7 @@ namespace Konfus.Systems.Pathfinding
 
                 foreach (INode node in currentNode.Neighbors)
                 {
-                    var neighbourNode = (ThreeDPathNode)node;
+                    var neighbourNode = (PathNode)node;
                     if (closedList.Contains(neighbourNode)) continue;
                     if (!traversableTypes.Contains(neighbourNode.Type))
                     {
@@ -78,13 +77,13 @@ namespace Konfus.Systems.Pathfinding
             }
 
             // No path found...
-            return new List<ThreeDPathNode>();
+            return new List<PathNode>();
         }
 
-        private List<ThreeDPathNode> CalculatePath(ThreeDPathNode endNode, Dictionary<ThreeDPathNode, ThreeDPathNode> validLinkedNodes)
+        private List<PathNode> CalculatePath(PathNode endNode, Dictionary<PathNode, PathNode> validLinkedNodes)
         {
-            List<ThreeDPathNode> path = new List<ThreeDPathNode> {endNode};
-            ThreeDPathNode currentNode = endNode;
+            List<PathNode> path = new List<PathNode> {endNode};
+            PathNode currentNode = endNode;
             while (validLinkedNodes.TryGetValue(currentNode, out var node))
             {
                 path.Add(node);
@@ -95,7 +94,7 @@ namespace Konfus.Systems.Pathfinding
             return path;
         }
 
-        private int CalculateDistanceCost(ThreeDPathNode a, ThreeDPathNode b)
+        private int CalculateDistanceCost(PathNode a, PathNode b)
         {
             int xDistance = Mathf.Abs(a.GridPosition.x - b.GridPosition.x);
             int yDistance = Mathf.Abs(a.GridPosition.y - b.GridPosition.y);
@@ -115,9 +114,9 @@ namespace Konfus.Systems.Pathfinding
             return approximation;
         }
 
-        private ThreeDPathNode GetLowestFCostNode(IEnumerable<ThreeDPathNode> pathNodeList)
+        private PathNode GetLowestFCostNode(IEnumerable<PathNode> pathNodeList)
         {
-            ThreeDPathNode lowestFCostNode = pathNodeList.First();
+            PathNode lowestFCostNode = pathNodeList.First();
             foreach (var pathNode in pathNodeList)
             {
                 if (pathNode.Cost < lowestFCostNode.Cost) lowestFCostNode = pathNode;
