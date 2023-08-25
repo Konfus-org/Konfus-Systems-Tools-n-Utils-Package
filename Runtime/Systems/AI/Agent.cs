@@ -11,6 +11,7 @@ namespace Konfus.Systems.AI
         /// Takes an input to process.
         /// </summary>
         /// <param name="input">The input to be handled</param>
-        public abstract void OnInput(IAgentInput input);
+        /// <returns>Whether or not input was handled</returns>
+        public abstract bool OnInput(IAgentInput input);
     }
 }

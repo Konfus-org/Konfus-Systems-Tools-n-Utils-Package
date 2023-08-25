@@ -5,6 +5,11 @@
     /// </summary>
     public interface IAgent
     {
-        void OnInput(IAgentInput input);
+        /// <summary>
+        /// Attempts to handle input.
+        /// </summary>
+        /// <param name="input">The input to be handled</param>
+        /// <returns>Whether or not the input was handled</returns>
+        bool OnInput(IAgentInput input);
     }
 }

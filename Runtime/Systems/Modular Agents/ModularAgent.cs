@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Konfus.Systems.AI;
-using UnityEngine;
 
 namespace Konfus.Systems.Modular_Agents
 {
@@ -10,12 +9,14 @@ namespace Konfus.Systems.Modular_Agents
         private IAgentUpdateModule[] _updateModules;
         private IAgentPhysicsModule[] _physicsModules;
 
-        public override void OnInput(IAgentInput input)
+        public override bool OnInput(IAgentInput input)
         {
             foreach (IAgentInputModule inputModule in _inputModules)
             {
-                if (inputModule.OnInputFromAgent(input)) return;
+                if (inputModule.OnInputFromAgent(input)) return true;
             }
+
+            return false;
         }
 
         private void Start()
