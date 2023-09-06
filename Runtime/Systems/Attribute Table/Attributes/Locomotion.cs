@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-namespace Shuhari.Actors.Attributes
+namespace Konfus.Systems.AttribTable
 {
-    [CreateAssetMenu(fileName = "New Attribute", menuName = "Shuhari/Agents/Locomotion Attribute")]
+    [CreateAssetMenu(fileName = "New Attribute", menuName = "Konfus/Attribute Table/Locomotion Attribute")]
     public class Locomotion : ActorAttribute
     {
         public float acceleration;

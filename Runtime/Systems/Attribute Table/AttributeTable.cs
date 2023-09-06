@@ -1,9 +1,8 @@
 ﻿using System;
 using Konfus.Utility.Custom_Types;
-using Shuhari.Actors.Attributes;
 using UnityEngine;
 
-namespace Shuhari.Actors.Modules
+namespace Konfus.Systems.AttribTable
 {
     public class AttributeTable : MonoBehaviour
     {

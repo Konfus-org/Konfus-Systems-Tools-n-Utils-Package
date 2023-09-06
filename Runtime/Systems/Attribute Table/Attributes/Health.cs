@@ -1,9 +1,9 @@
 ﻿using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Shuhari.Actors.Attributes
+namespace Konfus.Systems.AttribTable
 {
-    [CreateAssetMenu(fileName = "New Attribute", menuName = "Shuhari/Agents/Health Attribute")]
+    [CreateAssetMenu(fileName = "New Attribute", menuName = "Konfus/Attribute Table/Health Attribute")]
     public class Health : ActorAttribute
     {
         [OnValueChanged("OnMaxValChanged", InvokeOnInitialize = true)]

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Shuhari.Actors.Attributes
+namespace Konfus.Systems.AttribTable
 {
     public class ActorAttribute : ScriptableObject { }
 }
