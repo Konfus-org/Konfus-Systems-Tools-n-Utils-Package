@@ -2,7 +2,7 @@
 using System.Linq;
 using Unity.Mathematics;
 
-namespace Konfus.Utility.Extensions.Editor
+namespace Konfus.Utility.Extensions
 {
     public static class IEnumerableExtensions
     {

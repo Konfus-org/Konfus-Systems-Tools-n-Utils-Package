@@ -27,7 +27,7 @@ namespace Konfus.Utility.Extensions
 
         public static LayerMask LayerNumbersToMask(params int[] layerNumbers)
         {
-            LayerMask ret = (LayerMask)0;
+            LayerMask ret = 0;
             foreach(var layer in layerNumbers)
             {
                 ret |= (1 << layer);
