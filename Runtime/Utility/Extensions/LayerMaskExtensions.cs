@@ -17,7 +17,7 @@ namespace Konfus.Utility.Extensions
  
         public static LayerMask NamesToMask(params string[] layerNames)
         {
-            LayerMask ret = (LayerMask)0;
+            LayerMask ret = 0;
             foreach(var name in layerNames)
             {
                 ret |= (1 << LayerMask.NameToLayer(name));
