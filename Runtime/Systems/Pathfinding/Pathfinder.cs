@@ -6,23 +6,23 @@ using UnityEngine;
 
 namespace Konfus.Systems.Pathfinding
 {
-    public class ThreeDPathfinder
+    public class Pathfinder
     {
         private readonly int _moveToFaceNeighborCost;
         private readonly int _moveToEdgeNeighborCost;
         private readonly int _moveToCornerNeighborCost;
 
-        private readonly ThreeDAStarGrid threeDaStarGrid;
+        private readonly AStarGrid _aStarGrid;
 
-        public ThreeDPathfinder(ThreeDAStarGrid threeDGrid)
+        public Pathfinder(AStarGrid threeDGrid)
         {
-            threeDaStarGrid = threeDGrid;
+            _aStarGrid = threeDGrid;
         }
 
         public List<Vector3> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition, int[] traversableTypes)
         {
-            threeDaStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY, out int startZ);
-            threeDaStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY, out int endZ);
+            _aStarGrid.GridPosFromWorldPos(startWorldPosition, out int startX, out int startY, out int startZ);
+            _aStarGrid.GridPosFromWorldPos(endWorldPosition, out int endX, out int endY, out int endZ);
 
             List<PathNode> path = FindPath(startX, startY, startZ, endX, endY, endZ, traversableTypes);
 
@@ -31,8 +31,8 @@ namespace Konfus.Systems.Pathfinding
 
         public List<PathNode> FindPath(int startX, int startY, int startZ, int endX, int endY, int endZ, int[] traversableTypes)
         {
-            PathNode startNode = threeDaStarGrid.GetPathNode(startX, startY, startZ);
-            PathNode endNode = threeDaStarGrid.GetPathNode(endX, endY, endZ);
+            PathNode startNode = _aStarGrid.GetPathNode(startX, startY, startZ);
+            PathNode endNode = _aStarGrid.GetPathNode(endX, endY, endZ);
 
             // invalid path
             if (startNode == null || endNode == null || !traversableTypes.Contains(endNode.Type)) return new List<PathNode>();
@@ -41,7 +41,7 @@ namespace Konfus.Systems.Pathfinding
             var openList = new HashSet<PathNode> {startNode};
             var closedList = new HashSet<PathNode>();
 
-            threeDaStarGrid.ResetPathNodes();
+            _aStarGrid.ResetPathNodes();
 
             startNode.DistFromStartNode = 0;
             startNode.EstDistToDestinationNode = CalculateDistanceCost(startNode, endNode);

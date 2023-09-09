@@ -5,14 +5,14 @@ using UnityEngine.Events;
 
 namespace Konfus.Systems.Pathfinding
 {
-    [ExecuteInEditMode] public class ThreeDPathManager : MonoBehaviour
+    [ExecuteInEditMode] public class PathManager : MonoBehaviour
     {
         public PathEvent onPathFoundEvent;
         
         [Header("Dependencies")] 
         [SerializeField]
-        private ThreeDAStarGrid grid;
-        private ThreeDPathfinder pathfinder;
+        private AStarGrid grid;
+        private Pathfinder pathfinder;
 
         /*
         [Header("A Star Settings")] 
@@ -22,10 +22,10 @@ namespace Konfus.Systems.Pathfinding
         
         private void Start()
         {
-            pathfinder = new ThreeDPathfinder(grid);
+            pathfinder = new Pathfinder(grid);
         }
 
-        public ThreeDAStarGrid GetAStarGrid()
+        public AStarGrid GetAStarGrid()
         {
             return grid;
         }
