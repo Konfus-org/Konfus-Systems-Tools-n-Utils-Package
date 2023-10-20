@@ -27,9 +27,13 @@ namespace Konfus.Editor.Sensors
                 case BoxScanSensor.Type.Standard:
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    if (sensor.isTriggered) length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);
-                    Gizmos.DrawLine(Vector3.zero, new Vector3(0, 0, length));
                     Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.sensorSize);
+                    if (sensor.isTriggered)
+                    {
+                        length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);
+                        Gizmos.DrawSphere(Vector3.forward * length, 0.1f);
+                    }
+                    Gizmos.DrawLine(Vector3.zero, new Vector3(0, 0, length));
                     break;
                 }
                 case BoxScanSensor.Type.Full:

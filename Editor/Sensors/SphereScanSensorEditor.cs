@@ -29,11 +29,17 @@ namespace Konfus.Editor.Sensors
                     if (sensor.isTriggered)
                     {
                         Gizmos.DrawLine(sensor.transform.position, sensor.hits.First().point);
-                        Gizmos.DrawWireSphere(sensor.hits.First().point, sensor.sensorRadius);
+                        Gizmos.DrawWireSphere( 
+                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.sensorRadius/2), 
+                            sensor.sensorRadius);
+                        Gizmos.DrawSphere(sensor.hits.First().point, 0.1f);
                     }
                     else
                     {
                         Gizmos.DrawLine(sensor.transform.position, sensor.transform.position + sensor.transform.forward);
+                        Gizmos.DrawWireSphere( 
+                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.sensorRadius/2), 
+                            sensor.sensorRadius);
                     }
                     break;
                 }
@@ -46,12 +52,12 @@ namespace Konfus.Editor.Sensors
                     }
                     
                     Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawLine(Vector3.up * sensor.sensorRadius, Vector3.up * sensor.sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.up * sensor.sensorRadius, -Vector3.up * sensor.sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(Vector3.right * sensor.sensorRadius, Vector3.right * sensor.sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.right * sensor.sensorRadius, -Vector3.right * sensor.sensorRadius + Vector3.forward * length);
+                    Gizmos.DrawLine(Vector3.up * sensor.sensorRadius, Vector3.up * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
+                    Gizmos.DrawLine(-Vector3.up * sensor.sensorRadius, -Vector3.up * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
+                    Gizmos.DrawLine(Vector3.right * sensor.sensorRadius, Vector3.right * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
+                    Gizmos.DrawLine(-Vector3.right * sensor.sensorRadius, -Vector3.right * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
                     Gizmos.DrawWireSphere(Vector3.zero, sensor.sensorRadius);
-                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length), sensor.sensorRadius);
+                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length) - (Vector3.forward * sensor.sensorRadius/2), sensor.sensorRadius);
                     break;
                 }
             }
