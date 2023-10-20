@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Konfus.Systems.Grid;
+using Konfus.Systems.Grids;
 using UnityEngine;
 
 namespace Konfus.Systems.Pathfinding

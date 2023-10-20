@@ -98,46 +98,5 @@ namespace Konfus.Systems.Sensor_Toolkit
 
             return false;
         }
-
-        protected override void DrawSensor()
-        {
-            // scan the world
-            Scan();
-
-            Gizmos.color = nothingDetectedColor;
-            if (isTriggered) Gizmos.color = detectedSomethingColor;
-            
-            float length = sensorLength;
-
-            switch (sensorType)
-            {
-                case Type.Standard:
-                {
-                    Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    if (isTriggered) length = Vector3.Distance(transform.position, hits.First().point);
-                    Gizmos.DrawLine(Vector3.zero, new Vector3(0, 0, length));
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensorSize);
-                    break;
-                }
-                case Type.Full:
-                {
-                    if (isTriggered)
-                    {
-                        foreach (Hit hit in hits)
-                            Gizmos.DrawSphere(hit.point == default ? hit.gameObject.transform.position : hit.point, 0.2f);
-                    }
-                    
-                    Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length + sensorSize.z)/2, new Vector3(sensorSize.x, sensorSize.y, sensorSize.z + length));
-                    break;
-                }
-                case Type.CheckHitOnly:
-                {
-                    Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensorSize);
-                    break;
-                }
-            }
-        }
     }
 }

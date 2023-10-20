@@ -2,7 +2,7 @@ using Konfus.Utility.Extensions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.Grids
 {
     [ExecuteInEditMode] 
     public class SnapToGrid : MonoBehaviour

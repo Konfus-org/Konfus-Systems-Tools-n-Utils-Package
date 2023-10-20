@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.Grid
+namespace Konfus.Systems.Grids
 {
     // TODO: make an interface so this isn't tied to the grid system
     public class PathNode : Node

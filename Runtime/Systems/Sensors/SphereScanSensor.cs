@@ -68,50 +68,5 @@ namespace Konfus.Systems.Sensor_Toolkit
         
             return false;
         }
-
-        protected override void DrawSensor()
-        {
-            // scan the world
-            Scan();
-
-            Gizmos.color = nothingDetectedColor;
-            if (isTriggered) Gizmos.color = detectedSomethingColor;
-
-            float length = sensorLength;
-            
-            switch (sensorType)
-            {
-                case Type.Standard:
-                {
-                    if (isTriggered)
-                    {
-                        Gizmos.DrawLine(transform.position, hits.First().point);
-                        Gizmos.DrawWireSphere(hits.First().point, sensorRadius);
-                    }
-                    else
-                    {
-                        Gizmos.DrawLine(transform.position, transform.position + transform.forward);
-                    }
-                    break;
-                }
-                case Type.Full:
-                {
-                    if (isTriggered)
-                    {
-                        foreach (Hit hit in hits)
-                            Gizmos.DrawSphere(hit.point, 0.2f);
-                    }
-                    
-                    Gizmos.matrix *= Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                    Gizmos.DrawLine(Vector3.up * sensorRadius, Vector3.up * sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.up * sensorRadius, -Vector3.up * sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(Vector3.right * sensorRadius, Vector3.right * sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawLine(-Vector3.right * sensorRadius, -Vector3.right * sensorRadius + Vector3.forward * length);
-                    Gizmos.DrawWireSphere(Vector3.zero, sensorRadius);
-                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length), sensorRadius);
-                    break;
-                }
-            }
-        }
     }
 }

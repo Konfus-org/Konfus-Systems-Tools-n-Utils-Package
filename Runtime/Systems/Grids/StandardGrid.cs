@@ -1,4 +1,4 @@
-﻿namespace Konfus.Systems.Grid
+﻿namespace Konfus.Systems.Grids
 {
     public class StandardGrid : Grid
     {
@@ -7,7 +7,7 @@
             Generate();
         }
         
-        protected override void Generate()
+        public override void Generate()
         {
             Generate((pos) => new Node(this, pos));
         }

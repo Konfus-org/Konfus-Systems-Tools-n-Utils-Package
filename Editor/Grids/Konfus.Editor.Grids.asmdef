@@ -1,10 +1,13 @@
 {
-    "name": "Konfus.Grid",
-    "rootNamespace": "",
+    "name": "Editor.Grids",
+    "rootNamespace": "Konfus",
     "references": [
+        "GUID:88359f01967ee784f9587c0ced4b2dbd",
         "GUID:a88015c3e00dffd48a3c7daec3b0969d"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
