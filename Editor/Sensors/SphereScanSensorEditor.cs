@@ -9,7 +9,7 @@ namespace Konfus.Editor.Sensors
     public class SphereScanSensorEditor : UnityEditor.Editor
     {
         [DrawGizmo(GizmoType.Active)]
-        private static void OnDrawGizmos(SphereScanSensor sensor, GizmoType gizmoType)
+        private static void DrawGizmos(SphereScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
             DrawSensor(sensor);

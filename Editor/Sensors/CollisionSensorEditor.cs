@@ -9,7 +9,7 @@ namespace Konfus.Editor.Sensors
     public class CollisionSensorEditor : UnityEditor.Editor
     {
         [DrawGizmo(GizmoType.Active)]
-        private static void OnDrawGizmos(CollisionSensor sensor, GizmoType gizmoType)
+        private static void DrawGizmos(CollisionSensor sensor, GizmoType gizmoType)
         {
             DrawSensor(sensor);
         }

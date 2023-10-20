@@ -11,19 +11,17 @@ namespace Konfus.Editor.Grids
     public class GridEditor : UnityEditor.Editor
     {
         private static GridEditor _instance;
+        private static Grid _grid;
         
         private static bool _drawGrid = true;
         private static bool _drawNodes = false;
         private static bool _drawNodeConnections = false;
         private static bool _drawGridCellLabels = false;
         
-        private Grid _grid;
-        private Vector3 _previousScale;
-        
         public override void OnInspectorGUI()
         {
+            DrawDefaultInspector();
             DrawGui();
-            base.OnInspectorGUI();
         }
 
         /// <summary>
@@ -85,16 +83,24 @@ namespace Konfus.Editor.Grids
             EditorGUILayout.LabelField("Settings", EditorStyles.boldLabel);
             _grid.cellSize = EditorGUILayout.FloatField("Cell Size", _grid.cellSize);
             _grid.scale = EditorGUILayout.Vector3IntField("Scale", _grid.scale);
+            
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
             _drawGrid = EditorGUILayout.Toggle("Draw Grid", _drawGrid);
             _drawNodes = EditorGUILayout.Toggle("Draw Nodes", _drawNodes);
             _drawNodeConnections = EditorGUILayout.Toggle("Draw Node Connections", _drawNodeConnections);
             _drawGridCellLabels = EditorGUILayout.Toggle("Draw Cell Labels", _drawGridCellLabels);
+            
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Generate"))
+            {
+                _grid.Generate();
+            }
+            
         }
         
         [DrawGizmo(GizmoType.Active)]
-        private static void DrawGridGizmos(Grid grid, GizmoType gizmoType)
+        private static void DrawGizmos(Grid grid, GizmoType gizmoType)
         {
             bool drawGrid = _drawGrid;
             bool drawNodes = _drawNodes;
@@ -151,10 +157,12 @@ namespace Konfus.Editor.Grids
         {
             _instance = this;
             _grid = (Grid)target;
+            _grid.Generate();
         }
         
         private void OnValidate()
         {
+            _grid = (Grid)target;
             _grid.Generate();
         }
 
@@ -177,8 +185,6 @@ namespace Konfus.Editor.Grids
 
         private void OnTransformScaleChanged()
         {
-            _previousScale = _grid.transform.localScale;
-            
             // if we are pressing shift update cell size
             //if ((Event.current.modifiers & EventModifiers.Shift) != 0) UpdateCellSizeFromTransformScaleDelta();
             // else update scale
@@ -195,6 +201,8 @@ namespace Konfus.Editor.Grids
             _grid.Generate();
         }
 
+        // TODO: idea instead of this maybe we could draw another scale handle
+        // that could be used to scale the cell size!
         // A pain in the butt, maybe later we will do this...
         /*private void UpdateCellSizeFromTransformScaleDelta()
         {

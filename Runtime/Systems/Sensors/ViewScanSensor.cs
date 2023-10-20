@@ -16,12 +16,13 @@ namespace Konfus.Systems.Sensor_Toolkit
         [Tooltip("Field of view in degrees")] 
         [SerializeField]
         [PropertyOrder(2)]
-        public float fov;
-        [Tooltip("The distance where object will always be detected no matter what")]
+        [MinMaxSlider(1, 360)]
+        public float fov = 180;
 
         public override bool Scan()
         {
             isTriggered = false;
+            hits = null;
             RaycastHit[] hitsArray = Physics.SphereCastAll(transform.position, sensorLength, transform.forward, 0.001f, detectionFilter);
 
             // We didn't hit anything...

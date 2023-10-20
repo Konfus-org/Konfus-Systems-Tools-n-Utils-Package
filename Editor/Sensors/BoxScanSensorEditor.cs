@@ -9,7 +9,7 @@ namespace Konfus.Editor.Sensors
     public class BoxScanSensorEditor : UnityEditor.Editor
     {
         [DrawGizmo(GizmoType.Selected)]
-        private static void OnDrawGizmos(BoxScanSensor sensor, GizmoType gizmoType)
+        private static void DrawGizmos(BoxScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
             DrawSensor(sensor);

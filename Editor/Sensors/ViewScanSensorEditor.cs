@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Konfus.Systems.Sensor_Toolkit;
+using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace Konfus.Editor.Sensors
     public class ViewScanSensorEditor : UnityEditor.Editor
     {
         [DrawGizmo(GizmoType.Selected)]
-        private static void OnDrawGizmos(ViewScanSensor sensor, GizmoType gizmoType)
+        private static void DrawGizmos(ViewScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
             DrawSensor(sensor);
@@ -19,7 +20,7 @@ namespace Konfus.Editor.Sensors
         private static void DrawSensor(ViewScanSensor sensor)
         {
             // If we have hits draw line to what was detected
-            if (sensor.hits.Any())
+            if (!sensor.hits.IsNullOrEmpty())
             {
                 foreach (Sensor.Hit hitInfo in sensor.hits)
                 {
@@ -30,9 +31,9 @@ namespace Konfus.Editor.Sensors
             
             // Draw FOV mesh and inevitable detection mesh
             Gizmos.color = SensorColors.NoHitColor;
-            if (sensor.hits.Any()) Gizmos.color = SensorColors.HitColor;
+            if (!sensor.hits.IsNullOrEmpty()) Gizmos.color = SensorColors.HitColor;
             Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-            Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.detectionFilter, sensor.fov, sensor.sensorLength));
+            Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.obstructionFilter, sensor.fov, sensor.sensorLength));
         }
         
         private static Mesh CreateFovGizmoMesh(Transform transform, int layerMask, float fieldOfView, float radius)

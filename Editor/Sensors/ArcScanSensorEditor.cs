@@ -8,7 +8,7 @@ namespace Konfus.Editor.Sensors
     public class ArcScanSensorEditor : UnityEditor.Editor
     {
         [DrawGizmo(GizmoType.Selected)]
-        private static void OnDrawGizmos(ArcScanSensor sensor, GizmoType gizmoType)
+        private static void DrawGizmos(ArcScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
             DrawSensor(sensor);
