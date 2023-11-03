@@ -2,30 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using Konfus.Utility.Extensions;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Grids
 {
     public abstract class Grid : MonoBehaviour, IGrid
     {
-        internal bool drawGrid = true;
-        internal bool drawNodes = false;
-        internal bool drawNodeConnections = false;
-        internal bool drawGridCellLabels = false;
-        
-        internal float cellSize = 1f;
-        internal Vector3Int scale = Vector3Int.one * 10;
-        internal INode[,,] nodes;
+        [SerializeField]
+        private float cellSize = 1f;
+        [SerializeField]
+        private Vector3Int scale = Vector3Int.one * 10;
 
-        public IEnumerable<INode> Nodes => nodes.Cast<Node>();
+        public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
+        public INode[,,] NodesXYZ => _nodes;
         public Vector3Int Scale => scale;
         public float CellSize => cellSize;
         
+        private INode[,,] _nodes;
+        
         public bool InGridBounds(int x, int y, int z)
         {
-            // Debug.Log(x + "," + y + "," + z);
-            return !(x < 0 || y < 0 || z < 0 || x >= (int)(cellSize * Scale.x) || y >= (int)(cellSize * Scale.y) || z >= (int)(cellSize * Scale.z));
+            return !(x < 0 || y < 0 || z < 0 || x >= Scale.x || y >= Scale.y || z >= Scale.z);
         }
         
         public bool InGridBounds(Vector3 worldPosition)
@@ -65,7 +62,7 @@ namespace Konfus.Systems.Grids
         public void SetNode(int x, int y, int z, INode value)
         {
             if (!InGridBounds(x, y, z)) return;
-            nodes[x, y, z] = value;
+            _nodes[x, y, z] = value;
         }
         
         public void SetNode(Vector3Int gridPosition, INode value)
@@ -81,7 +78,7 @@ namespace Konfus.Systems.Grids
 
         public INode GetNode(int x, int y, int z)
         {
-            if (InGridBounds(x, y, z)) return nodes[x, y, z];
+            if (InGridBounds(x, y, z)) return _nodes[x, y, z];
             return null;
         }
         
@@ -98,17 +95,27 @@ namespace Konfus.Systems.Grids
         
         public abstract void Generate();
         
+        internal void SetScale(Vector3Int newScale)
+        {
+            scale = newScale;
+        }
+        
+        internal void SetCellSize(float newCellSize)
+        {
+            cellSize = newCellSize;
+        }
+        
         protected void Generate(Func<Vector3Int, INode> createNode)
         {
-            nodes = new INode[(int)Scale.x, (int)Scale.y, (int)Scale.z];
-            for (int x = 0; x < nodes.GetLength(0); x++)
+            _nodes = new INode[(int)Scale.x, (int)Scale.y, (int)Scale.z];
+            for (int x = 0; x < _nodes.GetLength(0); x++)
             {
-                for (int y = 0; y < nodes.GetLength(1); y++)
+                for (int y = 0; y < _nodes.GetLength(1); y++)
                 {
-                    for (int z = 0; z < nodes.GetLength(2); z++)
+                    for (int z = 0; z < _nodes.GetLength(2); z++)
                     {
                         INode gridObject = createNode(new Vector3Int(x, y, z));
-                        nodes[x, y, z] = gridObject;
+                        _nodes[x, y, z] = gridObject;
                     }
                 }
             }

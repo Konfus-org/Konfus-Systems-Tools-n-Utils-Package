@@ -10,106 +10,79 @@ namespace Konfus.Editor.Grids
     [CustomEditor(typeof(Grid), editorForChildClasses: true)]
     public class GridEditor : UnityEditor.Editor
     {
+        protected static Grid Grid { get; private set; }
+        
         private static GridEditor _instance;
-        private static Grid _grid;
-        
         private static bool _drawGrid = true;
-        private static bool _drawNodes = false;
-        private static bool _drawNodeConnections = false;
-        private static bool _drawGridCellLabels = false;
-        
+        private static bool _drawGridNodes = false;
+        private static bool _drawGridNodeLabels = false;
+        private static bool _drawGridNodeConnections = false;
+
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            DrawGui();
+            DrawInspectorGui();
         }
 
         /// <summary>
         /// Draws grid cell in current cell local space.
         /// </summary>
-        protected virtual void DrawGridCell(INode cellNode)
+        protected virtual void DrawGridCell(INode cellNode, GizmoType state)
         {
-            Gizmos.color = Color.white;
+            var color = Color.white;
+            Gizmos.color = new Color(color.r, color.g, color.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
 
         /// <summary>
         /// Draws grid cell label in node local space.
         /// </summary>
-        protected virtual void DrawGridCellLabel(INode cellNode)
+        protected virtual void DrawNodeLabel(INode node, GizmoType state)
         {
-            // Draw cell position label...
-            Handles.Label(Vector3.zero, cellNode.GridPosition.ToString(), style: new GUIStyle()
+            var color = Color.green;
+            color = new Color(color.r, color.g, color.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
+            Handles.Label(Vector3.back * 0.25f, node.GridPosition.ToString(), style: new GUIStyle()
             {
                 fontSize = 12,
                 alignment = TextAnchor.MiddleCenter,
-                normal = new GUIStyleState()
-                {
-                    textColor = Color.green
-                }
+                normal = new GUIStyleState() { textColor = color }
             });
         }
         
         /// <summary>
         /// Draws grid node in node local space.
         /// </summary>
-        protected virtual void DrawGridNode(INode node)
+        protected virtual void DrawGridNode(INode node, GizmoType state)
         {
-            var blueColor = Color.blue;
-            Gizmos.color = new Color(blueColor.r, blueColor.g, blueColor.b, 0.15f);
+            var color = Color.blue;
+            Gizmos.color = new Color(color.r, color.g, color.b, state.HasFlag(GizmoType.Selected) ? 0.5f : 0.15f);
             Gizmos.DrawCube(Vector3.zero, Vector3.one * 0.1f);
         }
 
         /// <summary>
         /// Draws grid node connections in node local space.
         /// </summary>
-        protected virtual void DrawGridNodeConnections(INode node)
+        protected virtual void DrawGridNodeConnection(INode node, INode nodeNeighbor, GizmoType state)
         {
-            Gizmos.color = Color.gray;
-            foreach (INode nodeNeighbor in node.Neighbors)
-            {
-                Gizmos.DrawRay(
-                    from: Vector3.zero,
-                    direction: (nodeNeighbor.WorldPosition - node.WorldPosition) * (_grid.cellSize * 0.5f));
-            }
+            var color = Color.blue;
+            Gizmos.color = new Color(color.r, color.g, color.b, state.HasFlag(GizmoType.Selected) ? 0.35f : 0.15f);
+            Gizmos.DrawRay(
+                from: Vector3.zero,
+                direction: (nodeNeighbor.WorldPosition - node.WorldPosition).normalized * 0.5f);
         }
 
-        /// <summary>
-        /// Draws editor settings and internal grid settings (cellsize and scale)
-        /// Override to draw custom gui.
-        /// </summary>
-        protected virtual void DrawGui()
-        {
-            EditorGUILayout.LabelField("Settings", EditorStyles.boldLabel);
-            _grid.cellSize = EditorGUILayout.FloatField("Cell Size", _grid.cellSize);
-            _grid.scale = EditorGUILayout.Vector3IntField("Scale", _grid.scale);
-            
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
-            _drawGrid = EditorGUILayout.Toggle("Draw Grid", _drawGrid);
-            _drawNodes = EditorGUILayout.Toggle("Draw Nodes", _drawNodes);
-            _drawNodeConnections = EditorGUILayout.Toggle("Draw Node Connections", _drawNodeConnections);
-            _drawGridCellLabels = EditorGUILayout.Toggle("Draw Cell Labels", _drawGridCellLabels);
-            
-            EditorGUILayout.Space();
-            if (GUILayout.Button("Generate"))
-            {
-                _grid.Generate();
-            }
-            
-        }
-        
-        [DrawGizmo(GizmoType.Active)]
-        private static void DrawGizmos(Grid grid, GizmoType gizmoType)
+        [DrawGizmo(GizmoType.Selected | GizmoType.Active | GizmoType.Pickable | GizmoType.NonSelected | GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
+        private static void DrawGridVisualizationGizmos(Grid grid, GizmoType state)
         {
             bool drawGrid = _drawGrid;
-            bool drawNodes = _drawNodes;
-            bool drawGridCellLabels = _drawGridCellLabels;
-            bool drawNodeConnections = _drawNodeConnections;
+            bool drawNodes = _drawGridNodes;
+            bool drawGridCellLabels = _drawGridNodeLabels;
+            bool drawNodeConnections = _drawGridNodeConnections;
             
             // Can we draw right now?
-            bool canDraw = (drawGrid || drawNodes || drawGridCellLabels || drawNodeConnections) && grid.nodes != null;
+            bool canDraw = (drawGrid || drawNodes || drawGridCellLabels || drawNodeConnections) && grid.NodesXYZ != null;
             if (!canDraw) return;
+            
             
             // Draw the cells
             foreach (INode node in grid.Nodes)
@@ -121,7 +94,7 @@ namespace Konfus.Editor.Grids
                 Vector3 cellPos = grid.WorldPosFromGridPos(node.GridPosition);
                 Vector3 cellScale = new Vector3(1, 1, 1) * grid.CellSize;
 
-                if (grid.nodes.GetLength(1) == 1) // 2D
+                if (grid.NodesXYZ.GetLength(1) == 1) // 2D
                 {
                     cellScale = new Vector3(1, 0, 1) * grid.CellSize;
                     cellPos.y -= grid.CellSize / 2;
@@ -132,15 +105,15 @@ namespace Konfus.Editor.Grids
                 Handles.matrix = cellMatrix;
                 
                 // Draw cells and labels
-                if (drawGrid) _instance.DrawGridCell(node);
-                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(10)) _instance.DrawGridCellLabel(node);
+                if (drawGrid) _instance.DrawGridCell(node, state);
+                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(grid.CellSize * 24)) _instance.DrawNodeLabel(node, state);
                 
                 // Convert to gizmo space to node local space...
                 Vector3 nodePos = node.WorldPosition;
 
-                if (grid.nodes.GetLength(1) == 1) // 2D
+                if (grid.NodesXYZ.GetLength(1) == 1) // 2D
                 {
-                    nodePos.y -= grid.cellSize / 2;
+                    nodePos.y -= grid.CellSize / 2;
                 }
 
                 var nodeMatrix = Matrix4x4.TRS(nodePos, cellRot, cellScale);
@@ -148,78 +121,103 @@ namespace Konfus.Editor.Grids
                 Handles.matrix = nodeMatrix;
                 
                 // Draw nodes and node connections
-                if (drawNodes) _instance.DrawGridNode(node);
-                if (drawNodeConnections) _instance.DrawGridNodeConnections(node);
+                if (drawNodes) _instance.DrawGridNode(node, state);
+                if (!drawNodeConnections) continue;
+                
+                foreach (INode nodeNeighbor in node.Neighbors)
+                {
+                    _instance.DrawGridNodeConnection(node, nodeNeighbor, state);
+                }
             }
         }
 
-        private void OnEnable()
+        private void DrawInspectorGui()
         {
-            _instance = this;
-            _grid = (Grid)target;
-            _grid.Generate();
-        }
-        
-        private void OnValidate()
-        {
-            _grid = (Grid)target;
-            _grid.Generate();
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
+            _drawGrid = EditorGUILayout.Toggle("Draw Grid", _drawGrid);
+            _drawGridNodes = EditorGUILayout.Toggle("Draw Nodes", _drawGridNodes);
+            _drawGridNodeConnections = EditorGUILayout.Toggle("Draw Node Connections", _drawGridNodeConnections);
+            _drawGridNodeLabels = EditorGUILayout.Toggle("Draw Node Labels", _drawGridNodeLabels);
+
+            EditorGUILayout.Space();
+            if (GUILayout.Button("Generate"))
+            {
+                Grid.Generate();
+            }
         }
 
         private void OnSceneGUI()
         {
-            ListenForScaleChanges();
+            DrawGridInteractionHandles(Grid);
+            SynchronizeGridScaleAndTransformScaleChanges();
         }
         
-        private void ListenForScaleChanges()
+        private void DrawGridInteractionHandles(Grid grid)
+        {
+            Handles.color = Color.yellow;
+            Handles.DrawLine(grid.transform.position, grid.transform.position + grid.transform.up * grid.CellSize/5, 0.4f); 
+            var newCellSize = Handles.ScaleValueHandle(
+                value: grid.CellSize, 
+                position: grid.transform.position + grid.transform.up * grid.CellSize/5,
+                rotation: grid.transform.rotation, 
+                size: (Camera.current.transform.position - grid.transform.position).magnitude/10, 
+                capFunction: Handles.CubeHandleCap, 
+                snap: 1); 
+            grid.SetCellSize(newCellSize);
+        }
+        private void Awake()
+        {
+            _instance = this;
+        }
+
+        private void OnEnable()
+        {
+            Grid = (Grid)target;
+            Grid.Generate();
+        }
+        
+        private void OnValidate()
+        {
+            Grid = (Grid)target;
+            Grid.Generate();
+        }
+
+        private void Reset()
+        {
+            Grid = (Grid)target;
+            Grid.Generate();
+        }
+        
+        private void SynchronizeGridScaleAndTransformScaleChanges()
         {
             // transform scale changed
-            if (_grid.transform.hasChanged)
+            if (Grid.transform.hasChanged)
             {
-                if (_grid.transform.localScale != _grid.Scale) OnTransformScaleChanged();
-                _grid.transform.hasChanged = false;
+                if (Grid.transform.localScale != Grid.Scale) SyncGridScaleWithTransformScale();
+                Grid.transform.hasChanged = false;
             }
             // grid inspector scale value changed
-            else if (_grid.transform.localScale != _grid.Scale) OnGridScaleChanged();
-        }
-
-        private void OnTransformScaleChanged()
-        {
-            // if we are pressing shift update cell size
-            //if ((Event.current.modifiers & EventModifiers.Shift) != 0) UpdateCellSizeFromTransformScaleDelta();
-            // else update scale
-            /*else*/ UpdateGridScaleFromTransformScale();
-
-            // Finally re-generate the grid to update it...
-            _grid.Generate();
+            else if (Grid.transform.localScale != Grid.Scale) SyncTransformScaleWithGridScale();
         }
         
-        private void OnGridScaleChanged()
+        private void SyncGridScaleWithTransformScale()
         {
-            _grid.scale.Clamp(Vector3Int.one, max: Vector3Int.one * int.MaxValue);
-            _grid.transform.localScale = _grid.scale;
-            _grid.Generate();
-        }
-
-        // TODO: idea instead of this maybe we could draw another scale handle
-        // that could be used to scale the cell size!
-        // A pain in the butt, maybe later we will do this...
-        /*private void UpdateCellSizeFromTransformScaleDelta()
-        {
-            var scaleDelta = _previousScale.magnitude - _grid.transform.localScale.magnitude;
-            _grid.cellSize += scaleDelta / 10;
-            _grid.transform.localScale = _previousScale;
-        }*/
-
-        private void UpdateGridScaleFromTransformScale()
-        {
-            Vector3 transformLocalScale = _grid.transform.localScale;
+            Vector3 transformLocalScale = Grid.transform.localScale;
             transformLocalScale.Snap(1);
             transformLocalScale.Clamp(min: Vector3.one, max: Vector3.one * int.MaxValue);
+            Grid.transform.localScale = transformLocalScale;
+            Grid.SetScale(new Vector3Int((int)transformLocalScale.x, (int)transformLocalScale.y, (int)transformLocalScale.z));
+            Grid.Generate();
+        }
         
-            _grid.transform.localScale = transformLocalScale;
-            _grid.scale = new Vector3Int((int)transformLocalScale.x, (int)transformLocalScale.y, (int)transformLocalScale.z);
-            _grid.scale.Clamp(min: Vector3Int.one, max: Vector3Int.one * int.MaxValue);
+        private void SyncTransformScaleWithGridScale()
+        {
+            Vector3Int newScale = Grid.Scale;
+            newScale.Clamp(min: Vector3Int.one, max: Vector3Int.one * int.MaxValue);
+            Grid.SetScale(newScale);
+            Grid.transform.localScale = Grid.Scale;
+            Grid.Generate();
         }
     }
 }
