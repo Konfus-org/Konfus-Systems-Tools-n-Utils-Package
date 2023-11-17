@@ -7,9 +7,9 @@ namespace Konfus.Utility.Design_Patterns
     public class Pool
     {
         /// <summary>
-        /// name to associate with objects in a pool.
+        /// key to associate with objects in a pool.
         /// </summary>
-        public string name;
+        public string key;
         /// <summary>
         /// size of pool.
         /// </summary>
@@ -41,23 +41,23 @@ namespace Konfus.Utility.Design_Patterns
 
         /// <summary>
         /// <para> Spawns object from pool at a specified gridPosition and rotation. </para>
-        /// <param name="tag"> cref="MartianChild.Utility.Pool.tag" given to item in cref="MartianChild.Utility.Pool". </param>
+        /// <param name="key"> <see cref="Pool.key"/> given to item in <see cref="Pool"/>. </param>
         /// <param name="position"> Position to spawn object. </param>
         /// <param name="rotation"> Rotation to spawn object. </param>
         /// </summary>
-        public GameObject SpawnFromPool(string objectName, Vector3 position, Quaternion rotation)
+        public GameObject SpawnFromPool(string key, Vector3 position, Quaternion rotation)
         {
-            if (!_poolDict.ContainsKey(tag))
+            if (!_poolDict.ContainsKey(key))
             {
-                Debug.LogError("Pools does not contain a pool with tag: " + tag, this);
+                Debug.LogError("No pool with key: " + key + " found!", this);
                 return null;
             }
             
-            GameObject gameObj = _poolDict[tag].Dequeue();
+            GameObject gameObj = _poolDict[key].Dequeue();
             gameObj.transform.position = position;
             gameObj.transform.rotation = rotation;
             gameObj.SetActive(true);
-            _poolDict[tag].Enqueue(gameObj);
+            _poolDict[key].Enqueue(gameObj);
             
             return gameObj;
         }
@@ -77,7 +77,7 @@ namespace Konfus.Utility.Design_Patterns
                     objPool.Enqueue(obj);
                 }
 
-                _poolDict.Add(pool.name, objPool);
+                _poolDict.Add(pool.key, objPool);
             }
         }
     }
