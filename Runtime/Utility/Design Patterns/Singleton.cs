@@ -11,7 +11,6 @@ namespace Konfus.Utility.Design_Patterns
         /// The instance of your singleton.
         /// </summary>
         private static T _instance;
-        protected static bool DoNotDestroyOnLoad = false;
         
         /// <summary>
         /// Gets the instance.
@@ -41,8 +40,7 @@ namespace Konfus.Utility.Design_Patterns
             if (_instance == null)
             {
                 _instance = this as T;
-                if (DoNotDestroyOnLoad)
-                    DontDestroyOnLoad(gameObject);
+                DontDestroyOnLoad(gameObject);
             }
             else
             {

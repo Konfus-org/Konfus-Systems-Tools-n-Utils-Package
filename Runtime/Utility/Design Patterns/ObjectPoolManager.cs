@@ -24,7 +24,7 @@ namespace Konfus.Utility.Design_Patterns
         public Transform storage;
     }
 
-    public class ObjectPoolManager : MonoBehaviour
+    public class ObjectPoolManager : Singleton<ObjectPoolManager>
     {
         [Tooltip("The pools of GameObjects to spawn from.")]
         public List<Pool> pools;
