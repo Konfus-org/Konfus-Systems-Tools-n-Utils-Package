@@ -1,4 +1,4 @@
-﻿namespace Konfus.Code.Scripts.Konfus.Systems.Health
+﻿namespace Konfus.Systems.Health
 {
     public interface IHasHealth
     {
