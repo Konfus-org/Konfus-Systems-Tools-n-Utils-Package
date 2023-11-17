@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Konfus.Systems.FX
 {
     [Serializable]
-    public class SetActiveEffect : Effect
+    public class SetGameObjectActiveEffect : Effect
     {
         [SerializeField]
         private bool active;
