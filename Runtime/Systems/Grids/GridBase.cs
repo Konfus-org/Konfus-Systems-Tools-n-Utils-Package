@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Konfus.Systems.Grids
 {
-    public abstract class Grid : MonoBehaviour, IGrid
+    public abstract class GridBase : MonoBehaviour, IGrid
     {
         [SerializeField]
         private float cellSize = 1f;

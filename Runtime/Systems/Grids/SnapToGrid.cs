@@ -16,7 +16,7 @@ namespace Konfus.Systems.Grids
         [FormerlySerializedAs("threeDGrid")]
         [Header("Dependencies")]
         [SerializeField]
-        private Grid grid;
+        private GridBase grid;
 
 
         private float _transformChangeDelta;

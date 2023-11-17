@@ -5,7 +5,7 @@ namespace Konfus.Systems.Grids
     public class MonoNode : MonoBehaviour, INode
     {
         [SerializeField]
-        private Grid grid;
+        private GridBase grid;
         private INode _node;
         
         public Vector3Int GridPosition => _node.GridPosition;

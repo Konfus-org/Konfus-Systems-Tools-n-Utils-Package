@@ -5,10 +5,10 @@ namespace Konfus.Systems.Grids
 {
     public class Node : INode
     {
-        private readonly Grid grid;
+        private readonly GridBase grid;
         private readonly Vector3Int _gridPosition;
 
-        public Node(Grid owningGrid, Vector3Int gridPositionOnGrid)
+        public Node(GridBase owningGrid, Vector3Int gridPositionOnGrid)
         {
             grid = owningGrid;
             _gridPosition = gridPositionOnGrid;

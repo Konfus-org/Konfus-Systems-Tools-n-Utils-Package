@@ -1,6 +1,6 @@
 ﻿namespace Konfus.Systems.Grids
 {
-    public class StandardGrid : Grid
+    public class StandardGrid : GridBase
     {
         private void Start()
         {

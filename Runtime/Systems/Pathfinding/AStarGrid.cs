@@ -3,7 +3,7 @@ using Konfus.Systems.Grids;
 namespace Konfus.Systems.Pathfinding
 {
     // TODO: Make an interface so this isn't tied to grid system...
-    public class AStarGrid : Grid
+    public class AStarGrid : GridBase
     {
         public override void Generate()
         {

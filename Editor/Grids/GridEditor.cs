@@ -3,14 +3,13 @@ using Konfus.Utility.Extensions;
 using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;
-using Grid = Konfus.Systems.Grids.Grid;
 
 namespace Konfus.Editor.Grids
 {
-    [CustomEditor(typeof(Grid), editorForChildClasses: true)]
+    [CustomEditor(typeof(GridBase), editorForChildClasses: true)]
     public class GridEditor : UnityEditor.Editor
     {
-        protected static Grid Grid { get; private set; }
+        protected static GridBase Grid { get; private set; }
         
         private static GridEditor _instance;
         private static bool _drawGrid = true;
@@ -72,7 +71,7 @@ namespace Konfus.Editor.Grids
         }
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active | GizmoType.Pickable | GizmoType.NonSelected | GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
-        private static void DrawGridVisualizationGizmos(Grid grid, GizmoType state)
+        private static void DrawGridVisualizationGizmos(GridBase grid, GizmoType state)
         {
             bool drawGrid = _drawGrid;
             bool drawNodes = _drawGridNodes;
@@ -153,7 +152,7 @@ namespace Konfus.Editor.Grids
             SynchronizeGridScaleAndTransformScaleChanges();
         }
         
-        private void DrawGridInteractionHandles(Grid grid)
+        private void DrawGridInteractionHandles(GridBase grid)
         {
             Handles.color = Color.yellow;
             Handles.DrawLine(grid.transform.position, grid.transform.position + grid.transform.up * grid.CellSize/5, 0.4f); 
@@ -173,19 +172,19 @@ namespace Konfus.Editor.Grids
 
         private void OnEnable()
         {
-            Grid = (Grid)target;
+            Grid = (GridBase)target;
             Grid.Generate();
         }
         
         private void OnValidate()
         {
-            Grid = (Grid)target;
+            Grid = (GridBase)target;
             Grid.Generate();
         }
 
         private void Reset()
         {
-            Grid = (Grid)target;
+            Grid = (GridBase)target;
             Grid.Generate();
         }
         
