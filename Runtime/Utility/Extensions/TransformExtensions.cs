@@ -17,6 +17,20 @@ namespace Konfus.Utility.Extensions
             t.rotation = Quaternion.FromToRotation(up, dir);
         }
         
+        public static Quaternion GetFacingRotation(this Transform transform, Vector3 target, float maxDegreesDelta)
+        {
+            Vector3 targetDirection = (target - transform.position).normalized;
+            Quaternion lookAtRotation = Quaternion.LookRotation(targetDirection, Vector3.up);
+            return Quaternion.RotateTowards(transform.rotation, lookAtRotation, maxDegreesDelta);
+        }
+
+        public static void MoveTo(this Transform transform, Vector3 target, float maxMoveDelta)
+        {
+            Vector3 from = transform.position;
+            Vector3 to = target;
+            transform.position = Vector3.Lerp(from, to, maxMoveDelta);
+        }
+        
         public static bool IsFacing(this Transform t, Transform target)
         {
             return Vector3.Angle(t.forward, target.position - t.position) < 10;
