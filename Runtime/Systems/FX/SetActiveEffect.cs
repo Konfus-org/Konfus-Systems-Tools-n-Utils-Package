@@ -8,12 +8,8 @@ namespace Konfus.Systems.FX
     {
         [SerializeField]
         private bool active;
+        [SerializeField]
         private GameObject gameObject;
-        
-        public override void Initialize(GameObject parentGo)
-        {
-            gameObject = parentGo;
-        }
 
         public override void Play()
         {
