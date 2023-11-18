@@ -34,8 +34,9 @@ namespace Konfus.Utility.Design_Patterns
         /// </summary>
         private Dictionary<string, Queue<GameObject>> _poolDict;
 
-        protected void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             CreatePools();
         }
 
