@@ -1,9 +1,16 @@
-﻿/*using UnityEngine;
+﻿using UnityEngine;
 
-namespace Runtime.Systems.Notes
+namespace Konfus.Systems.Notes
 {
     public class Note : MonoBehaviour
     {
-        internal string note;
+        [SerializeField]
+        private string text;
+
+        public string Text
+        {
+            get => text;
+            internal set => text = value;
+        }
     }
-}*/
+}
