@@ -1,4 +1,4 @@
-﻿using Konfus.Systems.Grids;
+﻿/*using Konfus.Systems.Grids;
 using Konfus.Utility.Extensions;
 using Sirenix.Utilities;
 using UnityEditor;
@@ -13,4 +13,4 @@ namespace Editor.Notes
         
         // TODO: Serialize notes into a folder outside assets folder
     }
-}
+}*/

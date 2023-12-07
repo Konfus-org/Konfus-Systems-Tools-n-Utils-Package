@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 
 namespace Runtime.Systems.Notes
 {
@@ -6,4 +6,4 @@ namespace Runtime.Systems.Notes
     {
         internal string note;
     }
-}
+}*/
