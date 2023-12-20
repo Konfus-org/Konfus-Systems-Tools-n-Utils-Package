@@ -34,6 +34,8 @@ namespace Konfus.Systems.Cameras
         private float _yaw;
         private float _pitch;
 
+        public Camera Camera => mainCamera;
+
         public void OnRotateInput(Vector2 rotateInput)
         {
             _rotateInput = rotateInput;
