@@ -7,7 +7,7 @@ namespace Konfus.Systems.ThreeDCursor
     public class ThreeDCursor : MonoBehaviour
     {
         [Header("Settings")] 
-        [SerializeField] private float distanceFromCamera;
+        [SerializeField] private float distanceFromCamera = 10;
         [SerializeField, Tooltip("First in list will be starting state!")] 
         private ThreeDCursorState[] states;
 
