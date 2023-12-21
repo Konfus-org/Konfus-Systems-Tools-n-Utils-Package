@@ -6,7 +6,8 @@ namespace Konfus.Systems.ThreeDCursor
 {
     public class ThreeDCursor : MonoBehaviour
     {
-        [Header("Settings")]
+        [Header("Settings")] 
+        [SerializeField] private float distanceFromCamera;
         [SerializeField, Tooltip("First in list will be starting state!")] 
         private ThreeDCursorState[] states;
 
@@ -81,9 +82,8 @@ namespace Konfus.Systems.ThreeDCursor
         {
             // Update transform from input, camera position, and settings...
             Transform mainCameraTransform = mainCamera.transform;
-            var offset = new Vector2(_activeState.Offset.x * transform.localScale.x, _activeState.Offset.y * transform.localScale.y);
-            var screenPoint = new Vector3(_mouseInput.x, _mouseInput.y, -mainCameraTransform.position.z);
-            transform.position = mainCamera.ScreenToWorldPoint(screenPoint) - new Vector3(offset.x, 0, offset.y);
+            var screenPoint = new Vector3(_mouseInput.x, _mouseInput.y, distanceFromCamera);
+            transform.position = mainCamera.ScreenToWorldPoint(screenPoint);
             transform.rotation = mainCameraTransform.rotation;
             transform.localScale = Vector3.one * _activeState.Size;
         }
