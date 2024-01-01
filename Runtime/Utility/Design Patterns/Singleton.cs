@@ -8,44 +8,33 @@ namespace Konfus.Utility.Design_Patterns
     public abstract class Singleton<T> : MonoBehaviour where T : Component
     {
         /// <summary>
-        /// The instance of your singleton.
-        /// </summary>
-        private static T _instance;
-        
-        /// <summary>
-        /// Gets the instance.
+        /// Gets the singleton instance.
         /// </summary>
         /// <value>The instance.</value>
-        public static T Instance
-        {
-            get
-            {
-                if (_instance != null) return _instance;
-                _instance = FindObjectOfType<T>();
-                if (_instance != null) return _instance;
-
-                GameObject obj = new GameObject {name = typeof(T).Name};
-                _instance = obj.AddComponent<T>();
-
-                return _instance;
-            }
-        }
+        public static T Instance { get; private set; }
 
         /// <summary>
         /// Use this for initialization, if no instance of singleton already then
         /// assigns this as the singleton instance else destroy this.
         /// </summary>
-        protected virtual void Awake()
+        private void Awake()
         {
-            if (_instance == null)
+            if (Instance == null)
             {
-                _instance = this as T;
+                Instance = this as T;
                 DontDestroyOnLoad(gameObject);
             }
             else
             {
                 Destroy(gameObject);
             }
+            
+            OnAwake();
         }
+        
+        /// <summary>
+        /// Called on awake, after the singleton instance is set
+        /// </summary>
+        protected virtual void OnAwake() { }
     }
 }
