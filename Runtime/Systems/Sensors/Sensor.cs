@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Sensor_Toolkit
@@ -10,13 +9,15 @@ namespace Konfus.Systems.Sensor_Toolkit
     {
         [Header("Filters")]
         [Tooltip("The layers detectable by sensor")]
-        [PropertyOrder(1)]
-        public LayerMask detectionFilter;
+        [SerializeField]
+        private LayerMask detectionFilter;
 
         [NonSerialized]
         public IEnumerable<Hit> hits;
         [NonSerialized]
         public bool isTriggered;
+
+        public LayerMask DetectionFilter => detectionFilter;
 
         public struct Hit
         {

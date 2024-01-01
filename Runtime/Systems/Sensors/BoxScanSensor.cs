@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Sensor_Toolkit
@@ -14,10 +13,13 @@ namespace Konfus.Systems.Sensor_Toolkit
             Full
         }
     
-        [PropertyOrder(2)]
-        public Vector3 sensorSize = Vector3.one;
-        [PropertyOrder(2)]
-        public Type sensorType = Type.Standard;
+        [SerializeField]
+        private Vector3 sensorSize = Vector3.one;
+        [SerializeField]
+        private Type sensorType = Type.Standard;
+
+        internal Type SensorType => sensorType;
+        internal Vector3 SensorSize => sensorSize;
 
         public override bool Scan()
         {        
@@ -32,8 +34,8 @@ namespace Konfus.Systems.Sensor_Toolkit
                             transform.forward,
                             out RaycastHit hit,
                             transform.rotation,
-                            sensorLength,
-                            detectionFilter,
+                            SensorLength,
+                            DetectionFilter,
                             QueryTriggerInteraction.Ignore))
                     {
                         var hitsDetected = new Hit[1];
@@ -53,8 +55,8 @@ namespace Konfus.Systems.Sensor_Toolkit
                         sensorSize/2,
                         transform.forward,
                         transform.rotation,
-                        sensorLength,
-                        detectionFilter,
+                        SensorLength,
+                        DetectionFilter,
                         QueryTriggerInteraction.Ignore);
 
                     // sort hits by distance
@@ -82,10 +84,10 @@ namespace Konfus.Systems.Sensor_Toolkit
                 case Type.CheckHitOnly:
                 {
                     if (Physics.CheckBox(
-                            transform.position + transform.forward * sensorLength,
+                            transform.position + transform.forward * SensorLength,
                             sensorSize/2,
                             transform.rotation,
-                            detectionFilter,
+                            DetectionFilter,
                             QueryTriggerInteraction.Ignore))
                     {
                         isTriggered = true;

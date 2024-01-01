@@ -1,6 +1,5 @@
 using Konfus.Systems.Grids;
 using Konfus.Utility.Extensions;
-using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;
 

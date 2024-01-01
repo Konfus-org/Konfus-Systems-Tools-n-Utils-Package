@@ -20,14 +20,14 @@ namespace Konfus.Editor.Sensors
             Gizmos.color = SensorColors.NoHitColor;
             if (sensor.isTriggered) Gizmos.color = SensorColors.HitColor;
             
-            float length = sensor.sensorLength;
+            float length = sensor.SensorLength;
 
-            switch (sensor.sensorType)
+            switch (sensor.SensorType)
             {
                 case BoxScanSensor.Type.Standard:
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.sensorSize);
+                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
                     if (sensor.isTriggered)
                     {
                         length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);
@@ -46,14 +46,14 @@ namespace Konfus.Editor.Sensors
                     
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
                     Gizmos.DrawWireCube(
-                        new Vector3(0, 0, length + sensor.sensorSize.z)/2, 
-                        new Vector3(sensor.sensorSize.x, sensor.sensorSize.y, sensor.sensorSize.z + length));
+                        new Vector3(0, 0, length + sensor.SensorSize.z)/2, 
+                        new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, sensor.SensorSize.z + length));
                     break;
                 }
                 case BoxScanSensor.Type.CheckHitOnly:
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.sensorSize);
+                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
                     break;
                 }
             }

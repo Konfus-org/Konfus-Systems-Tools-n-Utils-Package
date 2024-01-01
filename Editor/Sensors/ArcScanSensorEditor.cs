@@ -22,16 +22,16 @@ namespace Konfus.Editor.Sensors
             // transform the gizmo
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
 
-            float length = sensor.sensorLength;
+            float length = sensor.SensorLength;
 
             Gizmos.matrix = Matrix4x4.identity;
 
-            float step = sensor.arcAngle / sensor.resolution;
+            float step = sensor.ArcAngle / sensor.Resolution;
 
-            Vector3 origin = sensor.transform.position + sensor.transform.forward * sensor.sensorLength;
+            Vector3 origin = sensor.transform.position + sensor.transform.forward * sensor.SensorLength;
 
             // draw an arc
-            for (int i = 0; i < sensor.resolution; i++)
+            for (int i = 0; i < sensor.Resolution; i++)
             {
                 float prevAngle = step * i;
                 float nextAngle = step * (i + 1);
@@ -42,14 +42,14 @@ namespace Konfus.Editor.Sensors
                 Vector3 prevDir = Mathf.Cos(prevAngle) * x + Mathf.Sin(prevAngle) * y;
                 Vector3 nextDir = Mathf.Cos(nextAngle) * x + Mathf.Sin(nextAngle) * y;
 
-                prevDir *= sensor.sensorLength;
-                nextDir *= sensor.sensorLength;
+                prevDir *= sensor.SensorLength;
+                nextDir *= sensor.SensorLength;
 
                 prevDir += origin;
                 nextDir += origin;
 
                 // if something was hit something, stop!
-                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, sensor.detectionFilter))
+                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, sensor.DetectionFilter))
                 {
                     Gizmos.DrawLine(prevDir, hit.point);
 
@@ -64,7 +64,7 @@ namespace Konfus.Editor.Sensors
 
                 Gizmos.DrawLine(prevDir, nextDir);
 
-                if (i == sensor.resolution - 1)
+                if (i == sensor.Resolution - 1)
                 {
                     //green box
                     Gizmos.color = Color.green;

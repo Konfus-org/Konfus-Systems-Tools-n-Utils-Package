@@ -20,9 +20,9 @@ namespace Konfus.Editor.Sensors
             Gizmos.color = SensorColors.NoHitColor;
             if (sensor.isTriggered) Gizmos.color = SensorColors.HitColor;
 
-            float length = sensor.sensorLength;
+            float length = sensor.SensorLength;
             
-            switch (sensor.sensorType)
+            switch (sensor.SensorType)
             {
                 case SphereScanSensor.Type.Standard:
                 {
@@ -30,16 +30,16 @@ namespace Konfus.Editor.Sensors
                     {
                         Gizmos.DrawLine(sensor.transform.position, sensor.hits.First().point);
                         Gizmos.DrawWireSphere( 
-                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.sensorRadius/2), 
-                            sensor.sensorRadius);
+                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.SensorRadius/2), 
+                            sensor.SensorRadius);
                         Gizmos.DrawSphere(sensor.hits.First().point, 0.1f);
                     }
                     else
                     {
                         Gizmos.DrawLine(sensor.transform.position, sensor.transform.position + sensor.transform.forward);
                         Gizmos.DrawWireSphere( 
-                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.sensorRadius/2), 
-                            sensor.sensorRadius);
+                            sensor.transform.position + sensor.transform.forward + (Vector3.forward * sensor.SensorRadius/2), 
+                            sensor.SensorRadius);
                     }
                     break;
                 }
@@ -52,12 +52,12 @@ namespace Konfus.Editor.Sensors
                     }
                     
                     Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawLine(Vector3.up * sensor.sensorRadius, Vector3.up * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
-                    Gizmos.DrawLine(-Vector3.up * sensor.sensorRadius, -Vector3.up * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
-                    Gizmos.DrawLine(Vector3.right * sensor.sensorRadius, Vector3.right * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
-                    Gizmos.DrawLine(-Vector3.right * sensor.sensorRadius, -Vector3.right * sensor.sensorRadius + Vector3.forward * length - (Vector3.forward * sensor.sensorRadius/2));
-                    Gizmos.DrawWireSphere(Vector3.zero, sensor.sensorRadius);
-                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length) - (Vector3.forward * sensor.sensorRadius/2), sensor.sensorRadius);
+                    Gizmos.DrawLine(Vector3.up * sensor.SensorRadius, Vector3.up * sensor.SensorRadius + Vector3.forward * length - (Vector3.forward * sensor.SensorRadius/2));
+                    Gizmos.DrawLine(-Vector3.up * sensor.SensorRadius, -Vector3.up * sensor.SensorRadius + Vector3.forward * length - (Vector3.forward * sensor.SensorRadius/2));
+                    Gizmos.DrawLine(Vector3.right * sensor.SensorRadius, Vector3.right * sensor.SensorRadius + Vector3.forward * length - (Vector3.forward * sensor.SensorRadius/2));
+                    Gizmos.DrawLine(-Vector3.right * sensor.SensorRadius, -Vector3.right * sensor.SensorRadius + Vector3.forward * length - (Vector3.forward * sensor.SensorRadius/2));
+                    Gizmos.DrawWireSphere(Vector3.zero, sensor.SensorRadius);
+                    Gizmos.DrawWireSphere(Vector3.zero + (Vector3.forward * length) - (Vector3.forward * sensor.SensorRadius/2), sensor.SensorRadius);
                     break;
                 }
             }

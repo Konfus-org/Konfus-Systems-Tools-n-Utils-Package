@@ -33,7 +33,7 @@ namespace Konfus.Editor.Sensors
             Gizmos.color = SensorColors.NoHitColor;
             if (!sensor.hits.IsNullOrEmpty()) Gizmos.color = SensorColors.HitColor;
             Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-            Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.obstructionFilter, sensor.fov, sensor.sensorLength));
+            Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.ObstructionFilter, sensor.Fov, sensor.SensorLength));
         }
         
         private static Mesh CreateFovGizmoMesh(Transform transform, int layerMask, float fieldOfView, float radius)

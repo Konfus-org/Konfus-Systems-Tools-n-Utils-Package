@@ -17,6 +17,20 @@ namespace Konfus.Utility.Extensions
             point = dir + pivot; // calculate rotated point
         }
         
+        public static void Clamp(this Vector3 vector, float min, float max)
+        {
+            vector.x = Mathf.Clamp(vector.x, min, max);
+            vector.y = Mathf.Clamp(vector.y, min, max);
+            vector.z = Mathf.Clamp(vector.z, min, max);
+        }
+        
+        public static void Clamp(this Vector3 vector, Vector3 min, Vector3 max)
+        {
+            vector.x = Mathf.Clamp(vector.x, min.x, max.x);
+            vector.y = Mathf.Clamp(vector.y, min.y, max.y);
+            vector.z = Mathf.Clamp(vector.z, min.z, max.z);
+        }
+        
         public static void Snap(this ref Vector3 v, float snapValue, float offset = 0)
         {
             var snappedVector = new Vector3

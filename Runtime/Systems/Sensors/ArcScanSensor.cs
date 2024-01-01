@@ -1,21 +1,22 @@
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Sensor_Toolkit
 {
     public class ArcScanSensor : ScanSensor
     {
-        [PropertyOrder(2)]
-        [Range(0, Mathf.PI * 2f)]
-        public float arcAngle = Mathf.PI * (3f / 2f);
-        [PropertyOrder(2)]
-        public int resolution = 5;
+        [SerializeField, Range(0, Mathf.PI * 2f)]
+        private float arcAngle = Mathf.PI * (3f / 2f);
+        [SerializeField]
+        private int resolution = 5;
+
+        internal float ArcAngle => arcAngle;
+        internal float Resolution => resolution;
 
         public override bool Scan()
         {
             isTriggered = false;
             float step = arcAngle / resolution;
-            Vector3 origin = transform.position + transform.forward * sensorLength;
+            Vector3 origin = transform.position + transform.forward * SensorLength;
         
             //calculate arc, cast around it
             for (int i = 0; i < resolution; i++)
@@ -29,14 +30,14 @@ namespace Konfus.Systems.Sensor_Toolkit
                 Vector3 prevDir = Mathf.Cos(prevAngle) * x + Mathf.Sin(prevAngle) * y;
                 Vector3 nextDir = Mathf.Cos(nextAngle) * x + Mathf.Sin(nextAngle) * y;
 
-                prevDir *= sensorLength;
-                nextDir *= sensorLength;
+                prevDir *= SensorLength;
+                nextDir *= SensorLength;
 
                 prevDir += origin;
                 nextDir += origin;
 
                 // hit something, stop!
-                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, detectionFilter, QueryTriggerInteraction.Ignore))
+                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, DetectionFilter, QueryTriggerInteraction.Ignore))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject };

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Sensor_Toolkit
@@ -13,19 +12,22 @@ namespace Konfus.Systems.Sensor_Toolkit
             Full
         }
         
-        [PropertyOrder(2)]
-        public float sensorRadius = 0.5f;
-        [PropertyOrder(2)]
-        public Type sensorType = Type.Standard;
-    
+        [SerializeField]
+        private float sensorRadius = 0.5f;
+        [SerializeField]
+        private Type sensorType = Type.Standard;
+
+        internal float SensorRadius => sensorRadius;
+        internal Type SensorType => sensorType;
+        
         public override bool Scan()
         {
             isTriggered = false;
 
-            if (sensorType == Type.Standard && sensorLength != 0)
+            if (sensorType == Type.Standard && SensorLength != 0)
             {
                 var ray = new Ray(transform.position + Vector3.forward * sensorRadius / 2, transform.forward);
-                if (Physics.SphereCast(ray, sensorRadius, out RaycastHit hit, sensorLength, detectionFilter, QueryTriggerInteraction.Ignore))
+                if (Physics.SphereCast(ray, sensorRadius, out RaycastHit hit, SensorLength, DetectionFilter, QueryTriggerInteraction.Ignore))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject };
@@ -40,8 +42,8 @@ namespace Konfus.Systems.Sensor_Toolkit
                     transform.position + Vector3.forward * sensorRadius/2, 
                     sensorRadius, 
                     transform.forward, 
-                    sensorLength,
-                    detectionFilter, QueryTriggerInteraction.Ignore);
+                    SensorLength,
+                    DetectionFilter, QueryTriggerInteraction.Ignore);
                 if (hitsArray.Length > 0)
                 {
                     Array.Sort(hitsArray, (s1, s2) =>

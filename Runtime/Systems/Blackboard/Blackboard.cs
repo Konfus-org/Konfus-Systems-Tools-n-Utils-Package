@@ -2,15 +2,14 @@
 using System.Linq;
 using Konfus.Systems.Blackboard.Variables;
 using Konfus.Utility.Custom_Types;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Konfus.Systems.Blackboard
 {
+    // TODO: editor script for blackboard
     [Serializable]
     public class Blackboard
     {
-        [ShowInInspector] [DictionaryDrawerSettings(KeyLabel = "Var Name", ValueLabel = "Var Type", DisplayMode = DictionaryDisplayOptions.OneLine)]
         private SerializableDict<string, BlackboardVar> _entries = new SerializableDict<string, BlackboardVar>();
         
         public bool Contains(string key) => _entries.ContainsKey(key);

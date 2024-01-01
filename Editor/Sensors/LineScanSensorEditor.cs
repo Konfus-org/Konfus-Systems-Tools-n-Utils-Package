@@ -23,7 +23,7 @@ namespace Konfus.Editor.Sensors
             // transform the gizmo
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
 
-            float length = sensor.sensorLength;
+            float length = sensor.SensorLength;
 
             if (sensor.isTriggered)
                 length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);

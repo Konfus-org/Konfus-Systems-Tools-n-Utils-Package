@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Konfus.Utility.Extensions;
-using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,13 +10,13 @@ namespace Konfus.Systems.Sensor_Toolkit
     public class CollisionSensor : Sensor
     {
         [Header("Events")]
-        [PropertyOrder(2)]
+        [SerializeField]
         [Tooltip("Triggered when collision is first registered.")]
         public CollisionEvent onCollisionEnter;
-        [PropertyOrder(2)]
+        [SerializeField]
         [Tooltip("Triggered while colliding.")]
         public CollisionEvent onCollisionStay;
-        [PropertyOrder(2)]
+        [SerializeField]
         [Tooltip("Triggered when collision ends.")]
         public CollisionEvent onCollisionExit;
 
@@ -96,7 +94,8 @@ namespace Konfus.Systems.Sensor_Toolkit
 
         private bool ShouldCollide(GameObject go)
         {
-            return detectionFilter.Contains(go.layer);
+            LayerMask filter = DetectionFilter;
+            return filter.Contains(go.layer);
         }
     }
 
