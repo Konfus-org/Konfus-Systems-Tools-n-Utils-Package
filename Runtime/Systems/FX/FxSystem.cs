@@ -1,15 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
-using Sirenix.Serialization;
 using UnityEngine;
 
 namespace Konfus.Systems.FX
 {
-    public class FxSystem : SerializedMonoBehaviour
+    // TODO: create editor script for this!!!
+    public class FxSystem : MonoBehaviour
     {
-        [OdinSerialize]
-        private List<IEffect> effects = new List<IEffect>();
+        [SerializeField]
+        private List<Effect> effects;
 
         private bool _isPlaying;
 
