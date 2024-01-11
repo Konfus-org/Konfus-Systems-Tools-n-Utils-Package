@@ -23,6 +23,7 @@ namespace Editor.Notes
         private void DrawInspectorGui()
         {
             var note = (Note)target;
+            
             // Set icon
             EditorGUIUtility.SetIconForObject(note, _noteIcon);
             

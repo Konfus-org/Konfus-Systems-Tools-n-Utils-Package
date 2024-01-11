@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Konfus.Editor.Sensors
 {
     [CustomEditor(typeof(ViewScanSensor))]
-    public class ViewScanSensorEditor : UnityEditor.Editor
+    public class ViewScanSensorEditor : SensorEditor
     {
         [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(ViewScanSensor sensor, GizmoType gizmoType)
