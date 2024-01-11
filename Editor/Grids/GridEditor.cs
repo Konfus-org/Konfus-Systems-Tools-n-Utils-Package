@@ -11,6 +11,8 @@ namespace Konfus.Editor.Grids
         protected static GridBase Grid { get; private set; }
         
         private static GridEditor _instance;
+
+        private Texture2D _gridIcon;
         private static bool _drawGrid = true;
         private static bool _drawGridNodes = false;
         private static bool _drawGridNodeLabels = false;
@@ -19,7 +21,7 @@ namespace Konfus.Editor.Grids
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
-            DrawInspectorGui();
+            DrawEditorInspectorGui();
         }
 
         /// <summary>
@@ -69,7 +71,7 @@ namespace Konfus.Editor.Grids
                 direction: (nodeNeighbor.WorldPosition - node.WorldPosition).normalized * 0.5f);
         }
 
-        [DrawGizmo(GizmoType.Selected | GizmoType.Active | GizmoType.Pickable | GizmoType.NonSelected | GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected)]
         private static void DrawGridVisualizationGizmos(GridBase grid, GizmoType state)
         {
             bool drawGrid = _drawGrid;
@@ -80,7 +82,6 @@ namespace Konfus.Editor.Grids
             // Can we draw right now?
             bool canDraw = (drawGrid || drawNodes || drawGridCellLabels || drawNodeConnections) && grid.NodesXYZ != null;
             if (!canDraw) return;
-            
             
             // Draw the cells
             foreach (INode node in grid.Nodes)
@@ -129,8 +130,10 @@ namespace Konfus.Editor.Grids
             }
         }
 
-        private void DrawInspectorGui()
+        private void DrawEditorInspectorGui()
         {
+            DrawIcon();
+            
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
             _drawGrid = EditorGUILayout.Toggle("Draw Grid", _drawGrid);
@@ -145,6 +148,13 @@ namespace Konfus.Editor.Grids
             }
         }
 
+        private void DrawIcon()
+        {
+            // Set icon
+            var sensor = (GridBase)target;
+            EditorGUIUtility.SetIconForObject(sensor, _gridIcon);
+        }
+        
         private void OnSceneGUI()
         {
             DrawGridInteractionHandles(Grid);
@@ -164,13 +174,16 @@ namespace Konfus.Editor.Grids
                 snap: 1); 
             grid.SetCellSize(newCellSize);
         }
+        
         private void Awake()
         {
             _instance = this;
+            _gridIcon = Resources.Load<Texture2D>("GridIcon");
         }
 
         private void OnEnable()
         {
+            _instance = this;
             Grid = (GridBase)target;
             Grid.Generate();
         }
