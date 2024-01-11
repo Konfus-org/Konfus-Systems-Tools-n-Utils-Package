@@ -8,7 +8,7 @@ namespace Konfus.Editor.Sensors
     [CustomEditor(typeof(LineScanSensor))]
     public class LineScanSensorEditor : UnityEditor.Editor
     {
-        [DrawGizmo(GizmoType.Active)]
+        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(LineScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();

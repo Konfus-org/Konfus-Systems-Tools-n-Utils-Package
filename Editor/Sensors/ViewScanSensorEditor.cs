@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Konfus.Systems.Sensor_Toolkit;
 using Konfus.Utility.Extensions;
 using UnityEditor;
@@ -10,7 +9,7 @@ namespace Konfus.Editor.Sensors
     [CustomEditor(typeof(ViewScanSensor))]
     public class ViewScanSensorEditor : UnityEditor.Editor
     {
-        [DrawGizmo(GizmoType.Selected)]
+        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(ViewScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
@@ -25,15 +24,50 @@ namespace Konfus.Editor.Sensors
                 foreach (Sensor.Hit hitInfo in sensor.hits)
                 {
                     Gizmos.color = SensorColors.NoHitColor;
-                    Gizmos.DrawLine(sensor.transform.position, hitInfo.gameObject.transform.position);
+                    Gizmos.DrawLine(sensor.transform.position, hitInfo.point);
                 }
             }
             
             // Draw FOV mesh and inevitable detection mesh
             Gizmos.color = SensorColors.NoHitColor;
             if (!sensor.hits.IsNullOrEmpty()) Gizmos.color = SensorColors.HitColor;
+            
             Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
             Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.ObstructionFilter, sensor.Fov, sensor.SensorLength));
+            
+            // SENSOR CORNER DETECTION DEBUG CODE
+            /*{
+                var transform = sensor.transform;
+                RaycastHit[] spherecastHits = Physics.SphereCastAll(transform.position, sensor.SensorLength,
+                    transform.forward, 0.001f, sensor.DetectionFilter);
+                // Remove hits not within sight
+                foreach (RaycastHit hitInfo in spherecastHits)
+                {
+                    var hitBounds = hitInfo.collider.bounds;
+                    var hitPosition = hitInfo.transform.position;
+                    Gizmos.color = Color.green;
+
+                    // Check hit left most bound
+                    var directionToHit = (hitPosition + (Vector3.forward * hitBounds.extents.z) +
+                                          (Vector3.left * hitBounds.extents.x));
+                    Gizmos.DrawLine(sensor.transform.position, directionToHit);
+
+                    // Check hit right most bound
+                    directionToHit = (hitPosition + (Vector3.forward * hitBounds.extents.z) +
+                                      (Vector3.right * hitBounds.extents.x));
+                    Gizmos.DrawLine(sensor.transform.position, directionToHit);
+
+                    // Check hit front most bound
+                    directionToHit = (hitPosition + (Vector3.back * hitBounds.extents.z) +
+                                      (Vector3.left * hitBounds.extents.x));
+                    Gizmos.DrawLine(sensor.transform.position, directionToHit);
+
+                    // Check hit back most bound
+                    directionToHit = (hitPosition + (Vector3.back * hitBounds.extents.z) +
+                                      (Vector3.right * hitBounds.extents.x));
+                    Gizmos.DrawLine(sensor.transform.position, directionToHit);
+                }
+            }*/
         }
         
         private static Mesh CreateFovGizmoMesh(Transform transform, int layerMask, float fieldOfView, float radius)

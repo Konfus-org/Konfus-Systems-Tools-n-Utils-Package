@@ -8,7 +8,7 @@ namespace Konfus.Editor.Sensors
     [CustomEditor(typeof(SphereScanSensor))]
     public class SphereScanSensorEditor : UnityEditor.Editor
     {
-        [DrawGizmo(GizmoType.Active)]
+        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(SphereScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
