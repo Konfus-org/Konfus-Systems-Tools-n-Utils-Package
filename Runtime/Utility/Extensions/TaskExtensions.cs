@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Konfus.Utility.Custom_Types;
 using UnityEngine;
 
 namespace Konfus.Utility.Extensions
@@ -23,7 +24,7 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.Log("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.LogError($"Continue in background failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
                     }
                     return;
                 }
@@ -51,13 +52,13 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.LogError("Continue in background failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.LogError($"Continue in background failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
                     }
                     return;
                 }
                 if (t.IsCanceled)
                 {
-                    Debug.LogError("Continue in background canceled.");
+                    Debug.Log("Continue in background canceled.");
                     return;
                 }
             }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -112,12 +113,12 @@ namespace Konfus.Utility.Extensions
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.LogError("Fire and forget failed: " + exception.Message + " - " + exception.StackTrace);
+                        Debug.LogError($"Fire and forget failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
                     }
                 }
                 else if (t.IsCanceled)
                 {
-                    Debug.LogError("Fire and forget canceled.");
+                    Debug.Log("Fire and forget canceled.");
                 }
             });
         }

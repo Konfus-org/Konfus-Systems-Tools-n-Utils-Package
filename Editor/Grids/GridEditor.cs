@@ -17,7 +17,7 @@ namespace Konfus.Editor.Grids
         private static bool _drawGridNodes = false;
         private static bool _drawGridNodeLabels = false;
         private static bool _drawGridNodeConnections = false;
-
+        
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -177,19 +177,23 @@ namespace Konfus.Editor.Grids
         
         private void Awake()
         {
-            _instance = this;
             _gridIcon = Resources.Load<Texture2D>("GridIcon");
+            Initialize();
         }
 
         private void OnEnable()
         {
-            _instance = this;
-            Grid = (GridBase)target;
-            Grid.Generate();
+            Initialize();
         }
         
         private void OnValidate()
         {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            _instance = this;
             Grid = (GridBase)target;
             Grid.Generate();
         }
