@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using Konfus.Utility.Attributes;
 
-namespace Konfus.Utility.Attributes
+namespace Konfus.Editor.TagSelector
 {
      [CustomPropertyDrawer(typeof(TagSelectorAttribute))]
      public class TagSelectorPropertyDrawer : PropertyDrawer

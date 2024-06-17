@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Konfus.Utility.Custom_Types;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Konfus.Utility.Custom_Types.Editor
+namespace Konfus.Editor.SerializableDictionary
 {
     [CustomPropertyDrawer(typeof(SerializableDict<,>), true)]
     public class SerializableDictionaryPropertyDrawer : PropertyDrawer

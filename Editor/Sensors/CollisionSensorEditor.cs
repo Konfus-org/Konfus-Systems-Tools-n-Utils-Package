@@ -1,5 +1,5 @@
+using Konfus.Editor.Utility.Extensions;
 using Konfus.Systems.Sensor_Toolkit;
-using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;
 

@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Utility.Extensions
+namespace Konfus.Editor.Utility.Extensions
 {
     public static class HandlesExtensions
     {

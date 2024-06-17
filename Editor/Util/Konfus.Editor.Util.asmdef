@@ -1,10 +1,8 @@
 {
-    "name": "Editor.Sensors",
+    "name": "Editor.Util",
     "rootNamespace": "Konfus",
     "references": [
-        "GUID:d99a0a0dca7b42e40a7decdb2027d059",
-        "GUID:a88015c3e00dffd48a3c7daec3b0969d",
-        "GUID:e07c53f5fa1c11149aa20dd090364ba6"
+        "GUID:a88015c3e00dffd48a3c7daec3b0969d"
     ],
     "includePlatforms": [
         "Editor"
