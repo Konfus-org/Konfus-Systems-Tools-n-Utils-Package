@@ -75,10 +75,10 @@ namespace Konfus.Editor.FxSystems
             if (_choices != null) return;
             
             // Get available choices and types
-            _availableEffectTypes = Assembly.GetAssembly(typeof(IEffect)).GetTypes()
-                .Where(myType =>
-                    myType.IsClass && !myType.IsAbstract && !myType.IsGenericType &&
-                    myType.IsSubclassOf(typeof(IEffect)))
+            _availableEffectTypes = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(type => typeof(IEffect).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericType)
                 .ToArray();
             string[] choices = { "None" };
             _choices = choices.Union(_availableEffectTypes.Select(type => type.Name)).ToArray();
