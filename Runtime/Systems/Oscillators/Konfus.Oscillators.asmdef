@@ -1,6 +1,6 @@
 {
-    "name": "Konfus.Oscillators",
-    "rootNamespace": "",
+    "name": "Oscillators",
+    "rootNamespace": "Konfus",
     "references": [
         "GUID:a88015c3e00dffd48a3c7daec3b0969d"
     ],

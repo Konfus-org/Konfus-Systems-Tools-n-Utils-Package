@@ -8,6 +8,8 @@ namespace Konfus.Systems.FX
     {
         [SerializeField]
         private float playTimeInSeconds;
+
+        [SerializeField] private Effect value;
         
         public float GetPlayTime() => playTimeInSeconds;
         public virtual void Initialize(GameObject parentGo) { }

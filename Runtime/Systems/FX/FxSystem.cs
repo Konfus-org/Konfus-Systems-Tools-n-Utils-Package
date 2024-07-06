@@ -1,14 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Konfus.Systems.FX
 {
-    // TODO: create editor script for this!!!
     public class FxSystem : MonoBehaviour
     {
         [SerializeField]
-        private List<Effect> effects;
+        private List<FxItem> effects;
 
         private bool _isPlaying;
 
@@ -22,7 +22,7 @@ namespace Konfus.Systems.FX
         {
             _isPlaying = true;
             
-            foreach (IEffect effect in effects)
+            foreach (IEffect effect in effects.Select(item => item.Effect))
             {
                 effect.Play();
                 float playTime = effect.GetPlayTime();

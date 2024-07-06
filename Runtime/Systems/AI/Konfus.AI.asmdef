@@ -1,6 +1,6 @@
 {
-    "name": "Konfus.AI",
-    "rootNamespace": "",
+    "name": "AI",
+    "rootNamespace": "Konfus",
     "references": [
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],

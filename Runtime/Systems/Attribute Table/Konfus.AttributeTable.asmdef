@@ -1,5 +1,5 @@
 {
-    "name": "Konfus.AttributeTable",
+    "name": "AttributeTable",
     "rootNamespace": "Konfus",
     "references": [
         "Konfus.Util"
