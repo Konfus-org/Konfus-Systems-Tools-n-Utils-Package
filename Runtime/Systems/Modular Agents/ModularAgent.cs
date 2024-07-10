@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Konfus.Systems.AI;
 
 namespace Konfus.Systems.Modular_Agents
@@ -6,8 +7,7 @@ namespace Konfus.Systems.Modular_Agents
     public class ModularAgent : Agent
     {
         private IAgentInputModule[] _inputModules;
-        private IAgentUpdateModule[] _updateModules;
-        private IAgentPhysicsModule[] _physicsModules;
+        private IAgentModule[] _modules;
 
         public override bool OnInput(IAgentInput input)
         {
@@ -19,43 +19,43 @@ namespace Konfus.Systems.Modular_Agents
             return false;
         }
 
+        public bool TryGetModule<T>([CanBeNull] out T module) where T : class, IAgentModule
+        {
+            foreach (IAgentModule moduleOnAgent in _modules)
+            {
+                if (moduleOnAgent is not T t) continue;
+                module = t;
+                return true;
+            }
+            
+            foreach (IAgentInputModule moduleOnAgent in _inputModules)
+            {
+                if (moduleOnAgent is not T t) continue;
+                module = t;
+                return true;
+            }
+            
+            module = null;
+            return false;
+        }
+
         private void Start()
         {
             var inputModules = new List<IAgentInputModule>();
-            var updateModules = new List<IAgentUpdateModule>();
-            var physicsModules = new List<IAgentPhysicsModule>();
+            var modules = new List<IAgentModule>();
             
-            IAgentModule[] modules = GetComponents<IAgentModule>();
-            foreach (IAgentModule module in modules)
+            IAgentModule[] modulesOnAgent = GetComponents<IAgentModule>();
+            foreach (IAgentModule module in modulesOnAgent)
             {
                 module.Initialize(this);
                 if (module is IAgentInputModule inputModule)
                     inputModules.Add(inputModule);
-                if (module is IAgentUpdateModule updateModule)
-                    updateModules.Add(updateModule);
-                if (module is IAgentPhysicsModule physicsModule) 
-                    physicsModules.Add(physicsModule);
+                else
+                    modules.Add(module);
             }
             
             _inputModules = inputModules.ToArray();
-            _updateModules = updateModules.ToArray();
-            _physicsModules = physicsModules.ToArray();
-        }
-
-        private void Update()
-        {
-            foreach (IAgentUpdateModule module in _updateModules)
-            {
-                module.OnAgentUpdate();
-            }
-        }
-
-        private void FixedUpdate()
-        {
-            foreach (IAgentPhysicsModule module in _physicsModules)
-            {
-                module.OnAgentFixedUpdate();
-            }
+            _modules = modules.ToArray();
         }
     }
 }

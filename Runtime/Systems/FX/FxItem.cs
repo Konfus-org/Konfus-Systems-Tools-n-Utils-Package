@@ -7,7 +7,7 @@ namespace Konfus.Systems.FX
     public class FxItem
     {
         [SerializeField]
-        private int effectType = 0;
+        private string effectType;
         [SerializeReference]
         private IEffect effect;
         public IEffect Effect => effect;

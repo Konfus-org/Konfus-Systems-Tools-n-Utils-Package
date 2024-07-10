@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using Konfus.Systems.FX;
 using UnityEditor;
 using UnityEngine;
@@ -18,13 +17,22 @@ namespace Konfus.Editor.FxSystems
             // Initialize if we haven't already...
             Initialize();
             
+            // Deserialize the effect type index
+            Type effectType = null;
+            int effectTypeIndex = 0;
+            SerializedProperty effectTypeProperty = property.FindPropertyRelative("effectType");
+            if (effectTypeProperty.stringValue != string.Empty)
+            {
+                effectType = _availableEffectTypes.First(type => type.Name == effectTypeProperty.stringValue);
+                effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
+            }
+            
             // Draw choice dropdown
-            var effectTypeProperty = property.FindPropertyRelative("effectType");
             EditorGUI.BeginChangeCheck();
             {
-                effectTypeProperty.intValue = EditorGUI.Popup(
+                effectTypeIndex = EditorGUI.Popup(
                     position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
-                    selectedIndex: effectTypeProperty.intValue,
+                    selectedIndex: effectTypeIndex,
                     displayedOptions: _choices);
             }
 
@@ -32,21 +40,23 @@ namespace Konfus.Editor.FxSystems
             if (EditorGUI.EndChangeCheck())
             {
                 var effectProperty = property.FindPropertyRelative("effect");
-                if (effectTypeProperty.intValue == 0) 
+                if (effectTypeProperty.stringValue == "None") 
                 {
-                    // We chose none, set the effect property to null
+                    // We chose none, set the effect property to null and save choice
                     effectProperty.managedReferenceValue = null;
+                    effectTypeProperty.stringValue = "None";
                 }
                 else
                 {
-                    // Create chosen type and set the effect property to it
-                    Type effectType = _availableEffectTypes[effectTypeProperty.intValue - 1];
+                    // Create chosen type and set the effect property to it and save choice
+                    effectType = _availableEffectTypes[effectTypeIndex - 1];
                     object effect = Activator.CreateInstance(effectType);
                     effectProperty.managedReferenceValue = effect;
+                    effectTypeProperty.stringValue = effectType.Name;
                 }
             }
 
-            if (effectTypeProperty.intValue != 0)
+            if (effectTypeIndex != 0)
             {
                 // Draw effect property if our choice is something other than none
                 var effectPos = new Rect(position)

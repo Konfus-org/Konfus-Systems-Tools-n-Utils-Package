@@ -1,22 +1,35 @@
-﻿using System;
-using Konfus.Utility.Custom_Types;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Konfus.Systems.AttribTable
+namespace Konfus.Systems.Attribute_Table
 {
     public class AttributeTable : MonoBehaviour
     {
         [SerializeField]
-        private SerializableDict<Type, ActorAttribute> attributes;
+        private AttributeTableEntry[] entries;
+        
+        private Dictionary<string, Attribute> _attributeTable;
 
-        public T GetAttribute<T>(Type key) where T : ActorAttribute
+        [CanBeNull]
+        public T GetAttribute<T>(string key) where T : Attribute
         {
-            return attributes.TryGetValue(key, out ActorAttribute attribute) ? (T) attribute : null;
+            return _attributeTable.TryGetValue(key, out Attribute attribute) ? (T) attribute : null;
         }
         
-        public ActorAttribute GetAttribute(Type key)
+        [CanBeNull]
+        public Attribute GetAttribute(string key)
         {
-            return attributes.TryGetValue(key, out ActorAttribute attribute) ? attribute : null;
+            return _attributeTable.TryGetValue(key, out Attribute attribute) ? attribute : null;
+        }
+
+        private void Start()
+        {
+            _attributeTable = new Dictionary<string, Attribute>();
+            foreach (AttributeTableEntry entry in entries)
+            {
+                _attributeTable.Add(entry.Name, entry.Attribute);
+            }
         }
     }
 }

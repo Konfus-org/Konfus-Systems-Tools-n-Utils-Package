@@ -14,12 +14,12 @@ namespace Konfus.Editor.SerializableDictionary
         private const string _pairsFieldName = "pairs";
         private const string _keyFieldName = "key";
 
-        static readonly GUIContent WarningIconConflict = IconContent("console.warnicon.sml", "Conflicting key, this entry will be lost");
-        static readonly GUIContent WarningIconOther = IconContent("console.infoicon.sml", "Conflicting key");
-        static readonly GUIContent WarningIconNull = IconContent("console.warnicon.sml", "Null key, this entry will be lost");
-
-        static readonly Dictionary<PropertyIdentity, ConflictState> ConflictStateDict = new Dictionary<PropertyIdentity, ConflictState>();
-        static readonly Dictionary<SerializedPropertyType, PropertyInfo> SerializedPropertyValueAccessorsDict;
+        private static readonly GUIContent WarningIconConflict = IconContent("console.warnicon.sml", "Conflicting key, this entry will be lost");
+        private static readonly GUIContent WarningIconOther = IconContent("console.infoicon.sml", "Conflicting key");
+        private static readonly GUIContent WarningIconNull = IconContent("console.warnicon.sml", "Null key, this entry will be lost");
+        
+        private static readonly Dictionary<PropertyIdentity, ConflictState> ConflictStateDict = new Dictionary<PropertyIdentity, ConflictState>();
+        private static readonly Dictionary<SerializedPropertyType, PropertyInfo> SerializedPropertyValueAccessorsDict;
 
         private ReorderableList _reorderableList = null;
         private ConflictState _conflictState = null;
