@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
@@ -7,8 +8,10 @@ namespace Konfus.Utility.Time
     /// <summary>
     /// A reusable System.Timers based timer for Unity.
     /// </summary>
-    public class Timer
+    public class Timer : IDisposable
     {
+        public const int TICKRATE = 100;
+        
         /// <summary>
         ///     Whether or not the timer is running.
         /// </summary>
@@ -23,28 +26,29 @@ namespace Konfus.Utility.Time
         ///     The time remaining on the timer in milliseconds.
         /// </summary>
         public double Duration { get; private set; } = 0;
-        
+
         /// <summary>
         ///     The time remaining on the timer in milliseconds.
         /// </summary>
-        public double TimeRemaining { get; private set; } = 0;
+        public double TimeRemaining => Duration - _stopwatch.ElapsedMilliseconds;
 
         public delegate void TimerEvent();
 
         /// <summary>
         ///     Event called every tick of timer.
         /// </summary>
-        public event TimerEvent OnTimerTick;
+        public event TimerEvent TimerTick;
         
         /// <summary>
         ///     Event called when the timer stops.
         /// </summary>
-        public event TimerEvent OnTimerStop;
-
+        public event TimerEvent TimerStopped;
+        
+        private TimerEvent _onTimerTick;
+        private TimerEvent _onTimerStop;
         private SynchronizationContext _syncContext;
         private System.Timers.Timer _systemTimer;
         private Stopwatch _stopwatch;
-        private double _durationInMilliseconds;
         private int _currentTickCount;
 
         /// <summary>
@@ -58,15 +62,14 @@ namespace Konfus.Utility.Time
             _systemTimer = new System.Timers.Timer();
             _stopwatch = new Stopwatch();
 
-            _systemTimer.Elapsed += OnTick;
+            _systemTimer.Interval = TICKRATE;
+            _systemTimer.Elapsed += OnTimerElapsed;
+            TimerTick += OnTimerTick;
+            TimerStopped += OnTimerStopped;
 
             // Move operations to the main thread (required for certain Unity APIs).
-            _syncContext = SynchronizationContext.Current;
-            _syncContext.Send(state =>
-            {
-                if (onStop != null) OnTimerStop += onStop;
-                if (onTick != null) OnTimerTick += onTick;
-            }, null);
+            _onTimerTick = onTick;
+            _onTimerStop = onStop;
         }
 
         /// <summary>
@@ -74,19 +77,24 @@ namespace Konfus.Utility.Time
         /// </summary>
         public void Start(double durationInMilliseconds = -1, TimerEvent onTick = null, TimerEvent onStop = null)
         {
-            _syncContext.Send(state =>
+            _syncContext = SynchronizationContext.Current;
+            
+            if (onStop != null)
             {
-                if (onStop != null) OnTimerStop += onStop;
-                if (onTick != null) OnTimerTick += onTick;
-            }, null);
+                _onTimerStop = onStop;
+            }
+            
+            if (onTick != null)
+            {
+                _onTimerTick = onTick;
+            }
             
             if (durationInMilliseconds == -1) durationInMilliseconds = Duration;
             if (durationInMilliseconds == 0) return;
             
             if (!IsPaused)
             {
-                _durationInMilliseconds = durationInMilliseconds;
-                _systemTimer.Interval = durationInMilliseconds;
+                Duration = durationInMilliseconds;
             }
             
             IsRunning = true;
@@ -106,7 +114,6 @@ namespace Konfus.Utility.Time
             IsPaused = true;
             _systemTimer.Stop();
             _stopwatch.Stop();
-            _systemTimer.Interval = TimeRemaining;
         }
 
         /// <summary>
@@ -117,7 +124,6 @@ namespace Konfus.Utility.Time
             IsRunning = false;
             IsPaused = false;
             _currentTickCount = 0;
-            _systemTimer.Interval = TimeRemaining = _durationInMilliseconds;
             _systemTimer.Stop();
             _stopwatch.Stop();
             _stopwatch.Reset();
@@ -126,32 +132,49 @@ namespace Konfus.Utility.Time
         /// <summary>
         ///     Destroys the timer.
         /// </summary>
-        public void Destroy()
+        public void Dispose()
         {
+            TimerTick -= OnTimerTick;
+            TimerStopped -= OnTimerStopped;
+            _systemTimer.Elapsed -= OnTimerElapsed;
+            
             _systemTimer.Close();
             _systemTimer.Dispose();
+            _stopwatch.Stop();
+            
+            TimerStopped = null;
+            TimerTick = null;
+            
             _systemTimer = null;
             _stopwatch = null;
-            _syncContext = null;
-            OnTimerStop = null;
-            OnTimerTick = null;
+            _onTimerTick = null;
+            _onTimerStop = null;
         }
 
-        private void OnTick(object source, ElapsedEventArgs elapsedEventArguments)
+        private void OnTimerTick()
         {
-            if (_currentTickCount < 1)
+            _syncContext.Send(_ => _onTimerTick.Invoke(), null);
+        }
+
+        private void OnTimerStopped()
+        {
+            _syncContext.Send(_ => _onTimerStop.Invoke(), null);
+        }
+
+        private void OnTimerElapsed(object source, ElapsedEventArgs elapsedEventArguments)
+        {
+            if (_currentTickCount * TICKRATE <= Duration)
             {
                 // Calls user-set method (Internal timer resets automatically).
-                _syncContext.Send(state => { OnTimerTick?.Invoke(); }, null);
+                TimerTick?.Invoke();
             }
             else
             {
                 // Calls user-set method, also stops internal timer (which is normally set to repeat).
-                _syncContext.Send(state => { OnTimerStop?.Invoke(); }, null);
+                TimerStopped?.Invoke();
                 Stop();
             }
             
-            TimeRemaining = Duration - _stopwatch.Elapsed.TotalMilliseconds;
             _currentTickCount++;
         }
     }
