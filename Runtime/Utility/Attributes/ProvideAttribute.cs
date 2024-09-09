@@ -1,18 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System;
 
-public class NewBehaviourScript : MonoBehaviour
+namespace Konfus.Utility.Attributes
 {
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Marks a field or method to be provided.
+    /// NOTE: for this to work there needs to be a DependencyInjector in the scene!
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property)]
+    public sealed class ProvideAttribute : Attribute
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
