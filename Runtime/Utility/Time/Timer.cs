@@ -10,7 +10,7 @@ namespace Konfus.Utility.Time
     /// </summary>
     public class Timer : IDisposable
     {
-        public const int TICKRATE = 100;
+        public const int TICKRATE = 30;
         
         /// <summary>
         ///     Whether or not the timer is running.
@@ -121,6 +121,7 @@ namespace Konfus.Utility.Time
         /// </summary>
         public void Stop()
         {
+            _syncContext = null;
             IsRunning = false;
             IsPaused = false;
             _currentTickCount = 0;
@@ -153,12 +154,12 @@ namespace Konfus.Utility.Time
 
         private void OnTimerTick()
         {
-            _syncContext.Send(_ => _onTimerTick.Invoke(), null);
+            _syncContext?.Send(_ => _onTimerTick?.Invoke(), null);
         }
 
         private void OnTimerStopped()
         {
-            _syncContext.Send(_ => _onTimerStop.Invoke(), null);
+            _syncContext?.Send(_ => _onTimerStop?.Invoke(), null);
         }
 
         private void OnTimerElapsed(object source, ElapsedEventArgs elapsedEventArguments)
