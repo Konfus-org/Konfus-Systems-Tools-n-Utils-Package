@@ -9,8 +9,6 @@ namespace Konfus.Editor.Grids
     public class GridEditor : UnityEditor.Editor
     {
         protected static GridBase Grid { get; private set; }
-        
-        private static GridEditor _instance;
 
         private Texture2D _gridIcon;
         
@@ -53,8 +51,8 @@ namespace Konfus.Editor.Grids
                 Handles.matrix = cellMatrix;
                 
                 // Draw cells and labels
-                if (drawGrid) _instance.DrawGridCell(node, state);
-                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(grid.CellSize * 24)) _instance.DrawNodeLabel(node, state);
+                if (drawGrid) DrawGridCell(node, state);
+                if (drawGridCellLabels && cellPos.IsInViewOfSceneCamera(grid.CellSize * 24)) DrawNodeLabel(node, state);
                 
                 // Convert to gizmo space to node local space...
                 Vector3 nodePos = node.WorldPosition;
@@ -69,23 +67,23 @@ namespace Konfus.Editor.Grids
                 Handles.matrix = nodeMatrix;
                 
                 // Draw nodes and node connections
-                if (drawNodes) _instance.DrawGridNode(node, state);
+                if (drawNodes) DrawGridNode(node, state);
                 if (!drawNodeConnections) continue;
                 
                 foreach (INode nodeNeighbor in node.Neighbors)
                 {
-                    _instance.DrawGridNodeConnection(node, nodeNeighbor, state);
+                    DrawGridNodeConnection(node, nodeNeighbor, state);
                 }
             }
         }
 
-        private void DrawGridCell(INode cellNode, GizmoType state)
+        private static void DrawGridCell(INode cellNode, GizmoType state)
         {
             Gizmos.color = new Color(Color.white.r, Color.white.g, Color.white.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
             Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
 
-        private void DrawNodeLabel(INode node, GizmoType state)
+        private static void DrawNodeLabel(INode node, GizmoType state)
         {
             var color = new Color(node.DebugColor.r, node.DebugColor.g, node.DebugColor.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
             color = color.Invert();
@@ -98,13 +96,13 @@ namespace Konfus.Editor.Grids
             });
         }
         
-        private void DrawGridNode(INode node, GizmoType state)
+        private static void DrawGridNode(INode node, GizmoType state)
         {
             Gizmos.color = new Color(node.DebugColor.r, node.DebugColor.g, node.DebugColor.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
             Gizmos.DrawCube(Vector3.zero, Vector3.one * 0.1f);
         }
 
-        private void DrawGridNodeConnection(INode node, INode nodeNeighbor, GizmoType state)
+        private static void DrawGridNodeConnection(INode node, INode nodeNeighbor, GizmoType state)
         {
             Gizmos.color = new Color(node.DebugColor.r, node.DebugColor.g, node.DebugColor.b, state.HasFlag(GizmoType.Selected) ? 1 : 0.15f);
             Gizmos.DrawRay(
@@ -168,7 +166,6 @@ namespace Konfus.Editor.Grids
 
         private void Initialize()
         {
-            _instance = this;
             Grid = (GridBase)target;
             Grid.Generate();
         }

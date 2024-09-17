@@ -11,6 +11,8 @@ namespace Konfus.Systems.FX
 
         private bool _isPlaying;
         private bool _isInitialized;
+        
+        public IReadOnlyList<FxItem> Items => fxItems;
 
         public void PlayEffects()
         {

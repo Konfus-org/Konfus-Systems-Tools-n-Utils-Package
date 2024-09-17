@@ -15,18 +15,11 @@ namespace Konfus.Editor.FxSystems
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Initialize if we haven't already...
-            Initialize();
+            CacheChoicesIfNotAlreadyCached();
             
-            // Deserialize the effect type index
-            Type effectType = null;
-            int effectTypeIndex = 0;
-            SerializedProperty effectTypeProperty = property.FindPropertyRelative("effectType");
-            if (effectTypeProperty.stringValue != string.Empty)
-            {
-                effectType = _availableEffectTypes.First(type => type.Name == effectTypeProperty.stringValue);
-                effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
-            }
-            
+            // Deserialize the effect type and index
+            var effectTypeIndex = DeserializeEffectType(property, out var effectTypeProperty);
+
             // Draw choice dropdown
             EditorGUI.BeginChangeCheck();
             {
@@ -37,22 +30,16 @@ namespace Konfus.Editor.FxSystems
             }
 
             // Set the effect type if we chose one
-            if (EditorGUI.EndChangeCheck())
+            var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
+            bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
+            if (EditorGUI.EndChangeCheck() || hasBeenDuped)
             {
                 var effectProperty = property.FindPropertyRelative("effect");
-                if (effectTypeProperty.stringValue == "None") 
+                CreateEffect(effectTypeIndex, effectProperty, effectTypeProperty);
+                if (hasBeenDuped)
                 {
-                    // We chose none, set the effect property to null and save choice
-                    effectProperty.managedReferenceValue = null;
-                    effectTypeProperty.stringValue = "None";
-                }
-                else
-                {
-                    // Create chosen type and set the effect property to it and save choice
-                    effectType = _availableEffectTypes[effectTypeIndex - 1];
-                    object effect = Activator.CreateInstance(effectType);
-                    effectProperty.managedReferenceValue = effect;
-                    effectTypeProperty.stringValue = effectType.Name;
+                    // This is a hack... for some reason we reset the original value instead of the duped value so for now, we will just swap them :,)
+                    fxItemsProperty.MoveArrayElement(fxItemsProperty.arraySize - 2, fxItemsProperty.arraySize - 1);
                 }
             }
 
@@ -68,6 +55,11 @@ namespace Konfus.Editor.FxSystems
             }
         }
 
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return true;
+        }
+        
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var effectProperty = property.FindPropertyRelative("effect");
@@ -79,7 +71,7 @@ namespace Konfus.Editor.FxSystems
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
 
-        private void Initialize()
+        private void CacheChoicesIfNotAlreadyCached()
         {
             // We've already initialized return
             if (_choices != null) return;
@@ -92,6 +84,66 @@ namespace Konfus.Editor.FxSystems
                 .ToArray();
             string[] choices = { "None" };
             _choices = choices.Union(_availableEffectTypes.Select(type => type.Name)).ToArray();
+        }
+        
+        private static void CreateEffect(int effectTypeIndex, SerializedProperty effectProperty, SerializedProperty effectTypeProperty)
+        {
+            if (effectTypeProperty.stringValue == "None") 
+            {
+                // We chose none, set the effect property to null and save choice
+                effectProperty.managedReferenceValue = null;
+                effectTypeProperty.stringValue = "None";
+            }
+            else
+            {
+                // Create chosen type and set the effect property to it and save choice
+                var effectType = _availableEffectTypes[effectTypeIndex - 1];
+                object effect = Activator.CreateInstance(effectType);
+                effectProperty.managedReferenceValue = effect;
+                effectTypeProperty.stringValue = effectType.Name;
+            }
+        }
+
+        private static int DeserializeEffectType(SerializedProperty property, out SerializedProperty effectTypeProperty)
+        {
+            int effectTypeIndex = 0;
+            effectTypeProperty = property.FindPropertyRelative("effectType");
+            if (effectTypeProperty.stringValue != string.Empty)
+            {
+                var effectTypeName = effectTypeProperty.stringValue;
+                Type effectType = _availableEffectTypes.First(type => type.Name == effectTypeName);
+                effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
+            }
+
+            return effectTypeIndex;
+        }
+        
+        private static bool HasBeenDuplicated(SerializedProperty property, SerializedProperty fxItemsProperty)
+        {
+            if (fxItemsProperty is not { arraySize: > 1 }) return false;
+            
+            var fxItemPotentialDuplicateProperty = fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 1);
+            if (fxItemPotentialDuplicateProperty.contentHash != property.contentHash) return false;
+            
+            var fxItemDuplicatedProperty = fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 2);
+            var hasBeenDuped = fxItemPotentialDuplicateProperty.contentHash == fxItemDuplicatedProperty.contentHash;
+            if (hasBeenDuped)
+            {
+                return true;
+            }
+
+            return false;
+            //var currentEffectItem = (FxItem)property.boxedValue;
+            /*if (fxSystem.Items[^1] != currentEffectItem)
+            {
+                return false;
+            }
+
+            if (fxSystem.Items.Count > 1)
+            {
+                var effectBeforeLastEffect = fxSystem.Items[^2];
+                return effectBeforeLastEffect != currentEffectItem && effectBeforeLastEffect.Effect == currentEffectItem.Effect;
+            }*/
         }
     }
 }
