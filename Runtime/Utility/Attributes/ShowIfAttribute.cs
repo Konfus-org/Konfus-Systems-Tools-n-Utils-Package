@@ -1,5 +1,3 @@
-/*
-using System;
 using UnityEngine;
 
 namespace Konfus.Utility.Attributes
@@ -7,25 +5,21 @@ namespace Konfus.Utility.Attributes
     /// <summary>
     /// Conditionally Show/Hide field in inspector, based on some other field or property value
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public class ShowIfAttribute : PropertyAttribute
+    [System.AttributeUsage(System.AttributeTargets.Field, Inherited = false, AllowMultiple = true)]
+    public sealed class ShowIfAttribute : PropertyAttribute
     {
-        public bool IsSet => Data != null && Data.IsSet;
-        public readonly ConditionalData Data;
+        public readonly string ConditionalSourceField;
+        public readonly bool ExpectedValue;
 
-        /// <param name="fieldToCheck">String name of field to check value</param>
-        /// <param name="inverse">Inverse check result</param>
-        /// <param name="compareValues">On which values field will be shown in inspector</param>
-        public ConditionalFieldAttribute(string fieldToCheck, bool inverse = false, params object[] compareValues)
-            => Data = new ConditionalData(fieldToCheck, inverse, compareValues);
-
-		
-        public ConditionalFieldAttribute(string[] fieldToCheck, bool[] inverse = null, params object[] compare)
-            => Data = new ConditionalData(fieldToCheck, inverse, compare);
-
-        public ConditionalFieldAttribute(params string[] fieldToCheck) => Data = new ConditionalData(fieldToCheck);
-        public ConditionalFieldAttribute(bool useMethod, string method, bool inverse = false) 
-            => Data = new ConditionalData(useMethod, method, inverse);
+        /// <summary>
+        /// Create the attribute for show a field x if field y is true or false.
+        /// </summary>
+        /// <param name="conditionalSourceField">name of field y type boolean </param>
+        /// <param name="expectedValue"> what value should have the field y for show the field x</param>
+        public ShowIfAttribute(string conditionalSourceField, bool expectedValue)
+        {
+            ConditionalSourceField = conditionalSourceField;
+            ExpectedValue = expectedValue;
+        }
     }
 }
-*/

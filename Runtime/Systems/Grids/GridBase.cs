@@ -8,10 +8,26 @@ namespace Konfus.Systems.Grids
 {
     public abstract class GridBase : MonoBehaviour, IGrid
     {
+        [Header("Settings:")]
         [SerializeField]
         private float cellSize = 1f;
         [SerializeField]
         private Vector3Int scale = Vector3Int.one * 10;
+        
+        [Header("Debug:")]
+        [SerializeField] 
+        private bool drawGridCells;
+        [SerializeField]
+        private bool drawNodes;
+        [SerializeField]
+        private bool drawNodeConnections;
+        [SerializeField]
+        private bool drawNodeLabels;
+        
+        public bool DrawGridCells => drawGridCells;
+        public bool DrawNodes => drawNodes;
+        public bool DrawNodeConnections => drawNodeConnections;
+        public bool DrawNodeLabels => drawNodeLabels;
 
         public IEnumerable<INode> Nodes => _nodes.Cast<Node>();
         public INode[,,] NodesXYZ => _nodes;

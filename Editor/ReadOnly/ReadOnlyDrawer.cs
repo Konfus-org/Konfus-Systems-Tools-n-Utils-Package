@@ -18,5 +18,10 @@ namespace Konfus.Editor.ReadOnly
             EditorGUI.PropertyField(position, property, label, true);
             GUI.enabled = true;
         }
+        
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return true;
+        }
     }
 }

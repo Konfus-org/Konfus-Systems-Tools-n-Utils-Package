@@ -8,6 +8,7 @@ namespace Konfus.Systems.Grids
         private GridBase grid;
         private INode _node;
         
+        public Color DebugColor => Color.blue;
         public Vector3Int GridPosition => _node.GridPosition;
         public Vector3 WorldPosition => transform.position;
         public INode[] Neighbors => _node.Neighbors;

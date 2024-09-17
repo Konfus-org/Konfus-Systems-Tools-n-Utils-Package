@@ -2,7 +2,8 @@
     "name": "Editor.ShowIf",
     "rootNamespace": "Konfus",
     "references": [
-        "GUID:a88015c3e00dffd48a3c7daec3b0969d"
+        "GUID:a88015c3e00dffd48a3c7daec3b0969d",
+        "GUID:749ba99d13245944484ce2448ebe1172"
     ],
     "includePlatforms": [
         "Editor"

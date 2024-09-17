@@ -14,6 +14,7 @@ namespace Konfus.Systems.Grids
             _gridPosition = gridPositionOnGrid;
         }
 
+        public Color DebugColor => Color.blue;
         public Vector3Int GridPosition => _gridPosition;
         public virtual Vector3 WorldPosition => grid.WorldPosFromGridPos(_gridPosition.x, _gridPosition.y, _gridPosition.z);
         
@@ -26,6 +27,7 @@ namespace Konfus.Systems.Grids
             }
             set => _neighbors = value;
         }
+        
         private INode[] _neighbors;
 
         public virtual void CalculateNeighbors()

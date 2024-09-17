@@ -1,90 +1,91 @@
-﻿/*using System;
-using System.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Konfus.Utility.Attributes;
 using UnityEditor;
 using UnityEngine;
 
 namespace Konfus.Editor.ShowIf
 {
-	[CustomPropertyDrawer(typeof(ShowIfAttribute))]
-	public class ConditionalFieldAttributeDrawer : PropertyDrawer
-	{
-		private bool _toShow = true;
-		private bool _initialized;
-		private PropertyDrawer _customPropertyDrawer;
+    [CustomPropertyDrawer(typeof(ShowIfAttribute), true)]
+    public class ShowIfPropertyDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            ShowIfAttribute showIfAttribute = (ShowIfAttribute)attribute;
+            bool show = GetConditionalSourceField(property, showIfAttribute);
 
-		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-		{
-			if (!(attribute is ShowIfAttribute conditional)) return EditorGUI.GetPropertyHeight(property);
-			
-			CachePropertyDrawer(property);
-			_toShow = ConditionalUtility.IsPropertyConditionMatch(property, conditional.Data);
-			if (!_toShow) return -2;
+            // if is enable draw the label, else hide it
+            if (show) EditorGUI.PropertyField(position, property, label, true);
+        }
 
-			if (_customPropertyDrawer != null) return _customPropertyDrawer.GetPropertyHeight(property, label);
-			return EditorGUI.GetPropertyHeight(property);
-		}
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            ShowIfAttribute showIfAttribute = (ShowIfAttribute)attribute;
+            bool show = GetConditionalSourceField(property, showIfAttribute);
 
-		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-		{
-			if (!_toShow) return;
+            // if is enable draw the label
+            if (show)
+            {
+                return EditorGUI.GetPropertyHeight(property, label, true);
+            }
+            
+            // else hide it
+            return -EditorGUIUtility.standardVerticalSpacing;
+        }
+        
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return true;
+        }
 
-			if (!CustomDrawerUsed()) EditorGUI.PropertyField(position, property, label, true);
+        /// <summary>
+        /// Get if the conditional what expected is true.
+        /// </summary>
+        /// <param name="property"> is used for get the value of the property and check if return enable true or false </param>
+        /// <param name="showIfAttribute"> is the attribute what contains the values what we need </param>
+        /// <returns> only if the field y is same to the value expected return true</returns>
+        private bool GetConditionalSourceField(SerializedProperty property, ShowIfAttribute showIfAttribute)
+        {
+            bool show = false;
+            SerializedProperty sourcePropertyValue = property.serializedObject.FindProperty(showIfAttribute.ConditionalSourceField);
 
-			
-			bool CustomDrawerUsed()
-			{
-				if (_customPropertyDrawer == null) return false;
-				
-				try
-				{
-					_customPropertyDrawer.OnGUI(position, property, label);
-					return true;
-				}
-				catch (Exception e)
-				{
-					Debug.LogWarning($"Unable to use CustomDrawer of type {_customPropertyDrawer.GetType()} on {property.serializedObject.targetObject}\n Error: {e}");
-					return false;
-				}
-			}
-		}
-		
-		/// <summary>
-		/// Try to find and cache any PropertyDrawer or PropertyAttribute on the field
-		/// </summary>
-		private void CachePropertyDrawer(SerializedProperty property)
-		{
-			if (_initialized) return;
-			_initialized = true;
-			if (fieldInfo == null) return;
+            if (sourcePropertyValue != null)
+            {
+                show = sourcePropertyValue.boolValue;
+                show = show == showIfAttribute.ExpectedValue;
+            }
+            else
+            {
+                string warning = $"[{nameof(ShowIfAttribute)}] Unable to find conditional source field: " +
+                                 $"{showIfAttribute.ConditionalSourceField} on object: {property.serializedObject.targetObject}";
+                Debug.LogWarning(warning);
+            }
 
-			var customDrawer = CustomDrawerUtility.GetPropertyDrawerForProperty(property, fieldInfo, attribute);
-			if (customDrawer == null) customDrawer = TryCreateAttributeDrawer();
-
-			_customPropertyDrawer = customDrawer;
-			
-			
-			// Try to get drawer for any other Attribute on the field
-			PropertyDrawer TryCreateAttributeDrawer()
-			{
-				var secondAttribute = TryGetSecondAttribute();
-				if (secondAttribute == null) return null;
-				
-				var attributeType = secondAttribute.GetType();
-				var customDrawerType = CustomDrawerUtility.GetPropertyDrawerTypeForFieldType(attributeType);
-				if (customDrawerType == null) return null;
-
-				return CustomDrawerUtility.InstantiatePropertyDrawer(customDrawerType, fieldInfo, secondAttribute);
-				
-				
-				//Get second attribute if any
-				Attribute TryGetSecondAttribute()
-				{
-					return (PropertyAttribute)fieldInfo
-						.GetCustomAttributes(typeof(PropertyAttribute), false)
-						.FirstOrDefault(a => a is not ShowIfAttribute);
-				}
-			}
-		}
+            return show;
+        }
+        
+        private static object GetParentObject(SerializedProperty property)
+        {
+            string[] path = property.propertyPath.Split('.');
+     
+            object propertyObject = property.serializedObject.targetObject;
+            object propertyParent = null;
+            for (int i = 0; i < path.Length; ++i)
+            {
+                if (path[i] == "Array")
+                {
+                    int index = path[i + 1][path[i + 1].Length - 2] - '0';
+                    propertyObject = ((IList)propertyObject)[index];
+                    ++i;
+                }
+                else
+                {
+                    propertyParent = propertyObject;
+                    propertyObject = propertyObject.GetType().GetField(path[i]).GetValue(propertyObject);
+                }
+            }
+     
+            return propertyParent;
+        }
     }
-}*/
+}
