@@ -124,8 +124,8 @@ namespace Konfus.Editor.Grids
         private void DrawIcon()
         {
             // Set icon
-            var sensor = (GridBase)target;
-            EditorGUIUtility.SetIconForObject(sensor, _gridIcon);
+            var grid = (GridBase)target;
+            EditorGUIUtility.SetIconForObject(grid, _gridIcon);
         }
         
         private void OnSceneGUI()

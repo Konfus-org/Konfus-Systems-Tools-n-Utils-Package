@@ -10,18 +10,31 @@ namespace Konfus.Editor.Oscillators
     [CustomEditor(typeof(Oscillator), true)]
     public class OscillatorEditor : UnityEditor.Editor
     {
-        /// <summary>
-        ///     Draw the default inspector, with a clamped Vector3 on the forceScale.
-        /// </summary>
+        private Texture2D _oscillatorIcon;
+        
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
+            DrawIcon();
 
-            var oscillator = (Oscillator) target;
+            // Clamp force scale values between 0 and 1
+            var oscillator = (Oscillator)target;
             var x = (int)Mathf.Clamp01(oscillator.ForceScale.x);
             var y = (int)Mathf.Clamp01(oscillator.ForceScale.y);
             var z = (int)Mathf.Clamp01(oscillator.ForceScale.z);
             oscillator.ForceScale = new Vector3(x, y, z);
+        }
+        
+        private void Awake()
+        {
+            _oscillatorIcon = Resources.Load<Texture2D>("OscillatorIcon");
+        }
+
+        private void DrawIcon()
+        {
+            // Set icon
+            var oscillator = (Oscillator)target;
+            EditorGUIUtility.SetIconForObject(oscillator, _oscillatorIcon);
         }
         
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected)]

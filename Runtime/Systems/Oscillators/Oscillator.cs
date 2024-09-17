@@ -6,7 +6,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class Oscillator : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("Settings:")]
     [Tooltip("The local position about which oscillations are centered."), SerializeField]
     private Vector3 localEquilibriumPosition = Vector3.zero;
 
@@ -22,7 +22,7 @@ public class Oscillator : MonoBehaviour
     [Tooltip("The greater the mass, the lesser the amplitude of oscillations."), SerializeField]
     private float mass = 1f;
     
-    [Header("Debug"), SerializeField]
+    [Header("Debug:"), SerializeField]
     private bool drawDebugVisualization;
     
     private Vector3 _previousDisplacement = Vector3.zero;

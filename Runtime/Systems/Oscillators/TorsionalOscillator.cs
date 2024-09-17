@@ -10,6 +10,7 @@ namespace Konfus.Systems.Oscillators
     [RequireComponent(typeof(Rigidbody))]
     public class TorsionalOscillator : MonoBehaviour
     {
+        [Header("Settings:")]
         [SerializeField]
         private float angularDisplacementMagnitude;
     
@@ -27,9 +28,18 @@ namespace Konfus.Systems.Oscillators
 
         [SerializeField, Tooltip("The center about which rotations should occur.")] 
         private Vector3 localPivotPosition = Vector3.zero;
+        
+        [Header("Debug:"), SerializeField]
+        private bool drawDebugVisualization;
     
         private Rigidbody _rb;
         private Vector3 _rotAxis;
+        
+        public float AngularDisplacementMagnitude => angularDisplacementMagnitude;
+
+        public Vector3 LocalEquilibriumRotation => localEquilibriumRotation;
+        public Vector3 LocalPivotPosition => localPivotPosition;
+        public bool DrawDebugVisualization => drawDebugVisualization;
 
         /// <summary>
         ///     Get the rigidbody component.
@@ -53,6 +63,21 @@ namespace Konfus.Systems.Oscillators
         }
 
         /// <summary>
+        ///     Returns the damped restorative torque of the oscillator.
+        ///     The magnitude of the restorative torque is 0 at the equilibrium rotation and maximum at the amplitude of the
+        ///     oscillation.
+        /// </summary>
+        /// <returns>Damped restorative torque of the oscillator.</returns>
+        private Vector3 CalculateRestoringTorque()
+        {
+            Quaternion deltaRotation = transform.localRotation.CalculateShortestRotationTo(Quaternion.Euler(localEquilibriumRotation));
+            deltaRotation.ToAngleAxis(out angularDisplacementMagnitude, out _rotAxis);
+            Vector3 angularDisplacement = angularDisplacementMagnitude * Mathf.Deg2Rad * _rotAxis.normalized;
+            Vector3 torque = AngularHookesLaw(angularDisplacement, _rb.angularVelocity);
+            return torque;
+        }
+
+        /// <summary>
         ///     Returns the damped Hooke's torque for a given angularDisplacement and angularVelocity.
         /// </summary>
         /// <param name="angularDisplacement">The angular displacement of the oscillator from the equilibrium rotation.</param>
@@ -72,21 +97,6 @@ namespace Konfus.Systems.Oscillators
         private void ApplyTorque(Vector3 torque)
         {
             _rb.AddTorque(Vector3.Scale(torque, torqueScale));
-        }
-
-        /// <summary>
-        ///     Returns the damped restorative torque of the oscillator.
-        ///     The magnitude of the restorative torque is 0 at the equilibrium rotation and maximum at the amplitude of the
-        ///     oscillation.
-        /// </summary>
-        /// <returns>Damped restorative torque of the oscillator.</returns>
-        private Vector3 CalculateRestoringTorque()
-        {
-            Quaternion deltaRotation = transform.localRotation.CalculateShortestRotationTo(Quaternion.Euler(localEquilibriumRotation));
-            deltaRotation.ToAngleAxis(out angularDisplacementMagnitude, out _rotAxis);
-            Vector3 angularDisplacement = angularDisplacementMagnitude * Mathf.Deg2Rad * _rotAxis.normalized;
-            Vector3 torque = AngularHookesLaw(angularDisplacement, _rb.angularVelocity);
-            return torque;
         }
 
         /*public bool renderGizmos = true;

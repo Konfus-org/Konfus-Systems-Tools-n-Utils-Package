@@ -96,7 +96,6 @@ namespace Konfus.Utility.Extensions
  
             return result;
         }
-        
     }
     
     public static class Vector2Extensions 
