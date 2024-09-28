@@ -9,7 +9,12 @@
             max = maximum;
         }
 
-        public readonly float min;
-        public readonly float max;
+        [SerializeField]
+        private float min;
+        [SerializeField]
+        private float max;
+
+        public float Min => min;
+        public float Max => max;
     }
 }
