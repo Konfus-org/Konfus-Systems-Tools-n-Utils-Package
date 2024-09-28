@@ -7,7 +7,7 @@ namespace Konfus.Utility.Extensions
     {
         public static Vector3 RandomVector3(MinMaxFloat x, MinMaxFloat y, MinMaxFloat z)
         {
-            return new Vector3(Random.Range(x.min, x.max), Random.Range(y.min, y.max), Random.Range(z.min, z.max));
+            return new Vector3(Random.Range(x.Min, x.Max), Random.Range(y.Min, y.Max), Random.Range(z.Min, z.Max));
         }
         
         public static void RotateAroundPivot(this ref Vector3 point, Vector3 pivot, Vector3 pivotAngles)
