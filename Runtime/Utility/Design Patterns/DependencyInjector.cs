@@ -82,21 +82,28 @@ namespace Konfus.Utility.Design_Patterns
 
         private void RegisterProvider(MonoBehaviour provider)
         {
-            FieldInfo[] fields = provider.GetType().GetFields(BINDING_FLAGS);
+            var type = provider.GetType();
+            
+            if (Attribute.IsDefined(type, typeof(InjectAttribute)))
+            {
+                Register(provider, type, provider);
+            }
+
+            FieldInfo[] fields = type.GetFields(BINDING_FLAGS);
             foreach (var field in fields)
             {
                 if (!Attribute.IsDefined(field, typeof(ProvideAttribute))) continue;
                 Register(provider, field.FieldType, field.GetValue(provider));
             }
             
-            PropertyInfo[] properties = provider.GetType().GetProperties(BINDING_FLAGS);;
+            PropertyInfo[] properties = type.GetProperties(BINDING_FLAGS);;
             foreach (var property in properties)
             {
                 if (!Attribute.IsDefined(property, typeof(ProvideAttribute))) continue;
                 Register(provider, property.PropertyType, property.GetValue(provider));
             }
             
-            MethodInfo[] methods = provider.GetType().GetMethods(BINDING_FLAGS);
+            MethodInfo[] methods = type.GetMethods(BINDING_FLAGS);
             foreach (var method in methods)
             {
                 if (!Attribute.IsDefined(method, typeof(ProvideAttribute))) continue;

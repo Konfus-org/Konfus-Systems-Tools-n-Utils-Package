@@ -1,6 +1,5 @@
 using System;
 
-
 namespace Konfus.Utility.Attributes
 {
     /// <summary>
