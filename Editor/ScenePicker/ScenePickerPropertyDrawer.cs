@@ -18,7 +18,7 @@ namespace Konfus.Editor.ScenePicker
             // Deserialize scene choice
             var effectTypeIndex = string.IsNullOrEmpty(property.stringValue) 
                 ? 0
-                : _choices.ToList().IndexOf(property.stringValue);
+                : _choices.ToList().IndexOf(GetDisplayPath(property.stringValue));
 
             // If we can't find the scene, draw property as red to signify an error
             var originalGuiColor = GUI.color;
@@ -30,7 +30,7 @@ namespace Konfus.Editor.ScenePicker
             }
             else
             {
-                label.tooltip = $"Scene at index {effectTypeIndex} of the name {property.name} is selected.";
+                label.tooltip = $"Scene at index {effectTypeIndex} of with the path {property.stringValue} is selected.";
             }
 
             // Draw scene choice dropdown
@@ -49,7 +49,7 @@ namespace Konfus.Editor.ScenePicker
             // Set the new scene if we chose one
             if (EditorGUI.EndChangeCheck())
             {
-                property.stringValue = effectTypeIndex >= 0 ? _choices[effectTypeIndex] : null;
+                property.stringValue = effectTypeIndex >= 0 ? $"Assets/{_choices[effectTypeIndex]}.unity" : null;
             }
             
             // Draw label
@@ -80,7 +80,12 @@ namespace Konfus.Editor.ScenePicker
         private string[] GetAvailableScenePaths()
         {
             var scenePaths = EditorBuildSettings.scenes.Select(scene => scene.path).ToArray();
-            return scenePaths.Select(path => path.Replace("Assets/", string.Empty)).ToArray();
+            return scenePaths.Select(GetDisplayPath).ToArray();
+        }
+
+        private string GetDisplayPath(string fullPath)
+        {
+            return fullPath.Replace("Assets/", string.Empty).Replace(".unity", string.Empty);
         }
     }
 }
