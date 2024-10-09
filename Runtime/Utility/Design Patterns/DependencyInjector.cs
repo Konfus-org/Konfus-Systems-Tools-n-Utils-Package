@@ -84,7 +84,7 @@ namespace Konfus.Utility.Design_Patterns
         {
             var type = provider.GetType();
             
-            if (Attribute.IsDefined(type, typeof(InjectAttribute)))
+            if (Attribute.IsDefined(type, typeof(ProvideAttribute)))
             {
                 Register(provider, type, provider);
             }
