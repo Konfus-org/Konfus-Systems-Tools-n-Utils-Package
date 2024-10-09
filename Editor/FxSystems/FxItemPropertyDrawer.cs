@@ -133,17 +133,6 @@ namespace Konfus.Editor.FxSystems
             }
 
             return false;
-            //var currentEffectItem = (FxItem)property.boxedValue;
-            /*if (fxSystem.Items[^1] != currentEffectItem)
-            {
-                return false;
-            }
-
-            if (fxSystem.Items.Count > 1)
-            {
-                var effectBeforeLastEffect = fxSystem.Items[^2];
-                return effectBeforeLastEffect != currentEffectItem && effectBeforeLastEffect.Effect == currentEffectItem.Effect;
-            }*/
         }
     }
 }

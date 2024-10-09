@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 
 namespace Konfus.Utility.Attributes
 {
-    public class TagSelectorAttribute : PropertyAttribute { }
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public sealed class TagSelectorAttribute : PropertyAttribute { }
 }

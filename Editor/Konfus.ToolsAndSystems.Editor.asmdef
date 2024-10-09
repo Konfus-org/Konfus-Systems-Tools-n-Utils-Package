@@ -1,10 +1,13 @@
 {
-    "name": "Sensors",
+    "name": "Konfus.ToolsAndSystems.Editor",
     "rootNamespace": "Konfus",
     "references": [
+        "GUID:8f4a4a6e05b61c64b9b67abc07496dd4",
         "GUID:a88015c3e00dffd48a3c7daec3b0969d"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
