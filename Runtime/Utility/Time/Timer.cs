@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
@@ -8,39 +7,42 @@ namespace Konfus.Utility.Time
     /// <summary>
     /// A reusable System.Timers based timer for Unity.
     /// </summary>
-    public class Timer : IDisposable
+    public class Timer
     {
         public const int TICKRATE = 30;
         
         /// <summary>
-        ///     Whether or not the timer is running.
+        /// Whether or not the timer is running.
         /// </summary>
         public bool IsRunning { get; private set; } = false;
 
         /// <summary>
-        ///     Whether or not a timer is paused.
+        /// Whether or not a timer is paused.
         /// </summary>
         public bool IsPaused { get; private set; } = false;
 
         /// <summary>
-        ///     The time remaining on the timer in milliseconds.
+        ///  The time remaining on the timer in milliseconds.
         /// </summary>
         public double Duration { get; private set; } = 0;
 
         /// <summary>
-        ///     The time remaining on the timer in milliseconds.
+        /// The time remaining on the timer in milliseconds.
         /// </summary>
         public double TimeRemaining => Duration - _stopwatch.ElapsedMilliseconds;
 
+        /// <summary>
+        /// Event invoked on timer tick or stop.
+        /// </summary>
         public delegate void TimerEvent();
 
         /// <summary>
-        ///     Event called every tick of timer.
+        /// Event called every tick of timer.
         /// </summary>
         public event TimerEvent TimerTick;
         
         /// <summary>
-        ///     Event called when the timer stops.
+        /// Event called when the timer stops.
         /// </summary>
         public event TimerEvent TimerStopped;
         
@@ -52,20 +54,13 @@ namespace Konfus.Utility.Time
         private int _currentTickCount;
 
         /// <summary>
-        ///     <para> Creates a System.Timers based timer for Unity </para>
-        ///     <param name="onTick"> The action to execute every tick. </param>
-        ///     <param name="onStop"> The action to execute on timer stopped. </param>
+        /// <para> Creates a System.Timers based timer for Unity </para>
+        /// <param name="onTick"> The action to execute every tick. </param>
+        /// <param name="onStop"> The action to execute on timer stopped. </param>
         /// </summary>
         public Timer(double durationInMilliseconds = 0.01f, TimerEvent onTick = null, TimerEvent onStop = null)
         {
             Duration = durationInMilliseconds;
-            _systemTimer = new System.Timers.Timer();
-            _stopwatch = new Stopwatch();
-
-            _systemTimer.Interval = TICKRATE;
-            _systemTimer.Elapsed += OnTimerElapsed;
-            TimerTick += OnTimerTick;
-            TimerStopped += OnTimerStopped;
 
             // Move operations to the main thread (required for certain Unity APIs).
             _onTimerTick = onTick;
@@ -73,29 +68,25 @@ namespace Konfus.Utility.Time
         }
 
         /// <summary>
-        ///     Starts the timer.
+        /// Starts the timer.
         /// </summary>
         public void Start(double durationInMilliseconds = -1, TimerEvent onTick = null, TimerEvent onStop = null)
         {
             _syncContext = SynchronizationContext.Current;
+            _systemTimer = new System.Timers.Timer();
+            _stopwatch = new Stopwatch();
+
+            _systemTimer.Interval = TICKRATE;
+            _systemTimer.Elapsed += OnTimerElapsed;
+            TimerTick += OnTimerTick;
+            TimerStopped += OnTimerStopped;
             
-            if (onStop != null)
-            {
-                _onTimerStop = onStop;
-            }
-            
-            if (onTick != null)
-            {
-                _onTimerTick = onTick;
-            }
+            if (onStop != null) _onTimerStop = onStop;
+            if (onTick != null) _onTimerTick = onTick;
             
             if (durationInMilliseconds == -1) durationInMilliseconds = Duration;
             if (durationInMilliseconds == 0) return;
-            
-            if (!IsPaused)
-            {
-                Duration = durationInMilliseconds;
-            }
+            if (!IsPaused) Duration = durationInMilliseconds;
             
             IsRunning = true;
             IsPaused = false;
@@ -105,7 +96,7 @@ namespace Konfus.Utility.Time
         }
 
         /// <summary>
-        ///     Pauses the timer.
+        /// Pauses the timer.
         /// </summary>
         public void Pause()
         {
@@ -117,30 +108,15 @@ namespace Konfus.Utility.Time
         }
 
         /// <summary>
-        ///     Stops the timer.
+        /// Stops the timer.
         /// </summary>
         public void Stop()
-        {
-            _syncContext = null;
-            IsRunning = false;
-            IsPaused = false;
-            _currentTickCount = 0;
-            _systemTimer.Stop();
-            _stopwatch.Stop();
-            _stopwatch.Reset();
-        }
-
-        /// <summary>
-        ///     Destroys the timer.
-        /// </summary>
-        public void Dispose()
         {
             TimerTick -= OnTimerTick;
             TimerStopped -= OnTimerStopped;
             _systemTimer.Elapsed -= OnTimerElapsed;
             
             _systemTimer.Close();
-            _systemTimer.Dispose();
             _stopwatch.Stop();
             
             TimerStopped = null;
@@ -150,6 +126,10 @@ namespace Konfus.Utility.Time
             _stopwatch = null;
             _onTimerTick = null;
             _onTimerStop = null;
+            _syncContext = null;
+            IsRunning = false;
+            IsPaused = false;
+            _currentTickCount = 0;
         }
 
         private void OnTimerTick()
