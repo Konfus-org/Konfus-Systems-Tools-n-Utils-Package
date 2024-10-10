@@ -45,6 +45,7 @@ namespace Konfus.Systems.FX
                 yield return new WaitForSeconds(playTime);
             }
             
+            finishedPlaying.Invoke();
             _isPlaying = false;
             yield return null;
         }
