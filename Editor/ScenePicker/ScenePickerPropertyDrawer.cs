@@ -25,9 +25,16 @@ namespace Konfus.Editor.ScenePicker
             var originalGuiColor = GUI.color;
             if (effectTypeIndex == -1)
             {
+                // Need to add missing choice to list then update the index to display it...
+                var newChoicesWithError = _choices.ToList();
+                newChoicesWithError.Add(GetDisplayPath(property.stringValue));
+                effectTypeIndex = newChoicesWithError.IndexOf(GetDisplayPath(property.stringValue));
+                _choices = newChoicesWithError.ToArray();
+                
+                // Make property red to signify error and update tooltip to say whats wrong!
                 var errorColor = Color.red;
                 GUI.color = errorColor;
-                label.tooltip = $"ERROR: Scene picker could not find the scene {property.name}, ensure its been added to the scenes list.";
+                label.tooltip = $"ERROR: Scene picker could not find the scene {property.stringValue}, ensure its been added to the scenes list.";
             }
             else
             {

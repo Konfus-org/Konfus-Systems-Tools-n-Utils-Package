@@ -7,15 +7,13 @@ using UnityEngine;
 
 namespace Konfus.Utility.Design_Patterns
 {
-    public class DependencyInjector : Singleton<DependencyInjector>
+    public class DependencyInjector : MonoBehaviour
     {
         private const BindingFlags BINDING_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         private readonly Dictionary<Type, object> _registry = new();
 
-        protected override void OnAwake()
+        private void Awake()
         {
-            base.OnAwake();
-
             // Register dependency providers
             MonoBehaviour[] monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             foreach (var provider in monoBehaviours)
@@ -113,7 +111,7 @@ namespace Konfus.Utility.Design_Patterns
         
         private void Register(MonoBehaviour provider, Type type, object instance)
         {
-            if (instance != null) _registry.Add(type, instance);
+            if (instance != null) _registry[type] = instance;
             else throw new Exception($"Provider {provider.GetType().Name} returned null for {type.Name}");
         }
 
