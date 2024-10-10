@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
@@ -9,7 +10,7 @@ namespace Konfus.Utility.Time
     /// </summary>
     public class Timer
     {
-        public const int TICKRATE = 30;
+        private const int TICKRATE = 30;
         
         /// <summary>
         /// Whether or not the timer is running.
@@ -30,56 +31,27 @@ namespace Konfus.Utility.Time
         /// The time remaining on the timer in milliseconds.
         /// </summary>
         public double TimeRemaining => Duration - _stopwatch.ElapsedMilliseconds;
-
-        /// <summary>
-        /// Event invoked on timer tick or stop.
-        /// </summary>
-        public delegate void TimerEvent();
-
-        /// <summary>
-        /// Event called every tick of timer.
-        /// </summary>
-        public event TimerEvent TimerTick;
         
-        /// <summary>
-        /// Event called when the timer stops.
-        /// </summary>
-        public event TimerEvent TimerStopped;
-        
-        private TimerEvent _onTimerTick;
-        private TimerEvent _onTimerStop;
+        private Action _onTimerTick;
+        private Action _onTimerStop;
         private SynchronizationContext _syncContext;
         private System.Timers.Timer _systemTimer;
         private Stopwatch _stopwatch;
         private int _currentTickCount;
 
         /// <summary>
-        /// <para> Creates a System.Timers based timer for Unity </para>
-        /// <param name="onTick"> The action to execute every tick. </param>
-        /// <param name="onStop"> The action to execute on timer stopped. </param>
-        /// </summary>
-        public Timer(double durationInMilliseconds = 0.01f, TimerEvent onTick = null, TimerEvent onStop = null)
-        {
-            Duration = durationInMilliseconds;
-
-            // Move operations to the main thread (required for certain Unity APIs).
-            _onTimerTick = onTick;
-            _onTimerStop = onStop;
-        }
-
-        /// <summary>
         /// Starts the timer.
         /// </summary>
-        public void Start(double durationInMilliseconds = -1, TimerEvent onTick = null, TimerEvent onStop = null)
+        public void Start(double durationInMilliseconds = -1, Action onTick = null, Action onStop = null)
         {
+            Stop();
+            
             _syncContext = SynchronizationContext.Current;
             _systemTimer = new System.Timers.Timer();
             _stopwatch = new Stopwatch();
 
             _systemTimer.Interval = TICKRATE;
             _systemTimer.Elapsed += OnTimerElapsed;
-            TimerTick += OnTimerTick;
-            TimerStopped += OnTimerStopped;
             
             if (onStop != null) _onTimerStop = onStop;
             if (onTick != null) _onTimerTick = onTick;
@@ -112,34 +84,28 @@ namespace Konfus.Utility.Time
         /// </summary>
         public void Stop()
         {
-            TimerTick -= OnTimerTick;
-            TimerStopped -= OnTimerStopped;
-            _systemTimer.Elapsed -= OnTimerElapsed;
+            if (_systemTimer != null)
+            {
+                _systemTimer.Elapsed -= OnTimerElapsed;
+                _systemTimer.Stop();
+                _systemTimer.Close();
+            }
+
+            _stopwatch?.Stop();
             
-            _systemTimer.Close();
-            _stopwatch.Stop();
-            
-            TimerStopped = null;
-            TimerTick = null;
-            
-            _systemTimer = null;
-            _stopwatch = null;
-            _onTimerTick = null;
-            _onTimerStop = null;
-            _syncContext = null;
             IsRunning = false;
             IsPaused = false;
             _currentTickCount = 0;
-        }
-
-        private void OnTimerTick()
-        {
-            _syncContext?.Send(_ => _onTimerTick?.Invoke(), null);
-        }
-
-        private void OnTimerStopped()
-        {
-            _syncContext?.Send(_ => _onTimerStop?.Invoke(), null);
+            
+            var onTimerStopAction = _onTimerStop;
+            _onTimerStop = null;
+            _onTimerTick = null;
+            
+            _syncContext?.Send(_ =>
+            {
+                // Send stop synchronously
+                onTimerStopAction?.Invoke();
+            }, null);
         }
 
         private void OnTimerElapsed(object source, ElapsedEventArgs elapsedEventArguments)
@@ -147,12 +113,15 @@ namespace Konfus.Utility.Time
             if (_currentTickCount * TICKRATE <= Duration)
             {
                 // Calls user-set method (Internal timer resets automatically).
-                TimerTick?.Invoke();
+                _syncContext?.Send(_ =>
+                {
+                    // Send tick synchronously
+                    _onTimerTick?.Invoke();
+                }, null);
             }
             else
             {
-                // Calls user-set method, also stops internal timer (which is normally set to repeat).
-                TimerStopped?.Invoke();
+                // Stops internal timer (which is normally set to repeat).
                 Stop();
             }
             
