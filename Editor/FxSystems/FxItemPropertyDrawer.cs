@@ -31,10 +31,10 @@ namespace Konfus.Editor.FxSystems
 
             // Set the effect type if we chose one
             var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
+            var effectProperty = property.FindPropertyRelative("effect");
             bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
-            if (EditorGUI.EndChangeCheck() || hasBeenDuped)
+            if (EditorGUI.EndChangeCheck() || hasBeenDuped || effectProperty.managedReferenceValue == null)
             {
-                var effectProperty = property.FindPropertyRelative("effect");
                 CreateEffect(effectTypeIndex, effectProperty, effectTypeProperty);
                 if (hasBeenDuped)
                 {
@@ -65,7 +65,7 @@ namespace Konfus.Editor.FxSystems
             var effectProperty = property.FindPropertyRelative("effect");
             if (effectProperty.isExpanded)
             {
-                return effectProperty.CountInProperty() * EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + 2f;
+                return ((effectProperty.CountInProperty() + property.CountInProperty()) * EditorGUIUtility.singleLineHeight) + EditorGUIUtility.standardVerticalSpacing + 2f;
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

@@ -1,34 +1,37 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Konfus.Systems.FX
 {
     public class FxSystem : MonoBehaviour
     {
-        [SerializeField]
-        private List<FxItem> fxItems;
+        [SerializeField] private List<FxItem> fxItems;
 
         private bool _isPlaying;
-        private bool _isInitialized;
-        
+
         public IReadOnlyList<FxItem> Items => fxItems;
+        public UnityEvent finishedPlaying;
 
         public void PlayEffects()
         {
             if (_isPlaying) return;
-            if (!_isInitialized) Initialize();
             StartCoroutine(PlayEffectsCoroutine());
         }
 
-        private void Initialize()
+        public void StopEffects()
+        {
+            if (_isPlaying) StopCoroutine(PlayEffectsCoroutine());
+            _isPlaying = false;
+        }
+
+        private void Start()
         {
             foreach (FxItem fxItem in fxItems)
             {
                 fxItem.Effect.Initialize(gameObject);
             }
-
-            _isInitialized = true;
         }
 
         private IEnumerator PlayEffectsCoroutine()
@@ -45,11 +48,15 @@ namespace Konfus.Systems.FX
             _isPlaying = false;
             yield return null;
         }
+        
+        private void OnDestroy()
+        {
+            StopEffects();
+        }
 
         private void OnDisable()
         {
-            if (_isPlaying) StopCoroutine(PlayEffectsCoroutine());
-            _isPlaying = false;
+            StopEffects();
         }
     }
 }

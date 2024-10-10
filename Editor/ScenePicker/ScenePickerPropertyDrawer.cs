@@ -13,7 +13,8 @@ namespace Konfus.Editor.ScenePicker
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Get available scenes if we haven't already
-            CacheChoicesIfNotAlreadyCached();
+            //CacheChoicesIfNotAlreadyCached(); // For now disabling caching, as causes issues if scene are renamed or moved....
+            _choices = GetAvailableScenePaths();
             
             // Deserialize scene choice
             var effectTypeIndex = string.IsNullOrEmpty(property.stringValue) 
