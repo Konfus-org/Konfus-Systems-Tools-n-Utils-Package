@@ -43,7 +43,7 @@ namespace Konfus.Editor.FxSystems
                 GUI.enabled = false;
             }
             
-            if (GUILayout.Button("Play"))
+            if (GUILayout.Button(new GUIContent("Play", "Plays effects, only available in play mode.")))
             {
                 var fxSystem = (FxSystem)target;
                 fxSystem.StopEffects();
@@ -58,7 +58,7 @@ namespace Konfus.Editor.FxSystems
                 GUI.enabled = false;
             }
             
-            if (GUILayout.Button("Stop"))
+            if (GUILayout.Button(new GUIContent("Stop", "Stops playing effects, only available in play mode.")))
             {
                 var fxSystem = (FxSystem)target;
                 fxSystem.StopEffects();
