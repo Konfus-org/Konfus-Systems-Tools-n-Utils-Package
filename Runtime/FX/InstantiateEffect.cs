@@ -22,5 +22,10 @@ namespace Konfus.Systems.FX
         {
             Object.Instantiate(gameObject, _transformToSpawnAt.position, Quaternion.identity);
         }
+
+        public override void Stop()
+        {
+            // do nothing...
+        }
     }
 }

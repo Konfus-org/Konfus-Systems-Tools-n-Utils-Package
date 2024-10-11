@@ -20,7 +20,7 @@ namespace Konfus.Editor.FxSystems
         {
             if (property.isExpanded)
             {
-                return property.CountInProperty() * EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                return property.CountInProperty() * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

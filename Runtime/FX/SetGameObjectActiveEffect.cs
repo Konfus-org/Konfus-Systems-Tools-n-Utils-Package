@@ -15,5 +15,10 @@ namespace Konfus.Systems.FX
         {
             gameObject.SetActive(active);
         }
+
+        public override void Stop()
+        {
+            // do nothing...
+        }
     }
 }

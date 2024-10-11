@@ -1,22 +1,18 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Konfus.Systems.FX
 {
     [Serializable]
-    public class MultiEffect : Effect
+    public class NoEffect : Effect
     {
-        [SerializeField]
-        private FxSystem fxSystem;
-
         public override void Play()
         {
-            fxSystem.PlayEffects();
+            // Do nothing
         }
 
         public override void Stop()
         {
-            fxSystem.StopEffects();
+            // do nothing...
         }
     }
 }

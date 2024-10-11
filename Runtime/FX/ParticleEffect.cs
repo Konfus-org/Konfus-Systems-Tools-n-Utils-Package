@@ -13,5 +13,10 @@ namespace Konfus.Systems.FX
         {
             particleSystem.Play();
         }
+
+        public override void Stop()
+        {
+            particleSystem.Stop();
+        }
     }
 }

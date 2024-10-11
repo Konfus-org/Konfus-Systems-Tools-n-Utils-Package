@@ -19,5 +19,10 @@ namespace Konfus.Systems.FX
         {
             Object.Destroy(_gameObjectToDestroy);
         }
+
+        public override void Stop()
+        {
+            // Do nothing
+        }
     }
 }

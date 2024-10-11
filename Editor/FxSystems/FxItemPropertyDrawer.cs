@@ -19,7 +19,17 @@ namespace Konfus.Editor.FxSystems
             
             // Deserialize the effect type and index
             var effectTypeIndex = DeserializeEffectType(property, out var effectTypeProperty);
+            var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
+            var effectProperty = property.FindPropertyRelative("effect");
+            bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
 
+            // If we are playing, render as green!
+            var originalColor = GUI.color;
+            if (effectProperty.managedReferenceValue is Effect { IsPlaying: true })
+            {
+                GUI.color = Color.green;
+            }
+            
             // Draw choice dropdown
             EditorGUI.BeginChangeCheck();
             {
@@ -30,9 +40,6 @@ namespace Konfus.Editor.FxSystems
             }
 
             // Set the effect type if we chose one
-            var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
-            var effectProperty = property.FindPropertyRelative("effect");
-            bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
             if (EditorGUI.EndChangeCheck() || hasBeenDuped || effectProperty.managedReferenceValue == null)
             {
                 CreateEffect(effectTypeIndex, effectProperty, effectTypeProperty);
@@ -53,6 +60,9 @@ namespace Konfus.Editor.FxSystems
                 };
                 EditorGUI.PropertyField(effectPos, property.FindPropertyRelative("effect"), GUIContent.none);
             }
+            
+            // Set color back to original color
+            GUI.color = originalColor;
         }
 
         public override bool CanCacheInspectorGUI(SerializedProperty property)
@@ -63,9 +73,9 @@ namespace Konfus.Editor.FxSystems
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var effectProperty = property.FindPropertyRelative("effect");
-            if (effectProperty.isExpanded)
+            if (effectProperty.isExpanded && effectProperty.managedReferenceValue is not NoEffect)
             {
-                return ((effectProperty.CountInProperty() + property.CountInProperty()) * EditorGUIUtility.singleLineHeight) + EditorGUIUtility.standardVerticalSpacing + 2f;
+                return ((effectProperty.CountInProperty() + property.CountInProperty()) * EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -80,7 +90,7 @@ namespace Konfus.Editor.FxSystems
             _availableEffectTypes = AppDomain.CurrentDomain
                 .GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(type => typeof(IEffect).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericType)
+                .Where(type => typeof(Effect).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericType && typeof(NoEffect) != type)
                 .ToArray();
             string[] choices = { "None" };
             _choices = choices.Union(_availableEffectTypes.Select(type => type.Name)).ToArray();
@@ -88,10 +98,10 @@ namespace Konfus.Editor.FxSystems
         
         private static void CreateEffect(int effectTypeIndex, SerializedProperty effectProperty, SerializedProperty effectTypeProperty)
         {
-            if (effectTypeProperty.stringValue == "None") 
+            if (effectTypeIndex == 0) 
             {
                 // We chose none, set the effect property to null and save choice
-                effectProperty.managedReferenceValue = null;
+                effectProperty.managedReferenceValue = new NoEffect();
                 effectTypeProperty.stringValue = "None";
             }
             else
@@ -108,7 +118,7 @@ namespace Konfus.Editor.FxSystems
         {
             int effectTypeIndex = 0;
             effectTypeProperty = property.FindPropertyRelative("effectType");
-            if (effectTypeProperty.stringValue != string.Empty)
+            if (!EffectTypeIsNone(effectTypeProperty))
             {
                 var effectTypeName = effectTypeProperty.stringValue;
                 Type effectType = _availableEffectTypes.First(type => type.Name == effectTypeName);
@@ -116,6 +126,11 @@ namespace Konfus.Editor.FxSystems
             }
 
             return effectTypeIndex;
+        }
+
+        private static bool EffectTypeIsNone(SerializedProperty effectTypeProperty)
+        {
+            return effectTypeProperty.stringValue == "None" || effectTypeProperty.stringValue == string.Empty;
         }
         
         private static bool HasBeenDuplicated(SerializedProperty property, SerializedProperty fxItemsProperty)

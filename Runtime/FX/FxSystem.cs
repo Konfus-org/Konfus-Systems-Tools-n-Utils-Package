@@ -23,7 +23,14 @@ namespace Konfus.Systems.FX
         public void StopEffects()
         {
             if (_isPlaying) StopCoroutine(PlayEffectsCoroutine());
+            foreach (FxItem fxItem in fxItems)
+            {
+                fxItem.Effect.IsPlaying = false;
+                fxItem.Effect.Stop();
+            }
+            
             _isPlaying = false;
+            finishedPlaying.Invoke();
         }
 
         private void Start()
@@ -40,13 +47,15 @@ namespace Konfus.Systems.FX
             
             foreach (FxItem item in fxItems)
             {
+                item.Effect.IsPlaying = true;
                 item.Effect.Play();
-                float playTime = item.Effect.GetPlayTime();
+                float playTime = item.Effect.Duration;
                 yield return new WaitForSeconds(playTime);
+                item.Effect.IsPlaying = false;
             }
             
-            finishedPlaying.Invoke();
             _isPlaying = false;
+            finishedPlaying.Invoke();
             yield return null;
         }
         

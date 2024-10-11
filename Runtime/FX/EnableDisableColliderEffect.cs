@@ -16,5 +16,10 @@ namespace Konfus.Systems.FX
         {
             collider.enabled = enabled;
         }
+
+        public override void Stop()
+        {
+            // do nothing...
+        }
     }
 }

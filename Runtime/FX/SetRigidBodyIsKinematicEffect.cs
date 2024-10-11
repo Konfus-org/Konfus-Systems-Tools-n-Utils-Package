@@ -16,5 +16,10 @@ namespace Konfus.Systems.FX
         {
             rigidbody.isKinematic = isKinematic;
         }
+
+        public override void Stop()
+        {
+            // do nothing...
+        }
     }
 }

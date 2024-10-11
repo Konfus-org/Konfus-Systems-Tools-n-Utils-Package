@@ -15,5 +15,10 @@ namespace Konfus.Systems.FX
         {
             component.enabled = enabled;
         }
+
+        public override void Stop()
+        {
+            // do nothing...
+        }
     }
 }

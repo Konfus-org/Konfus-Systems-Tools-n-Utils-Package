@@ -9,7 +9,7 @@ namespace Konfus.Systems.FX
         [SerializeField]
         private string effectType;
         [SerializeReference]
-        private IEffect effect;
-        public IEffect Effect => effect;
+        private Effect effect;
+        public Effect Effect => effect;
     }
 }

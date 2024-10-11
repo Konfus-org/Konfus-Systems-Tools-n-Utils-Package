@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Konfus.Systems.FX;
 using UnityEditor;
 using UnityEngine;
@@ -26,6 +25,8 @@ namespace Konfus.Editor.FxSystems
         private void DrawEditorInspectorGui()
         {
             DrawIcon();
+            DrawPlayButton();
+            DrawStopButton();
         }
         
         private void DrawIcon()
@@ -33,6 +34,35 @@ namespace Konfus.Editor.FxSystems
             // Set icon
             var fxSystem = (FxSystem)target;
             EditorGUIUtility.SetIconForObject(fxSystem, _fxIcon);
+        }
+
+        private void DrawPlayButton()
+        {
+            if (!Application.isPlaying)
+            {
+                GUI.enabled = false;
+            }
+            
+            if (GUILayout.Button("Play"))
+            {
+                var fxSystem = (FxSystem)target;
+                fxSystem.StopEffects();
+                fxSystem.PlayEffects();
+            }
+        }
+
+        private void DrawStopButton()
+        {
+            if (!Application.isPlaying)
+            {
+                GUI.enabled = false;
+            }
+            
+            if (GUILayout.Button("Stop"))
+            {
+                var fxSystem = (FxSystem)target;
+                fxSystem.StopEffects();
+            }
         }
     }
 }
