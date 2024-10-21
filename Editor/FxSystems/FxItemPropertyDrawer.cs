@@ -22,7 +22,7 @@ namespace Konfus.Editor.FxSystems
             var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
             var effectProperty = property.FindPropertyRelative("effect");
             bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
-
+            
             // If we are playing, render as green!
             var originalColor = GUI.color;
             if (effectProperty.managedReferenceValue is Effect { IsPlaying: true })

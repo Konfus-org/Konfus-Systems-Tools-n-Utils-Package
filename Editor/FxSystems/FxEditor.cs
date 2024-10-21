@@ -25,6 +25,11 @@ namespace Konfus.Editor.FxSystems
         private void DrawEditorInspectorGui()
         {
             DrawIcon();
+            
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            
             DrawPlayButton();
             DrawStopButton();
         }

@@ -7,16 +7,24 @@ namespace Konfus.Systems.FX
 {
     public class FxSystem : MonoBehaviour
     {
+        [Header("Settings:")]
+        [SerializeField] private bool playOnAwake;
+        
+        [Header("Effects To Play:")]
         [SerializeField] private List<FxItem> fxItems;
+        
+        [Header("Events:")]
+        public UnityEvent startedPlaying;
+        public UnityEvent finishedPlaying;
+        
+        public IReadOnlyList<FxItem> Items => fxItems;
 
         private bool _isPlaying;
-
-        public IReadOnlyList<FxItem> Items => fxItems;
-        public UnityEvent finishedPlaying;
 
         public void PlayEffects()
         {
             if (_isPlaying) return;
+            startedPlaying.Invoke();
             StartCoroutine(PlayEffectsCoroutine());
         }
 
@@ -33,12 +41,14 @@ namespace Konfus.Systems.FX
             finishedPlaying.Invoke();
         }
 
-        private void Start()
+        private void Awake()
         {
             foreach (FxItem fxItem in fxItems)
             {
                 fxItem.Effect.Initialize(gameObject);
             }
+            
+            if (playOnAwake) PlayEffects();
         }
 
         private IEnumerator PlayEffectsCoroutine()
