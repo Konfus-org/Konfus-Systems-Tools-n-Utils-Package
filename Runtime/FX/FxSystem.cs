@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,6 +10,7 @@ namespace Konfus.Systems.FX
     {
         [Header("Settings:")]
         [SerializeField] private bool playOnAwake;
+        [SerializeField] private bool loopForever;
         
         [Header("Effects To Play:")]
         [SerializeField] private List<FxItem> fxItems;
@@ -38,6 +40,7 @@ namespace Konfus.Systems.FX
             }
             
             _isPlaying = false;
+            finishedPlaying.RemoveListener(PlayEffects);
             finishedPlaying.Invoke();
         }
 
@@ -47,7 +50,8 @@ namespace Konfus.Systems.FX
             {
                 fxItem.Effect.Initialize(gameObject);
             }
-            
+
+            if (loopForever) finishedPlaying.AddListener(PlayEffects);
             if (playOnAwake) PlayEffects();
         }
 
