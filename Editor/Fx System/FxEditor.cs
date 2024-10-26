@@ -41,6 +41,12 @@ namespace Konfus.Editor.Fx_System
             EditorGUIUtility.SetIconForObject(fxSystem, _fxIcon);
         }
 
+        public override bool RequiresConstantRepaint()
+        {
+            var fxSystem = (FxSystem)target;
+            return fxSystem.IsPlaying;
+        }
+
         private void DrawPlayButton()
         {
             var fxSystem = (FxSystem)target;
