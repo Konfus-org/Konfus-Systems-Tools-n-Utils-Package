@@ -85,10 +85,13 @@ namespace Konfus.Systems.Fx_System
         private IEnumerator PlayEffectRoutine(FxItem item)
         {
             item.Effect.IsPlaying = true;
-            if (item.Effect is MultiEffect multiEffect && multiEffect)
+            if (item.Effect is MultiEffect multiEffect && 
+                (multiEffect.FxSystem?.loopForever ?? false))
             {
-                
+                // If we play forect, set is playing to true and bail out...
+                yield return null;
             }
+            
             item.Effect.Play();
             yield return new WaitForSeconds(item.Effect.Duration);
             item.Effect.IsPlaying = false;
