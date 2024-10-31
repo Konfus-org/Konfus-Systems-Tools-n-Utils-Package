@@ -10,12 +10,14 @@ namespace Konfus.Editor.Fx_System
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Simple cyclic dependency check
-            if (property.managedReferenceValue is MultiEffect multiEffect && 
-                property.serializedObject.targetObject == multiEffect.FxSystem.gameObject)
+            if (property.managedReferenceValue is MultiEffect multiEffect)
             {
                 // If cyclic dependency found, set it to null
-                property.serializedObject.FindProperty("FxSystem").objectReferenceValue = null;
-                Debug.LogError($"Cyclic dependency detected! Reverting {property.name} to null....");
+                if (property.serializedObject.targetObject == multiEffect.FxSystem)
+                {
+                    property.managedReferenceValue = new MultiEffect();;
+                    Debug.LogError($"Cyclic dependency detected, reseting multi-effect on the game object {property.serializedObject.targetObject.name}'s fx system!");
+                }
             }
             
             // Draw fields - pass GUIContent.none to each so they are drawn without labels
