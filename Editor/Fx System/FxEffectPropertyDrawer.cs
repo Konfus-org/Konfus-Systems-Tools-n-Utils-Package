@@ -15,6 +15,7 @@ namespace Konfus.Editor.Fx_System
             {
                 // If cyclic dependency found, set it to null
                 property.serializedObject.FindProperty("FxSystem").objectReferenceValue = null;
+                Debug.LogError($"Cyclic dependency detected! Reverting {property.name} to null....");
             }
             
             // Draw fields - pass GUIContent.none to each so they are drawn without labels
