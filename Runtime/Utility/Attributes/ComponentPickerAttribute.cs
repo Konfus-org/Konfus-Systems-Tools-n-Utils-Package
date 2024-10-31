@@ -1,5 +1,4 @@
 ﻿using System;
-using Codice.CM.SEIDInfo;
 using UnityEngine;
 
 namespace Konfus.Utility.Attributes
