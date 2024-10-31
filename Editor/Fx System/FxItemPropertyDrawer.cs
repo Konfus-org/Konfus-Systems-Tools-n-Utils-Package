@@ -122,7 +122,7 @@ namespace Konfus.Editor.Fx_System
             if (!EffectTypeIsNone(effectTypeProperty))
             {
                 var effectTypeName = effectTypeProperty.stringValue;
-                Type effectType = _availableEffectTypes.First(type => type.Name == effectTypeName);
+                Type effectType = _availableEffectTypes.FirstOrDefault(type => type.Name == effectTypeName);
                 effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
             }
 
