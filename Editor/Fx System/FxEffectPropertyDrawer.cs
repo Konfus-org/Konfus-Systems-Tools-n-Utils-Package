@@ -9,6 +9,14 @@ namespace Konfus.Editor.Fx_System
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            // Simple cyclic dependency check
+            if (property.managedReferenceValue is MultiEffect multiEffect && 
+                property.serializedObject.targetObject == multiEffect.FxSystem.gameObject)
+            {
+                // If cyclic dependency found, set it to null
+                property.serializedObject.FindProperty("FxSystem").objectReferenceValue = null;
+            }
+            
             // Draw fields - pass GUIContent.none to each so they are drawn without labels
             var effectHeight = EditorGUI.GetPropertyHeight(property, includeChildren: true);
             EditorGUI.PropertyField(
@@ -44,14 +52,6 @@ namespace Konfus.Editor.Fx_System
                     rightValue: 60);
 
                 GUI.enabled = wasEnabled;
-            }
-            
-            // Simple cyclic dependency check
-            if (property.managedReferenceValue is MultiEffect multiEffect && 
-                property.serializedObject.targetObject == multiEffect.FxSystem.gameObject)
-            {
-                // If cyclic dependency found, set it to null
-                property.serializedObject.FindProperty("FxSystem").objectReferenceValue = null;
             }
         }
 
