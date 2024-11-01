@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Konfus.Systems.Fx_System.Effects;
 using UnityEngine;
@@ -16,7 +17,11 @@ namespace Konfus.Systems.Fx_System
         [SerializeField] private List<FxItem> fxItems;
         
         [Header("Events:")]
+        [Tooltip("Called when the FxSystem is played")]
         public UnityEvent startedPlaying;
+        [Tooltip("Called when the FxSystem is stopped either by finishing or by being stopped")]
+        public UnityEvent stoppedPlaying;
+        [Tooltip("Called when the FxSystem has finished playing all effects")]
         public UnityEvent finishedPlaying;
         
         public IReadOnlyList<FxItem> Items => fxItems;
@@ -46,8 +51,7 @@ namespace Konfus.Systems.Fx_System
             }
             
             _isPlaying = false;
-            finishedPlaying.RemoveListener(PlayEffects);
-            finishedPlaying.Invoke();
+            stoppedPlaying.Invoke();
         }
 
         private void Awake()
@@ -83,6 +87,7 @@ namespace Konfus.Systems.Fx_System
             }
             
             _isPlaying = false;
+            stoppedPlaying.Invoke();
             finishedPlaying.Invoke();
             yield return null;
         }
@@ -102,7 +107,15 @@ namespace Konfus.Systems.Fx_System
             yield return new WaitForSeconds(item.Effect.Duration);
             item.Effect.IsPlaying = false;
         }
-        
+
+        private void OnValidate()
+        {
+            foreach (var item in fxItems)
+            {
+                item.Effect.OnValidate();
+            }
+        }
+
         private void OnDestroy()
         {
             StopEffects();

@@ -29,8 +29,20 @@ namespace Konfus.Systems.Fx_System.Effects
         /// </summary>
         public abstract float Duration { get; }
 
+        /// <summary>
+        /// Called in the Awake method of the owning FxSystem, used for any init logic for the effect, c
+        /// </summary>
         public virtual void Initialize(GameObject parentGo) { }
+        
+        /// <summary>
+        /// Called when the owning FxSystem is played, the meat of most effects will be go here
+        /// </summary>
         public abstract void Play();
+        
+        /// <summary>
+        /// Called when the owning FxSystem is stopped, used for any cleanup or stop logic
+        /// </summary>
         public abstract void Stop();
+        public virtual void OnValidate() { }
     }
 }
