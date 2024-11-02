@@ -77,11 +77,11 @@ namespace Konfus.Systems.Fx_System
         {
             _isPlaying = true;
             
-            if (isStopping) return;
+            if (_isStopping) yield return null;
             
             foreach (FxItem item in fxItems)
             {
-                if (isStopping) return;
+                if (_isStopping) yield return null;
                 if (item.Effect is null) continue;
                 
                 if (item.Effect.ShouldPlayAsync && !item.Effect.IsPlaying)
@@ -94,7 +94,7 @@ namespace Konfus.Systems.Fx_System
                 }
             }
             
-            if (isStopping) return;
+            if (_isStopping) yield return null;
             
             _isPlaying = false;
             stoppedPlaying.Invoke();
