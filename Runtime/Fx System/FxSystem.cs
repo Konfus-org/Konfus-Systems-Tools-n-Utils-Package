@@ -28,6 +28,7 @@ namespace Konfus.Systems.Fx_System
 
         public bool IsPlaying => _isPlaying;
         private bool _isPlaying;
+        private bool _isStopping;
 
         public void PlayEffects()
         {
@@ -38,6 +39,7 @@ namespace Konfus.Systems.Fx_System
 
         public void StopEffects()
         {
+            _isStopping = true;
             if (_isPlaying) StopCoroutine(PlayEffectsCoroutine());
             foreach (FxItem fxItem in fxItems)
             {
@@ -52,6 +54,7 @@ namespace Konfus.Systems.Fx_System
             
             _isPlaying = false;
             stoppedPlaying.Invoke();
+            _isStopping = false;
         }
 
         private void Awake()
@@ -74,8 +77,13 @@ namespace Konfus.Systems.Fx_System
         {
             _isPlaying = true;
             
+            if (isStopping) return;
+            
             foreach (FxItem item in fxItems)
             {
+                if (isStopping) return;
+                if (item.Effect is null) continue;
+                
                 if (item.Effect.ShouldPlayAsync && !item.Effect.IsPlaying)
                 {
                     StartCoroutine(PlayEffectRoutine(item));
@@ -85,6 +93,8 @@ namespace Konfus.Systems.Fx_System
                     yield return PlayEffectRoutine(item);
                 }
             }
+            
+            if (isStopping) return;
             
             _isPlaying = false;
             stoppedPlaying.Invoke();
@@ -112,7 +122,7 @@ namespace Konfus.Systems.Fx_System
         {
             foreach (var item in fxItems)
             {
-                item.Effect.OnValidate();
+                item.Effect?.OnValidate();
             }
         }
 
