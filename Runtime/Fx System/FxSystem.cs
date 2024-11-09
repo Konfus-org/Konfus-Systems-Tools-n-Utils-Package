@@ -41,6 +41,8 @@ namespace Konfus.Systems.Fx_System
             StopAllCoroutines();
             foreach (FxItem fxItem in fxItems)
             {
+                if (fxItem == null || fxItem.Effect == null) continue;
+
                 fxItem.Effect.IsPlaying = false;
                 fxItem.Effect.Stop();
             }
@@ -68,17 +70,17 @@ namespace Konfus.Systems.Fx_System
         {
             _isPlaying = true;
             
-            foreach (FxItem item in fxItems)
+            foreach (FxItem fxItem in fxItems)
             {
-                if (item.Effect is null) continue;
+                if (fxItem == null || fxItem.Effect == null) continue;
                 
-                if (item.Effect.ShouldPlayAsync && !item.Effect.IsPlaying)
+                if (fxItem.Effect.ShouldPlayAsync && !fxItem.Effect.IsPlaying)
                 {
-                    StartCoroutine(PlayEffectRoutine(item));
+                    StartCoroutine(PlayEffectRoutine(fxItem));
                 }
                 else
                 {
-                    yield return PlayEffectRoutine(item);
+                    yield return PlayEffectRoutine(fxItem);
                 }
             }
             
