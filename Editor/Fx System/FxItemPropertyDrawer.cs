@@ -66,22 +66,22 @@ namespace Konfus.Editor.Fx_System
             GUI.color = originalColor;
         }
 
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return true;
-        }
-        
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var effectProperty = property.FindPropertyRelative("effect");
             if (effectProperty.isExpanded && effectProperty.managedReferenceValue is not NoEffect)
             {
-                return EditorGUI.GetPropertyHeight(effectProperty);
+                return EditorGUI.GetPropertyHeight(effectProperty, label, includeChildren: true);
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
-
+        
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return true;
+        }
+        
         private void CacheChoicesIfNotAlreadyCached()
         {
             // We've already initialized return

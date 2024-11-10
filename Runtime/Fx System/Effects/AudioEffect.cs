@@ -20,7 +20,14 @@ namespace Konfus.Systems.Fx_System.Effects
         [SerializeField]
         private AudioSource audioSource;
 
-        public override float Duration => audioClip?.length ?? 0;
+        public override float Duration
+        {
+            get
+            {
+                if (audioSource == null) return 0;
+                return audioSource.clip.length;
+            }
+        }
 
         public override void Play()
         {

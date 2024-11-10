@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using Konfus.Editor.Utility;
 using Konfus.Utility.Attributes;
 using UnityEditor;
 using UnityEngine;
@@ -10,81 +10,72 @@ namespace Konfus.Editor.ShowIf
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            ShowIfAttribute showIfAttribute = (ShowIfAttribute)attribute;
-            bool show = GetConditionalSourceField(property, showIfAttribute);
+            ShowIfAttribute showIf = (ShowIfAttribute)attribute;
 
-            // if is enable draw the label, else hide it
-            if (show) EditorGUI.PropertyField(position, property, label, true);
+            // Get the condition field
+            var conditionProperty = GetConditionProperty(property, showIf);
+            if (conditionProperty == null)
+            {
+                Debug.LogError($"Condition field '{showIf.ConditionalSourceField}' not found in {property.serializedObject.targetObject.GetType()}.");
+                EditorGUI.PropertyField(position, property, label, true);
+                return;
+            }
+
+            // Determine if the property should be displayed
+            bool conditionMet = GetConditionValue(conditionProperty) == showIf.ExpectedValue;
+
+            if (conditionMet)
+            {
+                // Show the property if the condition is met
+                EditorGUI.PropertyField(position, property, label, true);
+            }
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            ShowIfAttribute showIfAttribute = (ShowIfAttribute)attribute;
-            bool show = GetConditionalSourceField(property, showIfAttribute);
+            ShowIfAttribute showIf = (ShowIfAttribute)attribute;
+            var conditionProperty = GetConditionProperty(property, showIf);
 
-            // if is enable draw the label
-            if (show)
-            {
-                return EditorGUI.GetPropertyHeight(property, label, true);
-            }
+            // Couldn't find condition property...
+            if (conditionProperty == null) return EditorGUI.GetPropertyHeight(property, label, true);
             
-            // else hide it
-            return -EditorGUIUtility.standardVerticalSpacing;
+            // Determine if the property should be displayed
+            bool conditionMet = GetConditionValue(conditionProperty) == showIf.ExpectedValue;
+
+            // Only reserve height if the condition is met
+            return conditionMet ? EditorGUI.GetPropertyHeight(property, label, true) : 0;
         }
         
         public override bool CanCacheInspectorGUI(SerializedProperty property)
         {
             return true;
         }
-
-        /// <summary>
-        /// Get if the conditional what expected is true.
-        /// </summary>
-        /// <param name="property"> is used for get the value of the property and check if return enable true or false </param>
-        /// <param name="showIfAttribute"> is the attribute what contains the values what we need </param>
-        /// <returns> only if the field y is same to the value expected return true</returns>
-        private bool GetConditionalSourceField(SerializedProperty property, ShowIfAttribute showIfAttribute)
-        {
-            bool show = true;
-            SerializedProperty sourcePropertyValue = property.serializedObject.FindProperty(showIfAttribute.ConditionalSourceField);
-
-            if (sourcePropertyValue != null)
-            {
-                show = sourcePropertyValue.boolValue;
-                show = show == showIfAttribute.ExpectedValue;
-            }
-            else
-            {
-                string warning = $"[{nameof(ShowIfAttribute)}] Unable to find conditional source field: " +
-                                 $"{showIfAttribute.ConditionalSourceField} on object: {property.serializedObject.targetObject}";
-                Debug.LogWarning(warning);
-            }
-
-            return show;
-        }
         
-        private static object GetParentObject(SerializedProperty property)
+        private static SerializedProperty GetConditionProperty(SerializedProperty property, ShowIfAttribute showIf)
         {
-            string[] path = property.propertyPath.Split('.');
-     
-            object propertyObject = property.serializedObject.targetObject;
-            object propertyParent = null;
-            for (int i = 0; i < path.Length; ++i)
+            // Try finding on serialized obj
+            var conditionProperty = property.serializedObject.FindProperty(showIf.ConditionalSourceField);
+            if (conditionProperty != null) return conditionProperty;
+            
+            // Try finding via parent if going through serialized obj failed...
+            var parent = property.FindParentProperty();
+            conditionProperty = parent.FindPropertyRelative(showIf.ConditionalSourceField);
+            return conditionProperty;
+        }
+
+        private bool GetConditionValue(SerializedProperty conditionProperty)
+        {
+            // Check the type of the condition property and get its value
+            switch (conditionProperty.propertyType)
             {
-                if (path[i] == "Array")
-                {
-                    int index = path[i + 1][path[i + 1].Length - 2] - '0';
-                    propertyObject = ((IList)propertyObject)[index];
-                    ++i;
-                }
-                else
-                {
-                    propertyParent = propertyObject;
-                    propertyObject = propertyObject.GetType().GetField(path[i]).GetValue(propertyObject);
-                }
+                case SerializedPropertyType.Boolean:
+                    return conditionProperty.boolValue;
+                case SerializedPropertyType.Enum:
+                    return conditionProperty.enumValueIndex == 1; // Assume true if enum index is 1
+                default:
+                    Debug.LogError($"Unsupported condition property type '{conditionProperty.propertyType}' in ShowIf attribute.");
+                    return false;
             }
-     
-            return propertyParent;
         }
     }
 }

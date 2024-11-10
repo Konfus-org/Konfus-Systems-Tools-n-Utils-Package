@@ -64,15 +64,18 @@ namespace Konfus.Editor.Fx_System
             {
                 if (property.managedReferenceValue is not ConfigurableDurationEffect)
                 {
-                    return ((property.CountInProperty() + 1) * 
-                            (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing));
+                    return EditorGUI.GetPropertyHeight(property, label, includeChildren: true) + EditorGUIUtility.singleLineHeight + (EditorGUIUtility.standardVerticalSpacing * 2);
                 }
                 
-                return (property.CountInProperty() *
-                        (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing));
+                return EditorGUI.GetPropertyHeight(property, label, includeChildren: true) + (EditorGUIUtility.standardVerticalSpacing * 2);
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+        }
+        
+        public override bool CanCacheInspectorGUI(SerializedProperty property)
+        {
+            return true;
         }
     }
 }
