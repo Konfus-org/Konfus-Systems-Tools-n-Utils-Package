@@ -34,27 +34,30 @@ namespace Konfus.Editor.Fx_System
             if (property.managedReferenceValue is not ConfigurableDurationEffect && 
                 property.isExpanded && effectDuration <= 60)
             {
+                EditorGUI.indentLevel++;
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = false;
-
-                var durationYPos = position.y + effectHeight + EditorGUIUtility.standardVerticalSpacing;
+                
+                var indentedPos = EditorGUI.IndentedRect(position); 
+                var durationYPos = indentedPos.y + effectHeight + EditorGUIUtility.standardVerticalSpacing;
+                var durationLabelRect = new Rect(indentedPos.x, durationYPos, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
                 
                 // Draw duration label
                 EditorGUI.LabelField(
-                    position: new Rect(position.x + 30, durationYPos, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight), 
+                    position: durationLabelRect, 
                     label: new GUIContent(
                         text: "Duration", 
                         tooltip: "The time to play this effect in seconds before playing the next effect. This duration is not editable because it is calculated by the effect."));
 
                 // Draw duration slider
-                var labelWidth = EditorGUIUtility.labelWidth + 18;
                 EditorGUI.Slider(
-                    position: new Rect(position.x + labelWidth, durationYPos, position.width - labelWidth, EditorGUIUtility.singleLineHeight),
+                    position: new Rect(indentedPos.x + durationLabelRect.width - 12, durationYPos, indentedPos.width - durationLabelRect.width, EditorGUIUtility.singleLineHeight),
                     value: effectDuration, 
                     leftValue: 0,
                     rightValue: 60);
-
+                
                 GUI.enabled = wasEnabled;
+                EditorGUI.indentLevel--;
             }
         }
 
