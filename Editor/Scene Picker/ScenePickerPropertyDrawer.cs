@@ -74,11 +74,6 @@ namespace Konfus.Editor.ScenePicker
             GUI.color = originalGuiColor;
         }
 
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return true;
-        }
-        
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

@@ -77,11 +77,6 @@ namespace Konfus.Editor.Fx_System
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
         
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return true;
-        }
-        
         private void CacheChoicesIfNotAlreadyCached()
         {
             // We've already initialized return

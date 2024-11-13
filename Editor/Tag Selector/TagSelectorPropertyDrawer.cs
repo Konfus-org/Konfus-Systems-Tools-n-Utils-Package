@@ -55,5 +55,10 @@ namespace Konfus.Editor.TagSelector
                  EditorGUI.PropertyField(position, property, label);
              }
          }
+         
+         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+         {
+             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+         }
      }
 }

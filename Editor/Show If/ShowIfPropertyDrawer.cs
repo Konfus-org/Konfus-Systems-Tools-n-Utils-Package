@@ -46,11 +46,6 @@ namespace Konfus.Editor.ShowIf
             return conditionMet ? EditorGUI.GetPropertyHeight(property, label, true) : 0;
         }
         
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return true;
-        }
-        
         private static SerializedProperty GetConditionProperty(SerializedProperty property, ShowIfAttribute showIf)
         {
             // Try finding on serialized obj

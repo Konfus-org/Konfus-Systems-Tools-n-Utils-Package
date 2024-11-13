@@ -38,20 +38,18 @@ namespace Konfus.Editor.Fx_System
                 bool wasEnabled = GUI.enabled;
                 GUI.enabled = false;
                 
-                var indentedPos = EditorGUI.IndentedRect(position); 
-                var durationYPos = indentedPos.y + effectHeight + EditorGUIUtility.standardVerticalSpacing;
-                var durationLabelRect = new Rect(indentedPos.x, durationYPos, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
+                var durationYPos = position.y + effectHeight + EditorGUIUtility.standardVerticalSpacing;
                 
                 // Draw duration label
                 EditorGUI.LabelField(
-                    position: durationLabelRect, 
+                    position: new Rect(position.x, durationYPos, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight), 
                     label: new GUIContent(
                         text: "Duration", 
                         tooltip: "The time to play this effect in seconds before playing the next effect. This duration is not editable because it is calculated by the effect."));
 
                 // Draw duration slider
                 EditorGUI.Slider(
-                    position: new Rect(indentedPos.x + durationLabelRect.width - 12, durationYPos, indentedPos.width - durationLabelRect.width, EditorGUIUtility.singleLineHeight),
+                    position: new Rect(position.x + EditorGUIUtility.labelWidth - 12f, durationYPos, position.width - EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight),
                     value: effectDuration, 
                     leftValue: 0,
                     rightValue: 60);
@@ -74,11 +72,6 @@ namespace Konfus.Editor.Fx_System
             }
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-        }
-        
-        public override bool CanCacheInspectorGUI(SerializedProperty property)
-        {
-            return true;
         }
     }
 }
