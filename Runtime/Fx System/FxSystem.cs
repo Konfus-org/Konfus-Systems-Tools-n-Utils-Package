@@ -107,6 +107,8 @@ namespace Konfus.Systems.Fx_System
 
         private void OnValidate()
         {
+            if (fxItems == null) return;
+            
             foreach (var item in fxItems)
             {
                 item.Effect?.OnValidate();

@@ -31,16 +31,35 @@ namespace Konfus.Editor.Fx_System
                 GUI.color = Color.green;
             }
             
+            // If our effect couldn't be deserialized
+            bool serializedEffectNoLongerExists = false;
+            if (effectTypeIndex == -1)
+            {
+                GUI.color = Color.red;
+                serializedEffectNoLongerExists = true;
+            }
+            
             // Draw choice dropdown
             EditorGUI.BeginChangeCheck();
             {
-                effectTypeIndex = EditorGUI.Popup(
-                    position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
-                    selectedIndex: effectTypeIndex,
-                    displayedOptions: _choices);
+                if (serializedEffectNoLongerExists)
+                {
+                    var choices = _choices.Append($"ERROR: \"{effectTypeProperty.stringValue}\" no longer exists!").ToArray();
+                    effectTypeIndex = EditorGUI.Popup(
+                        position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
+                        selectedIndex: choices.Length - 1,
+                        displayedOptions: choices);
+                }
+                else
+                {
+                    effectTypeIndex = EditorGUI.Popup(
+                        position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
+                        selectedIndex: effectTypeIndex,
+                        displayedOptions: _choices);
+                }
             }
-
-            // Set the effect type if we chose one
+            
+            // Set the effect type if we chose one and our choice is valid
             if (EditorGUI.EndChangeCheck() || hasBeenDuped || effectProperty.managedReferenceValue == null)
             {
                 CreateEffect(effectTypeIndex, effectProperty, effectTypeProperty);
@@ -51,15 +70,15 @@ namespace Konfus.Editor.Fx_System
                 }
             }
 
-            if (effectTypeIndex != 0)
+            if (effectTypeIndex > 0)
             {
                 // Draw effect property if our choice is something other than none
                 var effectPos = new Rect(position)
                 {
                     width = position.width,
-                    height = EditorGUI.GetPropertyHeight(property.FindPropertyRelative("effect"))
+                    height = EditorGUI.GetPropertyHeight(effectProperty)
                 };
-                EditorGUI.PropertyField(effectPos, property.FindPropertyRelative("effect"), GUIContent.none);
+                EditorGUI.PropertyField(effectPos, effectProperty, GUIContent.none);
             }
             
             // Set color back to original color
@@ -118,6 +137,7 @@ namespace Konfus.Editor.Fx_System
             {
                 var effectTypeName = effectTypeProperty.stringValue;
                 Type effectType = _availableEffectTypes.FirstOrDefault(type => type.Name == effectTypeName);
+                if (effectType == null) return -1; // no longer exists!
                 effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
             }
 
