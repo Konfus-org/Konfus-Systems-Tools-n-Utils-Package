@@ -27,7 +27,8 @@ namespace Konfus.Systems.Sensor_Toolkit
             if (sensorType == Type.Standard && SensorLength != 0)
             {
                 var ray = new Ray(transform.position + Vector3.forward * sensorRadius / 2, transform.forward);
-                if (Physics.SphereCast(ray, sensorRadius, out RaycastHit hit, SensorLength, DetectionFilter, QueryTriggerInteraction.Ignore))
+                if (Physics.SphereCast(ray, sensorRadius, out RaycastHit hit, SensorLength, DetectionFilter,
+                        interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject };
@@ -43,7 +44,8 @@ namespace Konfus.Systems.Sensor_Toolkit
                     sensorRadius, 
                     transform.forward, 
                     SensorLength,
-                    DetectionFilter, QueryTriggerInteraction.Ignore);
+                    DetectionFilter,
+                    interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
                 if (hitsArray.Length > 0)
                 {
                     Array.Sort(hitsArray, (s1, s2) =>

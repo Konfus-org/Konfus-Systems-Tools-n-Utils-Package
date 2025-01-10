@@ -37,7 +37,7 @@ namespace Konfus.Systems.Sensor_Toolkit
                 nextDir += origin;
 
                 // hit something, stop!
-                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, DetectionFilter, QueryTriggerInteraction.Ignore))
+                if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, DetectionFilter, interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit() { point = hit.point, normal = hit.normal, gameObject = hit.collider.gameObject };
