@@ -7,6 +7,9 @@ namespace Konfus.Systems.Sensor_Toolkit
         [SerializeField]
         private float sensorLength = 1f;
 
+        [SerializeField]
+        protected bool interactTriggers = false;
+
         public float SensorLength => sensorLength;
         
         public abstract bool Scan();
