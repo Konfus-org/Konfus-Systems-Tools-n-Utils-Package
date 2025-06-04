@@ -36,7 +36,7 @@ namespace Konfus.Systems.Sensor_Toolkit
                             transform.rotation,
                             SensorLength,
                             DetectionFilter,
-                            QueryTriggerInteraction.Ignore))
+                            interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore))
                     {
                         var hitsDetected = new Hit[1];
                         hitsDetected[0] = new Hit()
@@ -57,7 +57,7 @@ namespace Konfus.Systems.Sensor_Toolkit
                         transform.rotation,
                         SensorLength,
                         DetectionFilter,
-                        QueryTriggerInteraction.Ignore);
+                        interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore);
 
                     // sort hits by distance
                     if (hitsArray.Length > 0)
@@ -88,7 +88,7 @@ namespace Konfus.Systems.Sensor_Toolkit
                             sensorSize/2,
                             transform.rotation,
                             DetectionFilter,
-                            QueryTriggerInteraction.Ignore))
+                            interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore))
                     {
                         isTriggered = true;
                         return true;
