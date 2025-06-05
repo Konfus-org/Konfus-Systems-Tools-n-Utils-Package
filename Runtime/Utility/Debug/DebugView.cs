@@ -32,7 +32,7 @@ namespace Konfus.Runtime.Utility.Debug
         {
             _output = logString;
             _stack = stackTrace;
-            _myLog = _output + "" + _myLog;
+            _myLog = _output + "\n" + _myLog;
             if (_myLog.Length > 5000)
             {
                 // Log too long, remove old bits...
