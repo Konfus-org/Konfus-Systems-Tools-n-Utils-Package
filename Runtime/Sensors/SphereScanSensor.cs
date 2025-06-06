@@ -17,7 +17,7 @@ namespace Konfus.Systems.Sensor_Toolkit
         [SerializeField]
         private Type sensorType = Type.Standard;
 
-        internal float SensorRadius => sensorRadius;
+        public float SensorRadius => sensorRadius;
         internal Type SensorType => sensorType;
         
         public override bool Scan()
