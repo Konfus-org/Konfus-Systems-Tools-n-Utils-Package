@@ -23,7 +23,7 @@ namespace Konfus.Multiplayer
         public GameObject SpawnClientSide(GameObject goToSpawn, Vector3 position, Quaternion rotation)
         {
             var spawnedObj = SpawnObj(goToSpawn.name, position, rotation);
-            RequestSpawnServerRpc(goToSpawn.name, position, rotation, spawnOnServer: false);
+            RequestSpawnRpc(goToSpawn.name, position, rotation, spawnOnServer: false);
             return spawnedObj;
         }
 
@@ -36,7 +36,7 @@ namespace Konfus.Multiplayer
         /// <param name="rotation">The rotation to spawn the game object with.</param>
         public void SpawnServerSide(GameObject goToSpawn, Vector3 position, Quaternion rotation)
         {
-            RequestSpawnServerRpc(goToSpawn.name, position, rotation, spawnOnServer: true);
+            RequestSpawnRpc(goToSpawn.name, position, rotation, spawnOnServer: true);
         }
         
         private void Awake()
@@ -52,7 +52,7 @@ namespace Konfus.Multiplayer
         }
         
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void RequestSpawnServerRpc(string prefabName, Vector3 position, Quaternion rotation, bool spawnOnServer, ServerRpcParams rpcParams = default)
+        private void RequestSpawnRpc(string prefabName, Vector3 position, Quaternion rotation, bool spawnOnServer, RpcParams rpcParams = default)
         {
             if (spawnOnServer)
             {
