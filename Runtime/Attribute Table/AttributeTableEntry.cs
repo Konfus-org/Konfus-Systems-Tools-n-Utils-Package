@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Konfus.Systems.Attribute_Table
+namespace Konfus.Attribute_Table
 {
     [Serializable]
     public class AttributeTableEntry

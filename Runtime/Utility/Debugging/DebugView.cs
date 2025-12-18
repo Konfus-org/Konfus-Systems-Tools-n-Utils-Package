@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Runtime.Utility.Debug
+namespace Konfus.Utility.Debugging
 {
     public class DebugView : MonoBehaviour
     {

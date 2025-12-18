@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Konfus.Systems.Cameras
+namespace Konfus.Cameras
 {
     // TODO: update this to work with cinemachine
     public class RtsCamera : MonoBehaviour

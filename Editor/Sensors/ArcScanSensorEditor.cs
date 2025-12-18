@@ -1,4 +1,4 @@
-using Konfus.Systems.Sensor_Toolkit;
+using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 

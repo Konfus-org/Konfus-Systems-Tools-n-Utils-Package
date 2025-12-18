@@ -3,7 +3,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using UnityEngine;
 
-namespace Armored_Felines.Multiplayer
+namespace Konfus.Multiplayer
 {
     public static class Authentication
     {

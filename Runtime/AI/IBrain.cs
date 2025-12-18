@@ -1,4 +1,4 @@
-﻿namespace Konfus.Systems.AI
+﻿namespace Konfus.AI
 {
     public interface IBrain
     {

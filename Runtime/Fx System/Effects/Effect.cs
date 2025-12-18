@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Konfus.Systems.Fx_System.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public abstract class Effect

@@ -12,7 +12,7 @@ using Unity.Services.Multiplayer;
 using Unity.Services.Relay;
 using UnityEngine;
 
-namespace Armored_Felines.Multiplayer
+namespace Konfus.Multiplayer
 {
     public static class MatchmakingService
     {

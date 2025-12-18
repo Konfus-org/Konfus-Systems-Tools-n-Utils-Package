@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Konfus.Systems.Grids
+namespace Konfus.Grids
 {
     public class Node : INode
     {

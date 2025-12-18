@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.AI
+namespace Konfus.AI
 {
     /// <summary>
     /// Generic implementation of the IBrain class.

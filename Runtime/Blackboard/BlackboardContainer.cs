@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.Blackboard
+namespace Konfus.Blackboard
 {
     public class BlackboardContainer : MonoBehaviour
     {

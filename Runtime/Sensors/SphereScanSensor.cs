@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace Konfus.Systems.Sensor_Toolkit
+namespace Konfus.Sensor_Toolkit
 {
     public class SphereScanSensor : ScanSensor
     {

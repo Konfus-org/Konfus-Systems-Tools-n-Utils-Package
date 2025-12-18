@@ -4,7 +4,7 @@ using System.Linq;
 using Konfus.Utility.Extensions;
 using UnityEngine;
 
-namespace Konfus.Systems.Grids
+namespace Konfus.Grids
 {
     public abstract class GridBase : MonoBehaviour, IGrid
     {

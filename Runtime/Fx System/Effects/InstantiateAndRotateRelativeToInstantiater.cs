@@ -1,9 +1,8 @@
 using System;
-using Konfus.Systems.Fx_System.Effects;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Armored_Felines.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class InstantiateAndRotateRelativeToInstantiater : Effect

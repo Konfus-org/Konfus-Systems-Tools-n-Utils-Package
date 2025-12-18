@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.Attribute_Table
+namespace Konfus.Attribute_Table
 {
     [CreateAssetMenu(fileName = "New Attribute", menuName = "Konfus/Attribute Table/Locomotion Attribute")]
     public class Locomotion : Attribute

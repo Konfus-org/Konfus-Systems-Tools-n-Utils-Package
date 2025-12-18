@@ -2,7 +2,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace Konfus.Systems.Fx_System.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class MultiEffect : Effect

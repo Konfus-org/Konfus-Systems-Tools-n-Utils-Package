@@ -2,7 +2,7 @@ using Konfus.Utility.Attributes;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Armored_Felines.Scenes
+namespace Konfus.Fx_System.Scenes
 {
     public class RequiredAdditiveScenesLoader : MonoBehaviour
     {

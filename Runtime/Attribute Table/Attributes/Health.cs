@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using UnityEngine;
 
-namespace Konfus.Systems.Attribute_Table
+namespace Konfus.Attribute_Table
 {
     [CreateAssetMenu(fileName = "New Attribute", menuName = "Konfus/Attribute Table/Health Attribute")]
     public class Health : Attribute

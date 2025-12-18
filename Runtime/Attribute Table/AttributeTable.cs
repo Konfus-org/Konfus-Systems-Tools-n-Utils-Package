@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Konfus.Systems.Attribute_Table
+namespace Konfus.Attribute_Table
 {
     public class AttributeTable : MonoBehaviour
     {

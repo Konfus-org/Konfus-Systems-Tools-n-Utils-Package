@@ -1,8 +1,8 @@
 ﻿using System;
-using Konfus.Systems.Fx_System.Effects;
+using Konfus.Fx_System.Effects;
 using UnityEngine;
 
-namespace Konfus.Systems.Fx_System
+namespace Konfus.Fx_System
 {
     [Serializable]
     public class FxItem

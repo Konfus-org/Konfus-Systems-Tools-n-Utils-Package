@@ -1,8 +1,7 @@
 using System;
-using Konfus.Systems.Fx_System.Effects;
 using UnityEngine;
 
-namespace Armored_Felines.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class SetSelfActiveEffect : Effect

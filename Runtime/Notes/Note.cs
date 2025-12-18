@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.Notes
+namespace Konfus.Notes
 {
     public class Note : MonoBehaviour
     {

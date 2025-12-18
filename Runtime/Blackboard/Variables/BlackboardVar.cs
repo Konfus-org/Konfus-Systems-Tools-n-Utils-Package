@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Konfus.Systems.Blackboard.Variables
+namespace Konfus.Blackboard.Variables
 {
     public abstract class BlackboardVar { }
     

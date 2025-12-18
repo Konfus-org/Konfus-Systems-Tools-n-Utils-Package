@@ -1,4 +1,4 @@
-﻿namespace Konfus.Systems.Grids
+﻿namespace Konfus.Grids
 {
     public class StandardGrid : GridBase
     {

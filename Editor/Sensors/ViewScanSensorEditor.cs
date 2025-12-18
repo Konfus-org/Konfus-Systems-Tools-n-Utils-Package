@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Konfus.Systems.Sensor_Toolkit;
+using Konfus.Sensor_Toolkit;
 using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;

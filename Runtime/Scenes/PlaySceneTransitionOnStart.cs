@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Armored_Felines.Scenes
+namespace Konfus.Fx_System.Scenes
 {
     [RequireComponent(typeof(SceneTransition))]
     public class PlaySceneTransitionOnStart : MonoBehaviour

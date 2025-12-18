@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Konfus.Systems.Grids;
+using Konfus.Grids;
 using UnityEngine;
 
-namespace Konfus.Systems.Pathfinding
+namespace Konfus.Pathfinding
 {
     public class Pathfinder
     {

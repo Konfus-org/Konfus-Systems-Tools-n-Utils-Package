@@ -2,7 +2,7 @@
 using Konfus.Utility.Extensions;
 using UnityEngine;
 
-namespace Armored_Felines.Multiplayer
+namespace Konfus.Multiplayer
 {
     public class AutoCreateOrJoinMultiplayerSessionOnStart : MonoBehaviour
     {

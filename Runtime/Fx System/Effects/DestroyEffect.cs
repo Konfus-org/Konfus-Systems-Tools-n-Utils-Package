@@ -2,7 +2,7 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Konfus.Systems.Fx_System.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class DestroyEffect : Effect

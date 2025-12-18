@@ -1,11 +1,9 @@
 ﻿using System;
 using DG.Tweening;
-using Konfus.Systems.Fx_System.Effects;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace Armored_Felines.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class ImageFillEffect: ConfigurableDurationEffect

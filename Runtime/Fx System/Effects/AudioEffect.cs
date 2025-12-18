@@ -2,7 +2,7 @@
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Konfus.Systems.Fx_System.Effects
+namespace Konfus.Fx_System.Effects
 {
     [Serializable]
     public class AudioEffect : Effect

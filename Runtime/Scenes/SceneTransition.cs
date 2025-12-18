@@ -1,8 +1,8 @@
-﻿using Konfus.Systems.Fx_System;
+﻿using Konfus.Fx_System;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Armored_Felines.Scenes
+namespace Konfus.Fx_System.Scenes
 {
     public class SceneTransition : MonoBehaviour
     {

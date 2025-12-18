@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Konfus.Systems.Pathfinding
+namespace Konfus.Pathfinding
 {
     [ExecuteInEditMode] public class PathManager : MonoBehaviour
     {

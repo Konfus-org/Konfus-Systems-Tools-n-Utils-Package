@@ -1,4 +1,4 @@
-﻿using Konfus.Systems.Fx_System.Effects;
+﻿using Konfus.Fx_System.Effects;
 using UnityEditor;
 using UnityEngine;
 

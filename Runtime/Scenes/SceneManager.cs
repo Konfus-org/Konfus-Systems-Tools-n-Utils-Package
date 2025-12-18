@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-namespace Armored_Felines.Scenes
+namespace Konfus.Fx_System.Scenes
 {
     [Provide]
     public class SceneManager : MonoBehaviour

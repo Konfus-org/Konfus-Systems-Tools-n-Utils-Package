@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Konfus.Systems.Sensor_Toolkit
+namespace Konfus.Sensor_Toolkit
 {
     [ExecuteInEditMode]
     public abstract class Sensor : MonoBehaviour

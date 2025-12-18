@@ -1,5 +1,5 @@
 using System;
-using Konfus.Systems.Fx_System;
+using Konfus.Fx_System;
 using UnityEditor;
 using UnityEngine;
 

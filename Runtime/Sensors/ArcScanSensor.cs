@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Konfus.Systems.Sensor_Toolkit
+namespace Konfus.Sensor_Toolkit
 {
     public class ArcScanSensor : ScanSensor
     {

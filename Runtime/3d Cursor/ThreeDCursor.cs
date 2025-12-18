@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Konfus.Systems.ThreeDCursor
+namespace Konfus.ThreeDCursor
 {
     public class ThreeDCursor : MonoBehaviour
     {

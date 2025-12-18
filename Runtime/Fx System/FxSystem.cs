@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Konfus.Systems.Fx_System.Effects;
+using Konfus.Fx_System.Effects;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Konfus.Systems.Fx_System
+namespace Konfus.Fx_System
 {
     public class FxSystem : MonoBehaviour
     {

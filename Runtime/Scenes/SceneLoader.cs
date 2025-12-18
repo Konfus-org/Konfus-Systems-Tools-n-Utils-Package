@@ -1,7 +1,7 @@
 ﻿using Konfus.Utility.Attributes;
 using UnityEngine;
 
-namespace Armored_Felines.Scenes
+namespace Konfus.Fx_System.Scenes
 {
     public class SceneLoader : MonoBehaviour
     {

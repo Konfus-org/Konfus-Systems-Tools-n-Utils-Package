@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using Konfus.Systems.Blackboard.Variables;
+using Konfus.Blackboard.Variables;
 using Konfus.Utility.Custom_Types;
 using UnityEngine;
 
-namespace Konfus.Systems.Blackboard
+namespace Konfus.Blackboard
 {
     // TODO: editor script for blackboard
     [Serializable]

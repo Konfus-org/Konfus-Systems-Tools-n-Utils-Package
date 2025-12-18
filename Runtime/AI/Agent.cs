@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.AI
+namespace Konfus.AI
 {
     /// <summary>
     /// Abstract agent class that simply takes input, the inheriting class decides how to deal with the input.

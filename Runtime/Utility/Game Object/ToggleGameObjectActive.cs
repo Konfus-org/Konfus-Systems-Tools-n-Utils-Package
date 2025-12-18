@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Armored_Felines.Utility
+namespace Konfus.Utility.Game_Object
 {
     public class ToggleGameObjectActive : MonoBehaviour
     {

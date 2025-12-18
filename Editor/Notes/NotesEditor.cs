@@ -1,5 +1,5 @@
 ﻿using System;
-using Konfus.Systems.Notes;
+using Konfus.Notes;
 using UnityEditor;
 using UnityEngine;
 

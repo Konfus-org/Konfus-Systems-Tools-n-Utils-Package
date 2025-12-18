@@ -1,4 +1,4 @@
-using Konfus.Systems.Grids;
+using Konfus.Grids;
 using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;

@@ -1,4 +1,4 @@
-﻿namespace Konfus.Systems.Blackboard.Variables
+﻿namespace Konfus.Blackboard.Variables
 {
     public class BlackboardInt : BlackboardVar<int>
     {

@@ -1,6 +1,6 @@
-using Konfus.Systems.Grids;
+using Konfus.Grids;
 
-namespace Konfus.Systems.Pathfinding
+namespace Konfus.Pathfinding
 {
     // TODO: Make an interface so this isn't tied to grid system...
     public class AStarGrid : GridBase

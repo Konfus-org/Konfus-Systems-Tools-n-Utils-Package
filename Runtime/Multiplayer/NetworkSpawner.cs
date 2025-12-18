@@ -3,7 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-namespace Armored_Felines.Multiplayer
+namespace Konfus.Multiplayer
 {
     [RequireComponent(typeof(NetworkObject))]
     public class NetworkSpawner : NetworkBehaviour
@@ -51,7 +51,7 @@ namespace Armored_Felines.Multiplayer
                 .SelectMany(list => list.PrefabList.Select(prefab => prefab)).ToDictionary(key => key.Prefab.name);
         }
         
-        [ServerRpc(RequireOwnership = false)]
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RequestSpawnServerRpc(string prefabName, Vector3 position, Quaternion rotation, bool spawnOnServer, ServerRpcParams rpcParams = default)
         {
             if (spawnOnServer)

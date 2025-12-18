@@ -1,8 +1,8 @@
-﻿using Armored_Felines.Multiplayer;
+﻿using Konfus.Multiplayer;
 using Unity.Services.Core;
 using UnityEngine;
 
-namespace Armored_Felines.Utility
+namespace Konfus.Utility.Game_Object
 {
     public static class Instantiater
     {

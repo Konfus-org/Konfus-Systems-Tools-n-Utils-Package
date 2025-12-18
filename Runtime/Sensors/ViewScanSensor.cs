@@ -3,7 +3,7 @@ using System.Linq;
 using Konfus.Utility.Extensions;
 using UnityEngine;
 
-namespace Konfus.Systems.Sensor_Toolkit
+namespace Konfus.Sensor_Toolkit
 {
     public class ViewScanSensor : ScanSensor
     {

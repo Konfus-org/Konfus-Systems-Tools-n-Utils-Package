@@ -4,7 +4,7 @@ using Konfus.Utility.Extensions;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Konfus.Systems.Sensor_Toolkit
+namespace Konfus.Sensor_Toolkit
 {
     [RequireComponent(typeof(Collider))]
     public class CollisionSensor : Sensor

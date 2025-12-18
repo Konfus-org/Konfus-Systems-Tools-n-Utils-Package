@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Systems.ThreeDCursor
+namespace Konfus.ThreeDCursor
 {
     [CreateAssetMenu(fileName = "New Cursor State", menuName = "Konfus/New 3D Cursor State", order = 1)]
     public class ThreeDCursorState : ScriptableObject
