@@ -12,14 +12,16 @@ namespace Konfus.PlayerInput
     public class Player : PersistentSingleton<Player>
     {
         private const string CONTROLLER_LAYOUT_NAME = "Stick";
+        private const string VEHICLE_TAG_NAME = "Vehicle";
 
         [Header("Events")]
-        public InteractEvent onInteract;
-        public MoveEvent onMove;
-        public JumpEvent onJump;
-        public AimEvent onAim;
-        public FireEvent onPrimaryFire;
-        public FireEvent onSecondaryFire;
+        public Vector2InputEvent onMove;
+        public Vector3InputEvent onAim;
+        public ActionInputEvent onInteract;
+        public ActionInputEvent onJump;
+        public ActionInputEvent onCrouch;
+        public ActionInputEvent onPrimaryAction;
+        public ActionInputEvent onSecondaryAction;
 
         [Header("References")]
         [SerializeField]
@@ -55,13 +57,13 @@ namespace Konfus.PlayerInput
             if (_currentPossessed)
             {
                 // If we are possessing a vehicle parent our default to the vehicle
-                if (possessable.gameObject.CompareTag("Vehicle"))
+                if (possessable.gameObject.CompareTag(VEHICLE_TAG_NAME))
                 {
                     // TODO: WILL BREAK IN MULTIPLAYER!!!! Parenting the possessed (player object as far as networking is concerned) seems to throw errors...
                     _defaultPossessed.transform.parent = possessable.transform;
                 }
                 
-                _currentPossessed.onPlayerUnpossess.Invoke();
+                _currentPossessed.UnPossess();
             }
             _currentPossessed = possessable;
             
@@ -70,19 +72,18 @@ namespace Konfus.PlayerInput
             onMove.RemoveAllListeners();
             onJump.RemoveAllListeners();
             onInteract.RemoveAllListeners();
-            onPrimaryFire.RemoveAllListeners();
-            onSecondaryFire.RemoveAllListeners();
-                
-            // Always add reticle back... possessee can decide whether or not to turn it on
-            onAim.AddListener(reticle.MoveTo);
+            onPrimaryAction.RemoveAllListeners();
+            onSecondaryAction.RemoveAllListeners();
             
             // Add new listeners
+            onAim.AddListener(reticle.MoveTo);
             onAim.AddListener(possessable.Aim);
             onMove.AddListener(possessable.Move);
             onJump.AddListener(possessable.Jump);
+            onCrouch.AddListener(possessable.Crouch);
             onInteract.AddListener(possessable.Interact);
-            onPrimaryFire.AddListener(possessable.PrimaryAction);
-            onSecondaryFire.AddListener(possessable.SecondaryAction);
+            onPrimaryAction.AddListener(possessable.PrimaryAction);
+            onSecondaryAction.AddListener(possessable.SecondaryAction);
             
             // Update target group
             if (targetGroup)
@@ -97,10 +98,7 @@ namespace Konfus.PlayerInput
             }
             
             // Set possessed camera
-            possessable.SetCamera(cam);
-            
-            // Invoke possessed event
-            _currentPossessed.onPlayerPossess.Invoke();
+            possessable.Possess(this);
         }
         
         public void OnMoveInput(InputAction.CallbackContext context)
@@ -114,6 +112,12 @@ namespace Konfus.PlayerInput
             if (!context.performed) return;
             onJump.Invoke();
         }
+        
+        public void OnCrouchInput(InputAction.CallbackContext context)
+        {
+            if (!context.performed) return;
+            onCrouch.Invoke();
+        }
 
         public void OnAimInput(InputAction.CallbackContext context)
         {
@@ -122,16 +126,16 @@ namespace Konfus.PlayerInput
             _usingController = context.control.layout == CONTROLLER_LAYOUT_NAME;
         }
 
-        public void OnPrimaryFireInput(InputAction.CallbackContext context)
+        public void OnPrimaryActionInput(InputAction.CallbackContext context)
         {
             if (!context.performed) return;
-            onPrimaryFire.Invoke();
+            onPrimaryAction.Invoke();
         }
         
-        public void OnSecondaryFireInput(InputAction.CallbackContext context)
+        public void OnSecondaryActionInput(InputAction.CallbackContext context)
         {
             if (!context.performed) return;
-            onSecondaryFire.Invoke();
+            onSecondaryAction.Invoke();
         }
 
         public void OnInteractInput(InputAction.CallbackContext context)
@@ -177,27 +181,17 @@ namespace Konfus.PlayerInput
         }
 
         [Serializable]
-        public class MoveEvent : UnityEvent<Vector2>
+        public class Vector2InputEvent : UnityEvent<Vector2>
         {
         }
 
         [Serializable]
-        public class AimEvent : UnityEvent<Vector3>
+        public class Vector3InputEvent : UnityEvent<Vector3>
         {
         }
         
         [Serializable]
-        public class FireEvent : UnityEvent
-        {
-        }
-
-        [Serializable]
-        public class InteractEvent : UnityEvent
-        {
-        }
-        
-        [Serializable]
-        public class JumpEvent : UnityEvent
+        public class ActionInputEvent : UnityEvent
         {
         }
     }

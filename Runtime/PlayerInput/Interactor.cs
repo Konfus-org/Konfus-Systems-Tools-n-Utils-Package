@@ -26,17 +26,12 @@ namespace Konfus.PlayerInput
         
         public bool TryToInteract()
         {
-            if (_interactableInRange && _currentFirstHit)
-            {
-                Interactable interactable = _currentFirstHit.gameObject.GetComponent<Interactable>();
+            if (!_interactableInRange || !_currentFirstHit) return false;
+            
+            Interactable interactable = _currentFirstHit.gameObject.GetComponent<Interactable>();
+            if (!interactable || interactable.interactableType == InteractableType.Touch) return false;
                 
-                //don't allow input interactions if interaction type is touch only
-                if (!interactable || interactable.interactableType == InteractableType.Touch) return false;
-                
-                return TryToInteract(interactable);
-            }
-
-            return false;
+            return TryToInteract(interactable);
         }
 
         private bool TryToInteract(Interactable interactable)

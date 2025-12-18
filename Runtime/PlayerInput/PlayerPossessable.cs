@@ -11,22 +11,35 @@ namespace Konfus.PlayerInput
         public UnityEvent onPlayerUnpossess;
         
         public bool IsPossessed { get; private set; }
+        
+        public Player PossessedBy { get; private set; }
 
         public void ClearPlayerPossession()
         {
             Player.Instance.PossessDefault();
         }
+
+        public void Possess(Player player)
+        {
+            PossessedBy  = player;
+            onPlayerPossess?.Invoke();
+        }
+
+        public void UnPossess()
+        {
+            PossessedBy = null;
+            onPlayerUnpossess?.Invoke();
+        }
         
-        public abstract Camera GetCamera();
-        public abstract void SetCamera(Camera cam);
         public abstract void Move(Vector2 input);
         public abstract void Aim(Vector3 target);
         public abstract void Interact();
         public abstract void PrimaryAction();
         public abstract void SecondaryAction();
         public abstract void Jump();
-        public abstract bool HandlePickup(Pickup item);
-        public abstract void HandleDropPickup(Pickup item);
+        public abstract void Crouch();
+        public abstract bool Pickup(Pickup item);
+        public abstract void Drop(Pickup item);
 
         private void Awake()
         {
