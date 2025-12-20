@@ -21,7 +21,7 @@ namespace Konfus.Utility.Debugging
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F5))
+            if (UnityEngine.Input.GetKeyDown(KeyCode.F5))
             {
                 // Toggle debug view on/off
                 _showStack = !_showStack;
