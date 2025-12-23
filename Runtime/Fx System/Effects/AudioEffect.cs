@@ -7,18 +7,27 @@ namespace Konfus.Fx_System.Effects
     [Serializable]
     public class AudioEffect : Effect
     {
-        [SerializeField, Range(0, 1)]
+        [SerializeField]
+        [Range(0, 1)]
         private float minVolume;
-        [SerializeField, Range(0, 1)]
+
+        [SerializeField]
+        [Range(0, 1)]
         private float maxVolume;
-        [SerializeField, Range(0, 1)]
+
+        [SerializeField]
+        [Range(0, 1)]
         private float minPitch;
-        [SerializeField, Range(0, 1)]
+
+        [SerializeField]
+        [Range(0, 1)]
         private float maxPitch;
+
         [SerializeField]
-        private AudioClip audioClip;
+        private AudioClip? audioClip;
+
         [SerializeField]
-        private AudioSource audioSource;
+        private AudioSource? audioSource;
 
         public override float Duration
         {
@@ -31,6 +40,12 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
+            if (!audioSource)
+            {
+                Debug.LogWarning("AudioSource is not set");
+                return;
+            }
+
             audioSource.volume = Random.Range(minVolume, maxVolume);
             audioSource.pitch = Random.Range(minPitch, maxPitch);
             audioSource.PlayOneShot(audioClip);
@@ -38,6 +53,7 @@ namespace Konfus.Fx_System.Effects
 
         public override void Stop()
         {
+            if (!audioSource) return;
             audioSource.Stop();
         }
     }

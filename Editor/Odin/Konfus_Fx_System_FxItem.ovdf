@@ -1,0 +1,10 @@
+OVDF v1.1
+Konfus.Fx_System.FxItem, Konfus.ToolsAndSystems
+
+# effectType
+Visibility: Hidden
++ [Sirenix.OdinInspector.TypeSelectorSettingsAttribute]
+	FilterTypesFunction = ""
+
+# effect
+Visibility: Shown

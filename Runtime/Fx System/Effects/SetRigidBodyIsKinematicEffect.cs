@@ -7,15 +7,21 @@ namespace Konfus.Fx_System.Effects
     public class SetRigidBodyIsKinematicEffect : Effect
     {
         [SerializeField]
-        private Rigidbody rigidbody;
+        private Rigidbody? rigidbody;
 
-        [SerializeField] 
+        [SerializeField]
         private bool isRigidBodyKinematic;
 
         public override float Duration => 0;
 
         public override void Play()
         {
+            if (!rigidbody)
+            {
+                Debug.LogWarning($"{nameof(SetRigidBodyIsKinematicEffect)} requires a rigidbody.");
+                return;
+            }
+
             rigidbody.isKinematic = isRigidBodyKinematic;
         }
 

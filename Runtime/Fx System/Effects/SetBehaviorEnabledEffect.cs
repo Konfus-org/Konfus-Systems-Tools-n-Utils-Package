@@ -9,13 +9,21 @@ namespace Konfus.Fx_System.Effects
     {
         [SerializeField]
         private bool isBehaviourEnabled;
-        [SerializeField, ComponentPicker(new []{ typeof(Behaviour) })]
-        private Behaviour behaviour;
+
+        [SerializeField]
+        [ComponentPicker(new[] { typeof(Behaviour) })]
+        private Behaviour? behaviour;
 
         public override float Duration => 0;
 
         public override void Play()
         {
+            if (!behaviour)
+            {
+                Debug.LogWarning($"{nameof(SetBehaviorEnabledEffect)} requires a behaviour.");
+                return;
+            }
+
             behaviour.enabled = isBehaviourEnabled;
         }
 

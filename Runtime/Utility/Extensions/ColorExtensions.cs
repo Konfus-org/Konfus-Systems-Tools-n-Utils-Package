@@ -6,8 +6,9 @@ namespace Konfus.Utility.Extensions
     {
         public static Color Invert(this Color colorToInvert)
         {
-            const int RGB_MAX = 1;
-            return new Color(RGB_MAX - colorToInvert.r, RGB_MAX - colorToInvert.g, RGB_MAX - colorToInvert.b, colorToInvert.a);
+            const int rgbMax = 1;
+            return new Color(rgbMax - colorToInvert.r, rgbMax - colorToInvert.g, rgbMax - colorToInvert.b,
+                colorToInvert.a);
         }
     }
 }

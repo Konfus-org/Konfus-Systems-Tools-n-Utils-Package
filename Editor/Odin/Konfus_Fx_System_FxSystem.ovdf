@@ -1,0 +1,36 @@
+OVDF v1.1
+Konfus.Fx_System.FxSystem, Konfus.ToolsAndSystems
+MetaGuid:fbe4f9fd81414b9eae1e3259f13063c8
+
+# $HPiCAGbiUSMCkvDz7ysCPX
+Position: $root:17
++ [Sirenix.OdinInspector.FoldoutGroupAttribute]
+	GroupName = "Settings"
+
+# $SzJovnJynDL3zWMdUj6AFJ
+Position: $root:16
++ [Sirenix.OdinInspector.FoldoutGroupAttribute]
+	GroupName = "Events"
+
+# $D537QYxtYMVPH7u6gRUupy
+Position: $root:15
++ [Sirenix.OdinInspector.BoxGroupAttribute]
+	HideWhenChildrenAreInvisible = True
+
+# playOnAwake
+Position: $HPiCAGbiUSMCkvDz7ysCPX:0
+
+# loopForever
+Position: $HPiCAGbiUSMCkvDz7ysCPX:1
+
+# startedPlaying
+Position: $SzJovnJynDL3zWMdUj6AFJ:0
+
+# stoppedPlaying
+Position: $SzJovnJynDL3zWMdUj6AFJ:2
+
+# finishedPlaying
+Position: $SzJovnJynDL3zWMdUj6AFJ:1
+
+# fxItems
+Position: $D537QYxtYMVPH7u6gRUupy:0

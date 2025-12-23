@@ -1,0 +1,13 @@
+﻿using UnityEditor;
+using UnityEngine;
+
+namespace #NAMESPACE#
+{
+    public static class #SCRIPTNAME#
+    {
+        [MenuItem(""Assets/Konfus/#SCRIPTNAME#"")]
+        private static void Open()
+        {
+        }
+    }
+}

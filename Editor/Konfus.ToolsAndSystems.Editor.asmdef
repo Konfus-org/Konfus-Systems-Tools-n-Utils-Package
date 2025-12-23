@@ -2,7 +2,7 @@
     "name": "Konfus.ToolsAndSystems.Editor",
     "rootNamespace": "Konfus",
     "references": [
-        "GUID:4f69c0eb6408fda4cb60be957192c33e"
+        "Konfus.ToolsAndSystems"
     ],
     "includePlatforms": [
         "Editor"

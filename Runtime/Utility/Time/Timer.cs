@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
+using SystemTimer = System.Timers.Timer;
 
 namespace Konfus.Utility.Time
 {
@@ -10,56 +11,58 @@ namespace Konfus.Utility.Time
     /// </summary>
     public class Timer
     {
-        private const int TICKRATE = 30;
-        
-        /// <summary>
-        /// Whether or not the timer is running.
-        /// </summary>
-        public bool IsRunning { get; private set; } = false;
+        private const int Tickrate = 30;
+        private readonly Stopwatch _stopwatch;
+        private readonly SystemTimer? _systemTimer;
+        private int _currentTickCount;
+
+        private Action? _onTimerStart;
+        private Action? _onTimerStop;
+        private Action? _onTimerTick;
+        private SynchronizationContext? _syncContext;
+
+        public Timer(double durationInMilliseconds, Action? onStart = null,
+            Action? onTick = null, Action? onStop = null)
+        {
+            Duration = durationInMilliseconds;
+            _onTimerStart = onStart;
+            _onTimerTick = onTick;
+            _onTimerStop = onStop;
+
+            _systemTimer = new SystemTimer();
+            _stopwatch = new Stopwatch();
+        }
 
         /// <summary>
-        /// Whether or not a timer is paused.
+        /// Whether the timer is running.
         /// </summary>
-        public bool IsPaused { get; private set; } = false;
+        public bool IsRunning { get; private set; }
 
         /// <summary>
-        ///  The time remaining on the timer in milliseconds.
+        /// Whether a timer is paused.
         /// </summary>
-        public double Duration { get; private set; } = 0;
+        public bool IsPaused { get; private set; }
+
+        /// <summary>
+        /// The time remaining on the timer in milliseconds.
+        /// </summary>
+        public double Duration { get; }
 
         /// <summary>
         /// The time remaining on the timer in milliseconds.
         /// </summary>
         public double TimeRemaining => Duration - _stopwatch.ElapsedMilliseconds;
-        
-        private Action _onTimerStart;
-        private Action _onTimerTick;
-        private Action _onTimerStop;
-        private SynchronizationContext _syncContext;
-        private System.Timers.Timer _systemTimer;
-        private Stopwatch _stopwatch;
-        private int _currentTickCount;
-        
-        public Timer(double durationInMilliseconds, Action onStart = null,
-            Action onTick = null, Action onStop = null)
-            {
-                Duration = durationInMilliseconds;
-                _onTimerStart = onStart;
-                _onTimerTick = onTick;
-                _onTimerStop = onStop;
-                
-                _systemTimer = new System.Timers.Timer();
-                _stopwatch = new Stopwatch();
-            }
-            
+
         public void SetOnStartAction(Action action)
         {
             _onTimerStart = action;
         }
+
         public void SetOnTickAction(Action action)
         {
             _onTimerTick = action;
         }
+
         public void SetOnStopAction(Action action)
         {
             _onTimerStop = action;
@@ -71,20 +74,20 @@ namespace Konfus.Utility.Time
         public void Start()
         {
             Stop();
-            
-            _syncContext = SynchronizationContext.Current;
 
-            _systemTimer.Interval = TICKRATE;
+            if (_systemTimer == null) return;
+            _syncContext = SynchronizationContext.Current;
+            _systemTimer.Interval = Tickrate;
             _systemTimer.Elapsed += OnTimerElapsed;
-            
+
             IsRunning = true;
             IsPaused = false;
             _currentTickCount = 0;
             _systemTimer.Start();
             _stopwatch.Start();
-            
-            var onTimerStartAction = _onTimerStart;
-            
+
+            Action? onTimerStartAction = _onTimerStart;
+
             _syncContext?.Send(_ =>
             {
                 // Send start synchronously
@@ -100,7 +103,7 @@ namespace Konfus.Utility.Time
             // Stop things.
             IsRunning = false;
             IsPaused = true;
-            _systemTimer.Stop();
+            _systemTimer?.Stop();
             _stopwatch.Stop();
         }
 
@@ -115,25 +118,25 @@ namespace Konfus.Utility.Time
                 _systemTimer.Stop();
                 _systemTimer.Close();
             }
-			
-            _stopwatch?.Stop();
+
+            _stopwatch.Stop();
             IsRunning = false;
             IsPaused = false;
             _currentTickCount = 0;
-            
+
             _syncContext?.Send(_ =>
             {
                 // Send stop synchronously
                 _onTimerStop?.Invoke();
             }, null);
 
-			//not resetting _onTimerStop to null because that prevents the async invoke from calling stop action
+            //not resetting _onTimerStop to null because that prevents the async invoke from calling stop action
             //not resetting _OnTimerTick to null. Prevents OnElapsed from invoking Action 
         }
 
         private void OnTimerElapsed(object source, ElapsedEventArgs elapsedEventArguments)
         {
-            if (_currentTickCount * TICKRATE <= Duration)
+            if (_currentTickCount * Tickrate <= Duration)
             {
                 // Calls user-set method (Internal timer resets automatically).
                 _syncContext?.Send(_ =>
@@ -147,7 +150,7 @@ namespace Konfus.Utility.Time
                 // Stops internal timer (which is normally set to repeat).
                 Stop();
             }
-            
+
             _currentTickCount++;
         }
     }

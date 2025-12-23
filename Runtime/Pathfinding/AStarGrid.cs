@@ -1,3 +1,4 @@
+using System;
 using Konfus.Grids;
 
 namespace Konfus.Pathfinding
@@ -12,12 +13,13 @@ namespace Konfus.Pathfinding
 
         public PathNode GetPathNode(int x, int y, int z)
         {
-            return (PathNode)GetNode(x, y, z);
+            var node = (PathNode?)GetNode(x, y, z);
+            return node ?? throw new NullReferenceException("No nodes found at  position " + x + ", " + y + ", " + z);
         }
 
         public void ResetPathNodes()
         {
-            foreach (var node in Nodes)
+            foreach (INode? node in Nodes)
             {
                 var pathNode = (PathNode)node;
                 pathNode.Reset();

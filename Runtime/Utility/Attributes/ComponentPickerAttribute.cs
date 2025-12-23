@@ -9,9 +9,9 @@ namespace Konfus.Utility.Attributes
     [System.AttributeUsage(System.AttributeTargets.Field)]
     public sealed class ComponentPickerAttribute : PropertyAttribute
     {
-        public readonly Type[] TypeFilter;
+        public readonly Type[]? TypeFilter;
 
-        public ComponentPickerAttribute(Type[] typeFilter = null)
+        public ComponentPickerAttribute(Type[]? typeFilter = null)
         {
             TypeFilter = typeFilter;
         }

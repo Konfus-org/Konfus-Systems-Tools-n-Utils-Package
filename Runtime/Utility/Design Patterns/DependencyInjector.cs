@@ -9,70 +9,68 @@ namespace Konfus.Utility.Design_Patterns
 {
     public class DependencyInjector : MonoBehaviour
     {
-        private const BindingFlags BINDING_FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private const BindingFlags BindingFlags = System.Reflection.BindingFlags.Public |
+                                                  System.Reflection.BindingFlags.NonPublic |
+                                                  System.Reflection.BindingFlags.Instance;
+
         private readonly Dictionary<Type, object> _registry = new();
 
         private void Awake()
         {
             // Register dependency providers
-            MonoBehaviour[] monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            var monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             foreach (var provider in monoBehaviours)
             {
                 RegisterProvider(provider);
             }
-            
+
             // Inject dependencies
             foreach (var behaviour in monoBehaviours)
             {
                 Inject(behaviour);
             }
         }
-        
+
         private void Inject(MonoBehaviour obj)
         {
-            Type type = obj.GetType();
+            var type = obj.GetType();
 
-            FieldInfo[] fields = type.GetFields(BINDING_FLAGS);
+            var fields = type.GetFields(BindingFlags);
             foreach (var field in fields)
             {
                 if (!Attribute.IsDefined(field, typeof(InjectAttribute))) continue;
-                
-                Type fieldType = field.FieldType;
-                object resolvedInstance = Resolve(fieldType);
+
+                var fieldType = field.FieldType;
+                var resolvedInstance = Resolve(fieldType);
                 if (resolvedInstance == null)
-                {
                     throw new Exception($"Could not resolve dependency for {fieldType.Name} on {type.Name}");
-                }
-                
+
                 field.SetValue(obj, resolvedInstance);
             }
-            
-            PropertyInfo[] properties = type.GetProperties(BINDING_FLAGS);
+
+            var properties = type.GetProperties(BindingFlags);
             foreach (var property in properties)
             {
                 if (!Attribute.IsDefined(property, typeof(InjectAttribute))) continue;
-                
-                Type propertyType = property.PropertyType;
-                object resolvedInstance = Resolve(propertyType);
+
+                var propertyType = property.PropertyType;
+                var resolvedInstance = Resolve(propertyType);
                 if (resolvedInstance == null)
-                {
                     throw new Exception($"Could not resolve dependency for {propertyType.Name} on {type.Name}");
-                }
-                
+
                 property.SetValue(obj, resolvedInstance);
             }
-            
-            MethodInfo[] methods = type.GetMethods(BINDING_FLAGS);
+
+            var methods = type.GetMethods(BindingFlags);
             foreach (var method in methods)
             {
                 if (!Attribute.IsDefined(method, typeof(InjectAttribute))) continue;
-                
-                Type paramType = method.GetParameters().First().ParameterType;
-                object resolvedInstance = Resolve(paramType);
+
+                var paramType = method.GetParameters().FirstOrDefault()?.ParameterType;
+                var resolvedInstance = Resolve(paramType);
                 if (resolvedInstance == null)
-                {
-                    throw new Exception($"Could not resolve dependency for {method.Name}({paramType.Name} x) on {type.Name}");
-                }
+                    throw new Exception(
+                        $"Could not resolve dependency for {method.Name}({paramType?.Name} x) on {type.Name}");
 
                 method.Invoke(obj, new[] { resolvedInstance });
             }
@@ -81,42 +79,41 @@ namespace Konfus.Utility.Design_Patterns
         private void RegisterProvider(MonoBehaviour provider)
         {
             var type = provider.GetType();
-            
-            if (Attribute.IsDefined(type, typeof(ProvideAttribute)))
-            {
-                Register(provider, type, provider);
-            }
 
-            FieldInfo[] fields = type.GetFields(BINDING_FLAGS);
+            if (Attribute.IsDefined(type, typeof(ProvideAttribute))) Register(provider, type, provider);
+
+            var fields = type.GetFields(BindingFlags);
             foreach (var field in fields)
             {
                 if (!Attribute.IsDefined(field, typeof(ProvideAttribute))) continue;
                 Register(provider, field.FieldType, field.GetValue(provider));
             }
-            
-            PropertyInfo[] properties = type.GetProperties(BINDING_FLAGS);;
+
+            var properties = type.GetProperties(BindingFlags);
+            ;
             foreach (var property in properties)
             {
                 if (!Attribute.IsDefined(property, typeof(ProvideAttribute))) continue;
                 Register(provider, property.PropertyType, property.GetValue(provider));
             }
-            
-            MethodInfo[] methods = type.GetMethods(BINDING_FLAGS);
+
+            var methods = type.GetMethods(BindingFlags);
             foreach (var method in methods)
             {
                 if (!Attribute.IsDefined(method, typeof(ProvideAttribute))) continue;
                 Register(provider, method.ReturnType, method.Invoke(provider, null));
             }
         }
-        
-        private void Register(MonoBehaviour provider, Type type, object instance)
+
+        private void Register(MonoBehaviour provider, Type type, object? instance)
         {
             if (instance != null) _registry[type] = instance;
             else throw new Exception($"Provider {provider.GetType().Name} returned null for {type.Name}");
         }
 
-        private object Resolve(Type type)
+        private object? Resolve(Type? type)
         {
+            if (type == null) return null;
             _registry.TryGetValue(type, out var instance);
             return instance;
         }

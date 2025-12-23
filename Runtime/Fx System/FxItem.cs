@@ -1,5 +1,6 @@
 ﻿using System;
 using Konfus.Fx_System.Effects;
+using Sirenix.Serialization;
 using UnityEngine;
 
 namespace Konfus.Fx_System
@@ -8,9 +9,11 @@ namespace Konfus.Fx_System
     public class FxItem
     {
         [SerializeField]
-        private string effectType;
-        [SerializeReference]
-        private Effect effect;
-        public Effect Effect => effect;
+        private string effectType = "";
+
+        [OdinSerialize]
+        private Effect? effect;
+
+        public Effect? Effect => effect;
     }
 }

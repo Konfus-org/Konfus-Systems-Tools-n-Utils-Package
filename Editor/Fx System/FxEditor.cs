@@ -1,15 +1,14 @@
-using System;
-using Konfus.Fx_System;
-using UnityEditor;
-using UnityEngine;
-
 namespace Konfus.Editor.Fx_System
 {
-    [CustomEditor(typeof(FxSystem))]
-    public class FxEditor : UnityEditor.Editor
+    /*[CustomEditor(typeof(FxSystem))]
+    internal class FxEditor : UnityEditor.Editor
     {
-        private Texture2D _fxIcon;
-        private Type[] _availableEffectTypes;
+        private Texture2D? _fxIcon;
+
+        private void Awake()
+        {
+            _fxIcon = Resources.Load<Texture2D>("FxSystemIcon");
+        }
 
         public override void OnInspectorGUI()
         {
@@ -17,23 +16,18 @@ namespace Konfus.Editor.Fx_System
             DrawEditorInspectorGui();
         }
 
-        private void Awake()
-        {
-            _fxIcon = Resources.Load<Texture2D>("FxSystemIcon");
-        }
-
         private void DrawEditorInspectorGui()
         {
             DrawIcon();
-            
+
             EditorGUILayout.Space();
             EditorGUILayout.Space();
             EditorGUILayout.Space();
-            
+
             DrawPlayButton();
             DrawStopButton();
         }
-        
+
         private void DrawIcon()
         {
             // Set icon
@@ -50,13 +44,10 @@ namespace Konfus.Editor.Fx_System
         private void DrawPlayButton()
         {
             var fxSystem = (FxSystem)target;
-            var previousEnabled = GUI.enabled;
-            var previousColor = GUI.color;
-            
-            if (!Application.isPlaying || fxSystem.IsPlaying)
-            {
-                GUI.enabled = false;
-            }
+            bool previousEnabled = GUI.enabled;
+            Color previousColor = GUI.color;
+
+            if (!Application.isPlaying || fxSystem.IsPlaying) GUI.enabled = false;
 
             GUI.color = Color.green;
             if (GUILayout.Button(new GUIContent("Play", "Plays effects, only available in play mode.")))
@@ -64,7 +55,7 @@ namespace Konfus.Editor.Fx_System
                 fxSystem.StopEffects();
                 fxSystem.PlayEffects();
             }
-            
+
             GUI.color = previousColor;
             GUI.enabled = previousEnabled;
         }
@@ -72,22 +63,17 @@ namespace Konfus.Editor.Fx_System
         private void DrawStopButton()
         {
             var fxSystem = (FxSystem)target;
-            var previousEnabled = GUI.enabled;
-            var previousColor = GUI.color;
-            
-            if (!Application.isPlaying || fxSystem.IsPlaying)
-            {
-                GUI.enabled = false;
-            }
-            
+            bool previousEnabled = GUI.enabled;
+            Color previousColor = GUI.color;
+
+            if (!Application.isPlaying || fxSystem.IsPlaying) GUI.enabled = false;
+
             GUI.color = Color.red;
             if (GUILayout.Button(new GUIContent("Stop", "Stops playing effects, only available in play mode.")))
-            {
                 fxSystem.StopEffects();
-            }
-            
+
             GUI.color = previousColor;
             GUI.enabled = previousEnabled;
         }
-    }
+    }*/
 }

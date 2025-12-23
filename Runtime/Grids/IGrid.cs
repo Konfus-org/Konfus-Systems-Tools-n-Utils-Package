@@ -16,9 +16,8 @@ namespace Konfus.Grids
         Vector3Int GridPosFromWorldPos(Vector3 worldPosition);
         void SetNode(int x, int y, int z, INode value);
         void SetNode(Vector3 worldPosition, INode value);
-        INode GetNode(int x, int y, int z);
-        INode GetNode(Vector3Int gridPosition);
-        INode GetNode(Vector3 worldPosition);
+        INode? GetNode(int x, int y, int z);
+        INode? GetNode(Vector3Int gridPosition);
+        INode? GetNode(Vector3 worldPosition);
     }
-
 }

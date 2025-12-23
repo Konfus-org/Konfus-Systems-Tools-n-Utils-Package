@@ -1,0 +1,9 @@
+﻿using UnityEngine;
+using Konfus.Utility.Design_Patterns;
+
+namespace #NAMESPACE#
+{
+    public sealed class #SCRIPTNAME# : Singleton<#SCRIPTNAME#>
+    {
+    }
+}

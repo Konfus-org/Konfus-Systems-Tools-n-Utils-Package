@@ -17,25 +17,9 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task ContinueInBackground(this Task task)
         {
-            return task.ContinueWith(t =>
-            {
-                if (t.IsFaulted || t.Exception != null)
-                {
-                    AggregateException aggException = t.Exception.Flatten();
-                    foreach (Exception exception in aggException.InnerExceptions)
-                    {
-                        Debug.LogError($"Continue in background failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
-                    }
-                    return;
-                }
-                if (t.IsCanceled)
-                {
-                    Debug.Log("Continue in background canceled.");
-                    return;
-                }
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            return task.ContinueWith(TryContinueInBackground, TaskScheduler.FromCurrentSynchronizationContext());
         }
-        
+
         /// <summary>
         /// Runs task in the background
         /// </summary>
@@ -45,23 +29,7 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Task ContinueInBackground<T>(this Task<T> task)
         {
-            return task.ContinueWith(t =>
-            {
-                if (t.IsFaulted || t.Exception != null)
-                {
-                    AggregateException aggException = t.Exception.Flatten();
-                    foreach (Exception exception in aggException.InnerExceptions)
-                    {
-                        Debug.LogError($"Continue in background failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
-                    }
-                    return;
-                }
-                if (t.IsCanceled)
-                {
-                    Debug.Log("Continue in background canceled.");
-                    return;
-                }
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+            return task.ContinueWith(TryContinueInBackground, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         /// <summary>
@@ -70,7 +38,7 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConfiguredTaskAwaitable<T> ContinueOnAnyContext<T>(this Task<T> task)
         {
-            return task.ConfigureAwait(continueOnCapturedContext: false);
+            return task.ConfigureAwait(false);
         }
 
         /// <summary>
@@ -79,15 +47,16 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConfiguredTaskAwaitable ContinueOnAnyContext(this Task task)
         {
-            return task.ConfigureAwait(continueOnCapturedContext: false);
+            return task.ConfigureAwait(false);
         }
+
         /// <summary>
         /// Will configure the task to require the captured context to continue
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConfiguredTaskAwaitable<T> ContinueOnSameContext<T>(this Task<T> task)
         {
-            return task.ConfigureAwait(continueOnCapturedContext: true);
+            return task.ConfigureAwait(true);
         }
 
         /// <summary>
@@ -96,9 +65,9 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConfiguredTaskAwaitable ContinueOnSameContext(this Task task)
         {
-            return task.ConfigureAwait(continueOnCapturedContext: true);
+            return task.ConfigureAwait(true);
         }
-        
+
         /// <summary>
         /// Fires task off without having to await it
         /// </summary>
@@ -106,21 +75,26 @@ namespace Konfus.Utility.Extensions
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FireAndForget(this Task task)
         {
-            task.ContinueWith(t =>
+            task.ContinueWith(TryContinueInBackground);
+        }
+
+        private static void TryContinueInBackground(Task t)
+        {
+            if (t.IsFaulted)
             {
-                if (t.IsFaulted || t.Exception != null)
+                if (t.Exception != null)
                 {
                     AggregateException aggException = t.Exception.Flatten();
                     foreach (Exception exception in aggException.InnerExceptions)
                     {
-                        Debug.LogError($"Fire and forget failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
+                        Debug.LogError(
+                            $"Continue in background failed: {exception.Message} - {new UnityStackTraceInfo(exception.StackTrace)}");
                     }
                 }
-                else if (t.IsCanceled)
-                {
-                    Debug.Log("Fire and forget canceled.");
-                }
-            });
+                else
+                    Debug.Log("Continue in background failed! Unknown exception occurred.");
+            }
+            else if (t.IsCanceled) Debug.Log("Continue in background canceled.");
         }
     }
 }

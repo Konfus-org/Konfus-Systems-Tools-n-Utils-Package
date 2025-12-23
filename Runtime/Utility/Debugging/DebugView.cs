@@ -5,8 +5,8 @@ namespace Konfus.Utility.Debugging
     public class DebugView : MonoBehaviour
     {
         private static string _myLog = "";
-        private string _output;
-        private string _stack;
+        private string _output = "";
+        private string _stack = "";
         private bool _showStack;
 
         private void OnEnable()
@@ -46,7 +46,7 @@ namespace Konfus.Utility.Debugging
             {
                 _myLog = GUI.TextArea(
                     position: new Rect(10, 10, Screen.width - 10, Screen.height - 10),
-                    text: _myLog);
+                    text: $"Stack:\n{_stack}\nLog:\n{_myLog}");
             }
         }
     }

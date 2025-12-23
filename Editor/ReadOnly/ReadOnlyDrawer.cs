@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Konfus.Editor.ReadOnly
 {
     [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
-    public class ReadOnlyPropertyDrawer : PropertyDrawer 
+    internal class ReadOnlyPropertyDrawer : PropertyDrawer 
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) 
         {

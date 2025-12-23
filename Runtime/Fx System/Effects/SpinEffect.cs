@@ -5,12 +5,13 @@ using UnityEngine;
 namespace Konfus.Fx_System.Effects
 {
     [Serializable]
-    public class SpinEffect: ConfigurableDurationEffect
+    public class SpinEffect : ConfigurableDurationEffect
     {
-        [SerializeField] private Ease easing = Ease.Linear;
-        
-        private Transform _transform;
-        private Tween _tween;
+        [SerializeField]
+        private Ease easing = Ease.Linear;
+
+        private Transform? _transform;
+        private Tween? _tween;
 
         public override void Initialize(GameObject parentGo)
         {
@@ -20,6 +21,12 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
+            if (!_transform)
+            {
+                Debug.LogWarning($"{nameof(SetGameObjectActiveEffect)} requires a transform.");
+                return;
+            }
+
             _tween = _transform.DOLocalRotate(new Vector3(0, 360, 0), Duration, RotateMode.FastBeyond360);
             _tween.SetRelative(true);
             _tween.SetEase(easing);
@@ -28,7 +35,7 @@ namespace Konfus.Fx_System.Effects
 
         public override void Stop()
         {
-            _tween.Kill();
+            _tween?.Kill();
         }
     }
 }

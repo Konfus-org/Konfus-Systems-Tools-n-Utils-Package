@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Konfus.Editor.Sensors
 {
     [CustomEditor(typeof(ArcScanSensor))]
-    public class ArcScanSensorEditor : SensorEditor
+    internal class ArcScanSensorEditor : SensorEditor
     {
         [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(ArcScanSensor sensor, GizmoType gizmoType)
@@ -13,11 +13,11 @@ namespace Konfus.Editor.Sensors
             sensor.Scan();
             DrawSensor(sensor);
         }
-        
+
         private static void DrawSensor(ArcScanSensor sensor)
         {
             Gizmos.color = SensorColors.NoHitColor;
-            if (sensor.isTriggered) Gizmos.color = SensorColors.HitColor;
+            if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
 
             // transform the gizmo
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
@@ -31,7 +31,7 @@ namespace Konfus.Editor.Sensors
             Vector3 origin = sensor.transform.position + sensor.transform.forward * sensor.SensorLength;
 
             // draw an arc
-            for (int i = 0; i < sensor.Resolution; i++)
+            for (var i = 0; i < sensor.Resolution; i++)
             {
                 float prevAngle = step * i;
                 float nextAngle = step * (i + 1);
@@ -64,7 +64,7 @@ namespace Konfus.Editor.Sensors
 
                 Gizmos.DrawLine(prevDir, nextDir);
 
-                if (i == sensor.Resolution - 1)
+                if (Mathf.Approximately(i, sensor.Resolution - 1))
                 {
                     //green box
                     Gizmos.color = Color.green;

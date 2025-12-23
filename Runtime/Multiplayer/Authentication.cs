@@ -7,7 +7,7 @@ namespace Konfus.Multiplayer
 {
     public static class Authentication
     {
-        public static string PlayerId { get; private set; }
+        public static string PlayerId { get; private set; } = "";
 
         public static async Task LoginAsync()
         {
@@ -15,7 +15,7 @@ namespace Konfus.Multiplayer
             {
                 Debug.Log("Initializing Unity Services....");
                 var options = new InitializationOptions();
-                
+
 /*#if UNITY_EDITOR
                 // NOTE: Removed since we are no longer using parrel sync for multiplayer dev, this sort of system is now built into Unity!
                 // kept this around in case we have to do something similar with the new system...

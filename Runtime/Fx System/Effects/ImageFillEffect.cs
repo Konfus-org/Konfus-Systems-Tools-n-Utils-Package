@@ -6,19 +6,38 @@ using UnityEngine.UI;
 namespace Konfus.Fx_System.Effects
 {
     [Serializable]
-    public class ImageFillEffect: ConfigurableDurationEffect
+    public class ImageFillEffect : ConfigurableDurationEffect
     {
-        [SerializeField, Range(0, 1)] private float startingFillAmount = 0;
-        [SerializeField, Range(0, 1)] private float targetFillAmount = 1;
-        [SerializeField] private Ease easing = Ease.Linear;
-        [SerializeField] private Origin origin;
-        [SerializeField] private Color color;
-        [SerializeField] private Image image;
-        
-        private Tween _tween;
+        [SerializeField]
+        [Range(0, 1)]
+        private float startingFillAmount;
+
+        [SerializeField]
+        [Range(0, 1)]
+        private float targetFillAmount = 1;
+
+        [SerializeField]
+        private Ease easing = Ease.Linear;
+
+        [SerializeField]
+        private Origin origin;
+
+        [SerializeField]
+        private Color color;
+
+        [SerializeField]
+        private Image? image;
+
+        private Tween? _tween;
 
         public override void Initialize(GameObject parentGo)
         {
+            if (!image)
+            {
+                Debug.LogWarning($"{nameof(ImageFillEffect)} requires an image component.");
+                return;
+            }
+
             image.color = color;
             image.fillOrigin = (int)origin;
             image.fillMethod = Image.FillMethod.Horizontal;
@@ -29,13 +48,13 @@ namespace Konfus.Fx_System.Effects
         public override void Play()
         {
             _tween = DOTween.To(
-                getter: () => image ? image.fillAmount : targetFillAmount,
-                setter: newFillAmount =>
+                () => image ? image.fillAmount : targetFillAmount,
+                newFillAmount =>
                 {
                     if (image) image.fillAmount = newFillAmount;
                 },
-                endValue: targetFillAmount,
-                duration: Duration);
+                targetFillAmount,
+                Duration);
             _tween.SetEase(easing);
             _tween.Play();
         }
@@ -60,7 +79,7 @@ namespace Konfus.Fx_System.Effects
         private enum Origin
         {
             Left = 0,
-            Right = 1,
+            Right = 1
         }
     }
 }

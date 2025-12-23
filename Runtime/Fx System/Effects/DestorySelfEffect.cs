@@ -7,7 +7,7 @@ namespace Konfus.Fx_System.Effects
     [Serializable]
     public class DestroySelfEffect : Effect
     {
-        private GameObject _gameObjectToDestroy;
+        private GameObject? _gameObjectToDestroy;
 
         public override float Duration => 0;
 

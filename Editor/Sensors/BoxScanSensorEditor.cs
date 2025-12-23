@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Konfus.Sensor_Toolkit;
 using UnityEditor;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace Konfus.Editor.Sensors
 {
     [CustomEditor(typeof(BoxScanSensor))]
-    public class BoxScanSensorEditor : SensorEditor
+    internal class BoxScanSensorEditor : SensorEditor
     {
         [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(BoxScanSensor sensor, GizmoType gizmoType)
@@ -14,12 +15,12 @@ namespace Konfus.Editor.Sensors
             sensor.Scan();
             DrawSensor(sensor);
         }
-        
+
         private static void DrawSensor(BoxScanSensor sensor)
         {
             Gizmos.color = SensorColors.NoHitColor;
-            if (sensor.isTriggered) Gizmos.color = SensorColors.HitColor;
-            
+            if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
+
             float length = sensor.SensorLength;
 
             switch (sensor.SensorType)
@@ -28,25 +29,30 @@ namespace Konfus.Editor.Sensors
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
                     Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
-                    if (sensor.isTriggered)
+                    if (sensor.IsTriggered)
                     {
-                        length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);
+                        if (sensor.Hits != null)
+                            length = Vector3.Distance(sensor.transform.position, sensor.Hits.First().Point);
                         Gizmos.DrawSphere(Vector3.forward * length, 0.1f);
                     }
+
                     Gizmos.DrawLine(Vector3.zero, new Vector3(0, 0, length));
                     break;
                 }
                 case BoxScanSensor.Type.Full:
                 {
-                    if (sensor.isTriggered)
+                    if (sensor is { IsTriggered: true, Hits: not null })
                     {
-                        foreach (Sensor.Hit hit in sensor.hits)
-                            Gizmos.DrawSphere(hit.point == default ? hit.gameObject.transform.position : hit.point, 0.2f);
+                        foreach (Sensor.Hit hit in sensor.Hits)
+                        {
+                            Gizmos.DrawSphere(hit.Point == default ? hit.GameObject.transform.position : hit.Point,
+                                0.2f);
+                        }
                     }
-                    
+
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
                     Gizmos.DrawWireCube(
-                        new Vector3(0, 0, length + sensor.SensorSize.z)/2, 
+                        new Vector3(0, 0, length + sensor.SensorSize.z) / 2,
                         new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, sensor.SensorSize.z + length));
                     break;
                 }
@@ -56,6 +62,8 @@ namespace Konfus.Editor.Sensors
                     Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
                     break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }

@@ -8,9 +8,10 @@ namespace Konfus.Fx_System.Effects
     public class InstantiateAndRotateToTarget : Effect
     {
         [SerializeField]
-        private Transform target;
+        private Transform? target;
+
         [SerializeField]
-        private GameObject gameObject;
+        private GameObject? gameObject;
 
         [SerializeField]
         private Vector3 rotation;
@@ -19,6 +20,12 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
+            if (!gameObject || !target)
+            {
+                Debug.LogWarning($"{nameof(InstantiateAndRotateToTarget)} requires a game object");
+                return;
+            }
+
             Object.Instantiate(gameObject, target.position, Quaternion.Euler(target.rotation.eulerAngles + rotation));
         }
 

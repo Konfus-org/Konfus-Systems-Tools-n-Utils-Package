@@ -7,6 +7,6 @@ namespace Konfus.Grids
         Color DebugColor { get; }
         Vector3Int GridPosition { get; }
         Vector3 WorldPosition { get; }
-        INode[] Neighbors { get; }
+        INode[]? Neighbors { get; }
     }
 }

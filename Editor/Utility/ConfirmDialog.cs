@@ -1,0 +1,89 @@
+﻿using System;
+using UnityEditor;
+using UnityEngine;
+
+namespace Konfus.Editor.Utility
+{
+    public sealed class ConfirmDialog : EditorWindow
+    {
+        private bool _doNotAskAgain;
+        private string _message = "Confirm";
+        private Action<bool>? _onResult;
+        private string _prefsKey = "";
+
+        private void OnGUI()
+        {
+            GUILayout.Space(10);
+
+            EditorGUILayout.LabelField(_message, EditorStyles.wordWrappedLabel);
+
+            GUILayout.FlexibleSpace();
+
+            _doNotAskAgain = EditorGUILayout.ToggleLeft(
+                "Remember choice & don't ask again",
+                _doNotAskAgain
+            );
+
+            GUILayout.Space(10);
+
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("No", GUILayout.Width(80)))
+                    CloseWithResult(false);
+                if (GUILayout.Button("Yes", GUILayout.Width(80)))
+                    CloseWithResult(true);
+            }
+
+            GUILayout.Space(10);
+        }
+
+        public static void Show(
+            string title,
+            string message,
+            Action<bool> onResult)
+        {
+            // Auto-accept if user opted out previously
+            string editorPrefsKey = ProjectSettings.DoNotAskAgainId + title;
+            if (EditorPrefs.GetBool(editorPrefsKey, false))
+            {
+                onResult?.Invoke(EditorPrefs.GetBool(editorPrefsKey + ".Choice", false));
+                return;
+            }
+
+            var window = CreateInstance<ConfirmDialog>();
+            window.titleContent = new GUIContent(title);
+            window._message = message;
+            window._prefsKey = editorPrefsKey;
+            window._onResult = onResult;
+
+            window.minSize = new Vector2(360, 140);
+            window.maxSize = window.minSize;
+
+            window.ShowUtility();
+        }
+
+        private void CloseWithResult(bool accepted)
+        {
+            if (_doNotAskAgain)
+            {
+                EditorPrefs.SetBool(_prefsKey + ".Choice", accepted);
+                EditorPrefs.SetBool(_prefsKey, true);
+            }
+
+            // Important: invoke the callback and close on the next tick.
+            // This avoids edge cases where Unity is mid-IMGUI event and the window refuses to close.
+            EditorApplication.delayCall += () =>
+            {
+                try
+                {
+                    _onResult?.Invoke(accepted);
+                }
+                finally
+                {
+                    Close();
+                }
+            };
+        }
+    }
+}

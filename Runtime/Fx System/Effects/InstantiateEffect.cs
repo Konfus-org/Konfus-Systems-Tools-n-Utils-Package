@@ -8,9 +8,9 @@ namespace Konfus.Fx_System.Effects
     public class InstantiateEffect : Effect
     {
         [SerializeField]
-        private GameObject gameObject;
+        private GameObject? gameObject;
 
-        private Transform _transformToSpawnAt;
+        private Transform? _transformToSpawnAt;
 
         public override float Duration => 0;
 
@@ -22,6 +22,12 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
+            if (!gameObject || !_transformToSpawnAt)
+            {
+                Debug.LogWarning($"{nameof(InstantiateEffect)} requires a {nameof(GameObject)}");
+                return;
+            }
+
             Object.Instantiate(gameObject, _transformToSpawnAt.position, Quaternion.identity);
         }
 

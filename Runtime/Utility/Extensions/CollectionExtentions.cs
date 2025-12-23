@@ -23,9 +23,9 @@ namespace Konfus.Utility.Extensions
                 return array;
             }
 
-            T[] newArray = new T[array.Length - 1];
-            int index1 = 0;
-            for (int index2 = 0; index2 < array.Length; ++index2)
+            var newArray = new T[array.Length - 1];
+            var index1 = 0;
+            for (var index2 = 0; index2 < array.Length; ++index2)
             {
                 if (index2 == index) continue;
 
@@ -53,9 +53,9 @@ namespace Konfus.Utility.Extensions
                 return array;
             }
 
-            T[] newArray = new T[array.Length + 1];
-            int index1 = 0;
-            for (int index2 = 0; index2 < newArray.Length; ++index2)
+            var newArray = new T[array.Length + 1];
+            var index1 = 0;
+            for (var index2 = 0; index2 < newArray.Length; ++index2)
             {
                 if (index2 == index) continue;
 
@@ -65,21 +65,29 @@ namespace Konfus.Utility.Extensions
 
             return newArray;
         }
-        
+
         /// <summary>
         /// Is array null or empty
         /// </summary>
-        public static bool IsNullOrEmpty<T>(this T[] collection) => collection == null || collection.Length == 0;
+        public static bool IsNullOrEmpty<T>(this T[]? collection)
+        {
+            return collection == null || collection.Length == 0;
+        }
 
         /// <summary>
         /// Is list null or empty
         /// </summary>
-        public static bool IsNullOrEmpty<T>(this IList<T> collection) => collection == null || collection.Count == 0;
+        public static bool IsNullOrEmpty<T>(this IList<T>? collection)
+        {
+            return collection == null || collection.Count == 0;
+        }
 
         /// <summary>
         /// Is collection null or empty. IEnumerable is relatively slow. Use Array or List implementation if possible
         /// </summary>
-        public static bool IsNullOrEmpty<T>(this IEnumerable<T> collection) => collection == null || !collection.Any();
-        
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T>? collection)
+        {
+            return collection == null || !collection.Any();
+        }
     }
 }

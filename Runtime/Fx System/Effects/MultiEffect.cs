@@ -8,19 +8,19 @@ namespace Konfus.Fx_System.Effects
     public class MultiEffect : Effect
     {
         [SerializeField]
-        private FxSystem fxSystem;
+        private FxSystem? fxSystem;
 
         public override float Duration => fxSystem?.Items?.Sum(item => item?.Effect?.Duration) ?? 0;
-        public FxSystem FxSystem => fxSystem;
+        public FxSystem? FxSystem => fxSystem;
 
         public override void Play()
         {
-            fxSystem.PlayEffects();
+            fxSystem?.PlayEffects();
         }
 
         public override void Stop()
         {
-            fxSystem.StopEffects();
+            fxSystem?.StopEffects();
         }
     }
 }

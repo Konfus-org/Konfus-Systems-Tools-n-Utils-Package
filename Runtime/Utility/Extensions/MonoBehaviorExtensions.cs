@@ -1,8 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
+
 namespace Konfus.Utility.Extensions
 {
     public static class MonoBehaviourExtensions
@@ -20,9 +20,9 @@ namespace Konfus.Utility.Extensions
         /// Executes action on Unity's main thread
         /// </summary>
         /// <param name="action">function that will be executed from the main thread.</param>
-        public static T DispatchToMainThread<T>(this MonoBehaviour behaviour, Func<T> action)
+        public static T? DispatchToMainThread<T>(this MonoBehaviour behaviour, Func<T> action)
         {
-            return ExecuteActionOnMainThread<T>(behaviour, action);
+            return ExecuteActionOnMainThread(behaviour, action);
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Konfus.Utility.Extensions
             ExecuteActionOnMainThread(behaviour, WrappedAction);
             return tcs.Task;
         }
-        
+
         // <summary>
         /// Executes action on Unity's main thread, returning a Task which is completed when the action completes
         /// </summary>
@@ -85,7 +85,7 @@ namespace Konfus.Utility.Extensions
             ExecuteActionOnMainThread(behaviour, WrappedAction);
             return tcs.Task;
         }
-        
+
         private static void ExecuteActionOnMainThread(MonoBehaviour behavior, Action action)
         {
             IEnumerator Coroutine()
@@ -93,20 +93,20 @@ namespace Konfus.Utility.Extensions
                 action();
                 yield return null;
             }
-            
+
             behavior.StartCoroutine(Coroutine());
         }
-        
-        
-        private static T ExecuteActionOnMainThread<T>(MonoBehaviour behavior, Func<T> action)
+
+        private static T? ExecuteActionOnMainThread<T>(MonoBehaviour behavior, Func<T> action)
         {
-            T result = default;
+            T? result = default;
+
             IEnumerator Coroutine()
             {
                 result = action();
                 yield return null;
             }
-            
+
             behavior.StartCoroutine(Coroutine());
             return result;
         }

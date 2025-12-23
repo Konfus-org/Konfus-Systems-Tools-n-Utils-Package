@@ -1,64 +1,56 @@
-using System;
-using System.Linq;
-using Konfus.Fx_System;
-using Konfus.Fx_System.Effects;
-using UnityEditor;
-using UnityEngine;
-
 namespace Konfus.Editor.Fx_System
 {
-    [CustomPropertyDrawer(typeof(FxItem), useForChildren: false)]
-    public class FxItemPropertyDrawer : PropertyDrawer
+    /*[CustomPropertyDrawer(typeof(FxItem), false)]
+    internal class FxItemPropertyDrawer : PropertyDrawer
     {
-        private static string[] _choices = null;
-        private static Type[] _availableEffectTypes = null;
+        private static string[]? _choices;
+        private static Type[] _availableEffectTypes = Array.Empty<Type>();
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Initialize if we haven't already...
             CacheChoicesIfNotAlreadyCached();
-            
+
             // Deserialize the effect type and index
-            var effectTypeIndex = DeserializeEffectType(property, out var effectTypeProperty);
-            var fxItemsProperty = property.serializedObject.FindProperty("fxItems");
-            var effectProperty = property.FindPropertyRelative("effect");
+            int effectTypeIndex = DeserializeEffectType(property, out SerializedProperty effectTypeProperty);
+            SerializedProperty? fxItemsProperty = property.serializedObject.FindProperty("fxItems");
+            SerializedProperty? effectProperty = property.FindPropertyRelative("effect");
             bool hasBeenDuped = HasBeenDuplicated(property, fxItemsProperty);
-            
+
             // If we are playing, render as green!
-            var originalColor = GUI.color;
-            if (effectProperty.managedReferenceValue is Effect { IsPlaying: true })
-            {
-                GUI.color = Color.green;
-            }
-            
+            Color originalColor = GUI.color;
+            if (effectProperty.managedReferenceValue is Effect { IsPlaying: true }) GUI.color = Color.green;
+
             // If our effect couldn't be deserialized
-            bool serializedEffectNoLongerExists = false;
+            var serializedEffectNoLongerExists = false;
             if (effectTypeIndex == -1)
             {
                 GUI.color = Color.red;
                 serializedEffectNoLongerExists = true;
             }
-            
+
             // Draw choice dropdown
             EditorGUI.BeginChangeCheck();
             {
                 if (serializedEffectNoLongerExists)
                 {
-                    var choices = _choices.Append($"ERROR: \"{effectTypeProperty.stringValue}\" no longer exists!").ToArray();
+                    string[]? choices = _choices?
+                        .Append($"ERROR: \"{effectTypeProperty.stringValue}\" no longer exists!")
+                        .ToArray();
                     effectTypeIndex = EditorGUI.Popup(
-                        position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
-                        selectedIndex: choices.Length - 1,
-                        displayedOptions: choices);
+                        new Rect(position) { height = EditorGUIUtility.singleLineHeight },
+                        choices?.Length - 1 ?? 0,
+                        choices);
                 }
                 else
                 {
                     effectTypeIndex = EditorGUI.Popup(
-                        position: new Rect(position){ height = EditorGUIUtility.singleLineHeight },
-                        selectedIndex: effectTypeIndex,
-                        displayedOptions: _choices);
+                        new Rect(position) { height = EditorGUIUtility.singleLineHeight },
+                        effectTypeIndex,
+                        _choices);
                 }
             }
-            
+
             // Set the effect type if we chose one and our choice is valid
             if (EditorGUI.EndChangeCheck() || hasBeenDuped || effectProperty.managedReferenceValue == null)
             {
@@ -80,40 +72,40 @@ namespace Konfus.Editor.Fx_System
                 };
                 EditorGUI.PropertyField(effectPos, effectProperty, GUIContent.none);
             }
-            
+
             // Set color back to original color
             GUI.color = originalColor;
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var effectProperty = property.FindPropertyRelative("effect");
+            SerializedProperty? effectProperty = property.FindPropertyRelative("effect");
             if (effectProperty.isExpanded && effectProperty.managedReferenceValue is not NoEffect)
-            {
-                return EditorGUI.GetPropertyHeight(effectProperty, label, includeChildren: true);
-            }
+                return EditorGUI.GetPropertyHeight(effectProperty, label, true);
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
-        
+
         private void CacheChoicesIfNotAlreadyCached()
         {
             // We've already initialized return
             if (_choices != null) return;
-            
+
             // Get available choices and types
             _availableEffectTypes = AppDomain.CurrentDomain
                 .GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(type => typeof(Effect).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericType && typeof(NoEffect) != type)
+                .Where(type => typeof(Effect).IsAssignableFrom(type) && !type.IsAbstract && !type.IsGenericType &&
+                               typeof(NoEffect) != type)
                 .ToArray();
             string[] choices = { "None" };
             _choices = choices.Union(_availableEffectTypes.Select(type => type.Name)).ToArray();
         }
-        
-        private static void CreateEffect(int effectTypeIndex, SerializedProperty effectProperty, SerializedProperty effectTypeProperty)
+
+        private static void CreateEffect(int effectTypeIndex, SerializedProperty effectProperty,
+            SerializedProperty effectTypeProperty)
         {
-            if (effectTypeIndex == 0) 
+            if (effectTypeIndex == 0)
             {
                 // We chose none, set the effect property to null and save choice
                 effectProperty.managedReferenceValue = new NoEffect();
@@ -122,7 +114,7 @@ namespace Konfus.Editor.Fx_System
             else
             {
                 // Create chosen type and set the effect property to it and save choice
-                var effectType = _availableEffectTypes[effectTypeIndex - 1];
+                Type effectType = _availableEffectTypes[effectTypeIndex - 1];
                 object effect = Activator.CreateInstance(effectType);
                 effectProperty.managedReferenceValue = effect;
                 effectTypeProperty.stringValue = effectType.Name;
@@ -131,12 +123,12 @@ namespace Konfus.Editor.Fx_System
 
         private static int DeserializeEffectType(SerializedProperty property, out SerializedProperty effectTypeProperty)
         {
-            int effectTypeIndex = 0;
+            var effectTypeIndex = 0;
             effectTypeProperty = property.FindPropertyRelative("effectType");
             if (!EffectTypeIsNone(effectTypeProperty))
             {
-                var effectTypeName = effectTypeProperty.stringValue;
-                Type effectType = _availableEffectTypes.FirstOrDefault(type => type.Name == effectTypeName);
+                string? effectTypeName = effectTypeProperty.stringValue;
+                Type? effectType = _availableEffectTypes.FirstOrDefault(type => type.Name == effectTypeName);
                 if (effectType == null) return -1; // no longer exists!
                 effectTypeIndex = Array.IndexOf(_availableEffectTypes, effectType) + 1;
             }
@@ -148,22 +140,21 @@ namespace Konfus.Editor.Fx_System
         {
             return effectTypeProperty.stringValue == "None" || effectTypeProperty.stringValue == string.Empty;
         }
-        
+
         private static bool HasBeenDuplicated(SerializedProperty property, SerializedProperty fxItemsProperty)
         {
             if (fxItemsProperty is not { arraySize: > 1 }) return false;
-            
-            var fxItemPotentialDuplicateProperty = fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 1);
+
+            SerializedProperty? fxItemPotentialDuplicateProperty =
+                fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 1);
             if (fxItemPotentialDuplicateProperty.contentHash != property.contentHash) return false;
-            
-            var fxItemDuplicatedProperty = fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 2);
-            var hasBeenDuped = fxItemPotentialDuplicateProperty.contentHash == fxItemDuplicatedProperty.contentHash;
-            if (hasBeenDuped)
-            {
-                return true;
-            }
+
+            SerializedProperty? fxItemDuplicatedProperty =
+                fxItemsProperty.GetArrayElementAtIndex(fxItemsProperty.arraySize - 2);
+            bool hasBeenDuped = fxItemPotentialDuplicateProperty.contentHash == fxItemDuplicatedProperty.contentHash;
+            if (hasBeenDuped) return true;
 
             return false;
         }
-    }
+    }*/
 }

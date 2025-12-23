@@ -8,12 +8,18 @@ namespace Konfus.Fx_System.Effects
     public class DestroyEffect : Effect
     {
         [SerializeField]
-        private GameObject gameObjectToDestroy;
+        private GameObject? gameObjectToDestroy;
 
         public override float Duration => 0;
 
         public override void Play()
         {
+            if (gameObjectToDestroy == null)
+            {
+                Debug.Log($"{nameof(DestroyEffect)} requires a game object to destroy");
+                return;
+            }
+
             Object.Destroy(gameObjectToDestroy);
         }
 

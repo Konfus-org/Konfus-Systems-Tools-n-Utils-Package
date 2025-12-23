@@ -4,20 +4,20 @@ using UnityEngine;
 
 namespace Konfus.Editor.Sensors
 {
-    [CustomEditor(typeof(Sensor), editorForChildClasses: true)]
-    public class SensorEditor : UnityEditor.Editor
+    [CustomEditor(typeof(Sensor), true)]
+    internal class SensorEditor : UnityEditor.Editor
     {
-        private Texture2D _sensorIcon;
+        private Texture2D? _sensorIcon;
+
+        private void Awake()
+        {
+            _sensorIcon = Resources.Load<Texture2D>("SensorIcon");
+        }
 
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
             DrawIcon();
-        }
-        
-        private void Awake()
-        {
-            _sensorIcon = Resources.Load<Texture2D>("SensorIcon");
         }
 
         private void DrawIcon()

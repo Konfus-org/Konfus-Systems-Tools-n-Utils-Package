@@ -8,12 +8,12 @@ namespace Konfus.Fx_System.Effects
     public class InstantiateAndRotateRelativeToInstantiater : Effect
     {
         [SerializeField]
-        private GameObject gameObject;
+        private GameObject? gameObject;
 
         [SerializeField]
         private Vector3 rotation;
-        
-        private Transform _transformToSpawnAt;
+
+        private Transform? _transformToSpawnAt;
 
         public override float Duration => 0;
 
@@ -25,7 +25,14 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
-            Object.Instantiate(gameObject, _transformToSpawnAt.position, Quaternion.Euler(_transformToSpawnAt.rotation.eulerAngles + rotation));
+            if (!gameObject || !_transformToSpawnAt)
+            {
+                Debug.LogWarning($"{nameof(InstantiateAndRotateRelativeToInstantiater)} requires a game object");
+                return;
+            }
+
+            Object.Instantiate(gameObject, _transformToSpawnAt.position,
+                Quaternion.Euler(_transformToSpawnAt.rotation.eulerAngles + rotation));
         }
 
         public override void Stop()

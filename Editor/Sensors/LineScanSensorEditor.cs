@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Konfus.Editor.Sensors
 {
     [CustomEditor(typeof(LineScanSensor))]
-    public class LineScanSensorEditor : SensorEditor
+    internal class LineScanSensorEditor : SensorEditor
     {
         [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(LineScanSensor sensor, GizmoType gizmoType)
@@ -18,15 +18,15 @@ namespace Konfus.Editor.Sensors
         private static void DrawSensor(LineScanSensor sensor)
         {
             Gizmos.color = SensorColors.NoHitColor;
-            if (sensor.isTriggered) Gizmos.color = SensorColors.HitColor;
+            if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
 
             // transform the gizmo
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
 
             float length = sensor.SensorLength;
 
-            if (sensor.isTriggered)
-                length = Vector3.Distance(sensor.transform.position, sensor.hits.First().point);
+            if (sensor is { IsTriggered: true, Hits: not null })
+                length = Vector3.Distance(sensor.transform.position, sensor.Hits.First().Point);
 
             Gizmos.DrawLine(Vector3.zero, Vector3.forward * length);
 

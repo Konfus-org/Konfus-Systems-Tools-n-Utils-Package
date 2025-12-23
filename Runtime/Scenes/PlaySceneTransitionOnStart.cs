@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Konfus.Fx_System.Scenes
+namespace Konfus.Scenes
 {
     [RequireComponent(typeof(SceneTransition))]
     public class PlaySceneTransitionOnStart : MonoBehaviour

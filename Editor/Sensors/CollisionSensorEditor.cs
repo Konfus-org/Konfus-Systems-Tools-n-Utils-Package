@@ -1,4 +1,4 @@
-using Konfus.Editor.Utility.Extensions;
+using Konfus.Editor.Utility;
 using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Konfus.Editor.Sensors
 {
     [CustomEditor(typeof(CollisionSensor))]
-    public class CollisionSensorEditor : SensorEditor
+    internal class CollisionSensorEditor : SensorEditor
     {
         [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
         private static void DrawGizmos(CollisionSensor sensor, GizmoType gizmoType)
@@ -16,9 +16,10 @@ namespace Konfus.Editor.Sensors
 
         private static void DrawSensor(CollisionSensor sensor)
         {
-            Gizmos.color = sensor.isTriggered ? SensorColors.HitColor : SensorColors.NoHitColor;
-            Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, sensor.transform.lossyScale);
-            Collider collider = sensor.GetComponent<Collider>();
+            Gizmos.color = sensor.IsTriggered ? SensorColors.HitColor : SensorColors.NoHitColor;
+            Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation,
+                sensor.transform.lossyScale);
+            var collider = sensor.GetComponent<Collider>();
             switch (collider)
             {
                 case BoxCollider boxCollider:
@@ -47,8 +48,10 @@ namespace Konfus.Editor.Sensors
                             break;
                     }
 
-                    Handles.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation * rotation, sensor.transform.lossyScale);
-                    HandlesExtensions.DrawWireCapsule(capsuleCollider.center, capsuleCollider.radius, capsuleCollider.height);
+                    Handles.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation * rotation,
+                        sensor.transform.lossyScale);
+                    HandlesExtensions.DrawWireCapsule(capsuleCollider.center, capsuleCollider.radius,
+                        capsuleCollider.height);
                     break;
                 }
                 case MeshCollider meshCollider:

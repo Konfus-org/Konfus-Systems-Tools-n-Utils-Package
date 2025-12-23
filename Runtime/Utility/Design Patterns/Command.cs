@@ -20,7 +20,7 @@ namespace Konfus.Utility.Design_Patterns
     public class CommandInvoker : MonoBehaviour
     {
         // Collected commands.
-        private Queue<Command> commands = new Queue<Command>();
+        private readonly Queue<Command> _commands = new Queue<Command>();
 
         /// <summary>
         /// Method used to add new command to the buffer.
@@ -28,7 +28,7 @@ namespace Konfus.Utility.Design_Patterns
         /// <param name="command">New command.</param>
         public void AddCommand(Command command)
         {
-            commands.Enqueue(command);
+            _commands.Enqueue(command);
         }
 
         /// <summary>
@@ -36,12 +36,12 @@ namespace Konfus.Utility.Design_Patterns
         /// </summary>
         public void ExecuteCommands()
         {
-            foreach (var c in commands)
+            foreach (var c in _commands)
             {
                 c.Execute();
             }
 
-            commands.Clear();
+            _commands.Clear();
         }
     }
 }

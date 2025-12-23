@@ -5,16 +5,27 @@ using UnityEngine;
 namespace Konfus.Fx_System.Effects
 {
     [Serializable]
-    public class RotateToEffect: ConfigurableDurationEffect
+    public class RotateToEffect : ConfigurableDurationEffect
     {
-        [SerializeField] private Vector3 to;
-        [SerializeField] private Transform target;
-        [SerializeField] private Ease easing = Ease.Linear;
-        
-        private Tween _tween;
+        [SerializeField]
+        private Vector3 to;
+
+        [SerializeField]
+        private Transform? target;
+
+        [SerializeField]
+        private Ease easing = Ease.Linear;
+
+        private Tween? _tween;
 
         public override void Play()
         {
+            if (!target)
+            {
+                Debug.LogWarning($"{nameof(RotateToEffect)} requires a target GameObject");
+                return;
+            }
+
             _tween = target.DOLocalRotate(to, Duration);
             _tween.SetRelative(false);
             _tween.SetEase(easing);
@@ -23,7 +34,7 @@ namespace Konfus.Fx_System.Effects
 
         public override void Stop()
         {
-            _tween.Kill();
+            _tween?.Kill();
         }
     }
 }

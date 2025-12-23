@@ -4,34 +4,37 @@ using UnityEngine.Serialization;
 
 namespace Konfus.Grids
 {
-    [ExecuteInEditMode] 
+    [ExecuteInEditMode]
     public class SnapToGrid : MonoBehaviour
     {
         [Header("Settings")]
         [SerializeField]
         private bool snapPosToGrid = true;
+
         [SerializeField]
         private bool sizeScaleToGrid = true;
-        
+
         [FormerlySerializedAs("threeDGrid")]
         [Header("Dependencies")]
         [SerializeField]
-        private GridBase grid;
+        private GridBase? grid;
 
+        private Vector3 _lastPosition;
 
         private float _transformChangeDelta;
-        private Vector3 _lastPosition;
-        
+
         // Adjust size and gridPosition
         private void Update()
         {
-            if (grid == null || !transform.hasChanged) return;
+            if (!grid || !transform.hasChanged) return;
             transform.hasChanged = false;
             Snap();
         }
 
         private void Snap()
         {
+            if (!grid) return;
+
             if (snapPosToGrid)
             {
                 Vector3 position = transform.position;
@@ -46,5 +49,5 @@ namespace Konfus.Grids
                 transform.localScale = localScale;
             }
         }
-    }  
+    }
 }
