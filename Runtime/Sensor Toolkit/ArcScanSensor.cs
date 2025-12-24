@@ -40,7 +40,7 @@ namespace Konfus.Sensor_Toolkit
 
                 // hit something, stop!
                 if (Physics.Linecast(prevDir, nextDir, out RaycastHit hit, DetectionFilter,
-                        interactTriggers ? QueryTriggerInteraction.Collide : QueryTriggerInteraction.Ignore))
+                        interactTriggers))
                 {
                     var hitsDetected = new Hit[1];
                     hitsDetected[0] = new Hit

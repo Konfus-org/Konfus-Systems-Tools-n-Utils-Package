@@ -3,7 +3,7 @@ using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(CollisionSensor))]
     internal class CollisionSensorEditor : SensorEditor
@@ -17,8 +17,11 @@ namespace Konfus.Editor.Sensors
         private static void DrawSensor(CollisionSensor sensor)
         {
             Gizmos.color = sensor.IsTriggered ? SensorColors.HitColor : SensorColors.NoHitColor;
+
+            Matrix4x4 oldMatrix = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation,
                 sensor.transform.lossyScale);
+
             var collider = sensor.GetComponent<Collider>();
             switch (collider)
             {
@@ -65,6 +68,8 @@ namespace Konfus.Editor.Sensors
                     break;
                 }
             }
+
+            Gizmos.matrix = oldMatrix;
         }
     }
 }

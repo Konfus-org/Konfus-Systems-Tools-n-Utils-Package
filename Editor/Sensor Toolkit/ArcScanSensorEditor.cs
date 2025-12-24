@@ -2,7 +2,7 @@ using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(ArcScanSensor))]
     internal class ArcScanSensorEditor : SensorEditor
@@ -20,11 +20,12 @@ namespace Konfus.Editor.Sensors
             if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
 
             // transform the gizmo
+            Matrix4x4 oldMatrix = Gizmos.matrix;
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
 
             float length = sensor.SensorLength;
 
-            Gizmos.matrix = Matrix4x4.identity;
+            //Gizmos.matrix = Matrix4x4.identity;
 
             float step = sensor.ArcAngle / sensor.Resolution;
 
@@ -71,6 +72,8 @@ namespace Konfus.Editor.Sensors
                     Gizmos.DrawWireCube(Vector3.forward * length, new Vector3(0.02f, 0.02f, 0.02f));
                 }
             }
+
+            Gizmos.matrix = oldMatrix;
         }
     }
 }

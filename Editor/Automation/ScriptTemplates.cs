@@ -40,8 +40,8 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
 {{
     public static class {name}
     {{
-          [MenuItem(""Tools/Konfus/Script Templates/{template.Name}"", priority = 0)]
-          [MenuItem(""Assets/Konfus/Script Templates/{template.Name}"", priority = 0)]
+          [MenuItem(""Tools/Konfus/Script Templates/{template.Name}"", priority = -1)]
+          [MenuItem(""Assets/Create/Script Templates/{template.Name}"", priority = -1)]
           private static void Open()
           {{
               string? folderPath = GetSelectedFolderPath();
@@ -73,7 +73,7 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
             ScriptTemplateWindow.ShowWindow();
         }
 
-        [MenuItem("Assets/Konfus/Script Templates/Preview Templates", priority = 1)]
+        [MenuItem("Assets/Create/Script Templates/Preview Templates", priority = -2)]
         private static void OpenContext()
         {
             ScriptTemplateWindow.ShowWindow();

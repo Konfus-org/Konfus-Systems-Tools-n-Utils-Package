@@ -2,7 +2,7 @@ using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(Sensor), true)]
     internal class SensorEditor : UnityEditor.Editor

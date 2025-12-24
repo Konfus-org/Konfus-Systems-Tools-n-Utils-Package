@@ -5,7 +5,7 @@ using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(ViewScanSensor))]
     internal class ViewScanSensorEditor : SensorEditor
@@ -33,6 +33,7 @@ namespace Konfus.Editor.Sensors
             Gizmos.color = SensorColors.NoHitColor;
             if (!sensor.Hits.IsNullOrEmpty()) Gizmos.color = SensorColors.HitColor;
 
+            Matrix4x4 oldMatrix = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
             Gizmos.DrawMesh(CreateFovGizmoMesh(sensor.transform, sensor.ObstructionFilter, sensor.Fov,
                 sensor.SensorLength));
@@ -70,6 +71,8 @@ namespace Konfus.Editor.Sensors
                     Gizmos.DrawLine(sensor.transform.position, directionToHit);
                 }
             }*/
+
+            Gizmos.matrix = oldMatrix;
         }
 
         private static Mesh CreateFovGizmoMesh(Transform transform, int layerMask, float fieldOfView, float radius)

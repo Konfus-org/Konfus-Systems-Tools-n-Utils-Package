@@ -17,7 +17,7 @@ namespace Konfus.Multiplayer
 
         public static ISession? ActiveSession { get; private set; }
 
-        public static event Action<Lobby> CurrentLobbyRefreshed;
+        public static event Action<Lobby>? CurrentLobbyRefreshed;
 
         public static async Task<Dictionary<string, PlayerProperty>> GetPlayerProperties()
         {
@@ -76,6 +76,7 @@ namespace Konfus.Multiplayer
 
         public static async Task KickPlayerAsync(string playerId)
         {
+            if (ActiveSession == null) return;
             if (!ActiveSession.IsHost) return;
             await ActiveSession.AsHost().RemovePlayerAsync(playerId);
         }
@@ -83,6 +84,7 @@ namespace Konfus.Multiplayer
         public static async Task LeaveSessionAsync()
         {
             if (ActiveSession != null)
+            {
                 try
                 {
                     await ActiveSession.LeaveAsync();
@@ -95,6 +97,7 @@ namespace Konfus.Multiplayer
                 {
                     ActiveSession = null;
                 }
+            }
         }
     }
 }

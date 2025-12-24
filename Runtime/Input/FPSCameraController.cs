@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Cinemachine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Konfus.Input
@@ -15,12 +16,20 @@ namespace Konfus.Input
         private Transform? pitchTarget;
         [Header("Look Settings")]
         [SerializeField]
-        private Vector2 sensitivity = Vector2.zero;
+        [Range(0f, 100f)]
+        private float xSensitivity = 50.0f;
         [SerializeField]
-        private Vector2 smoothAmount = Vector2.zero;
+        [Range(0f, 100f)]
+        private float ySensitivity = 50.0f;
         [SerializeField]
-        [Range(-90f, 90f)]
-        private Vector2 lookAngleMinMax = Vector2.zero;
+        [Range(1f, 100f)]
+        private float xSmoothing = 30f;
+        [SerializeField]
+        [Range(1f, 100f)]
+        private float ySmoothing = 30f;
+        [SerializeField]
+        [MinMaxRangeSlider(-90, 90)]
+        private Vector2 lookAngleMinMax = new(-80, 85);
 
         private float _desiredPitch;
         private float _desiredYaw;
@@ -51,15 +60,15 @@ namespace Konfus.Input
 
         private void CalculateRotation()
         {
-            _desiredYaw += _lookInput.x * sensitivity.x * Time.deltaTime;
-            _desiredPitch -= _lookInput.y * sensitivity.y * Time.deltaTime;
+            _desiredYaw += _lookInput.x * xSensitivity * Time.deltaTime;
+            _desiredPitch -= _lookInput.y * ySensitivity * Time.deltaTime;
             _desiredPitch = Mathf.Clamp(_desiredPitch, lookAngleMinMax.x, lookAngleMinMax.y);
         }
 
         private void SmoothRotation()
         {
-            _yaw = Mathf.Lerp(_yaw, _desiredYaw, smoothAmount.x * Time.deltaTime);
-            _pitch = Mathf.Lerp(_pitch, _desiredPitch, smoothAmount.y * Time.deltaTime);
+            _yaw = Mathf.Lerp(_yaw, _desiredYaw, 100 - xSmoothing * Time.deltaTime);
+            _pitch = Mathf.Lerp(_pitch, _desiredPitch, 100 - ySmoothing * Time.deltaTime);
         }
 
         private void ApplyRotation()

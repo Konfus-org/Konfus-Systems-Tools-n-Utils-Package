@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Konfus.Editor.Automation;
 using Konfus.Editor.Code_Gen;
 using Konfus.Editor.Utility;
 using Konfus.Utility.Extensions;
@@ -20,16 +21,16 @@ namespace Konfus.Editor.Context_Menu
             ContextMenuPinnedItemsWindow.ShowWindow();
         }
 
-        [MenuItem("Assets/Konfus/Pinned/Edit Pins", priority = 1)]
-        private static void OpenContext()
-        {
-            ContextMenuPinnedItemsWindow.ShowWindow();
-        }
-
         [MenuItem("Tools/Konfus/Pinned/Regenerate Menu Items", priority = 1)]
         private static void GenerateContextMenuItems()
         {
             GenerateContextMenuItems(true);
+        }
+
+        [MenuItem("Assets/Pinned/Edit Pins", priority = 1)]
+        private static void OpenContext()
+        {
+            ContextMenuPinnedItemsWindow.ShowWindow();
         }
 
         public static void GenerateContextMenuItems(bool promptToDelete)
@@ -61,7 +62,7 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
     public static class {scriptName.ToPascalCase()}
     {{
         [MenuItem(""Tools/Konfus/Pinned/All/{fullPinName}"", priority = -1)]
-        [MenuItem(""Assets/Konfus/Pinned/All/{fullPinName}"", priority = -1)]
+        [MenuItem(""Assets/Pinned/All/{fullPinName}"", priority = -1)]
         [MenuItem(""{pinRootName}/Pinned/{pinNameWithoutRoot}"", priority = -1)]
         private static void Open()
         {{

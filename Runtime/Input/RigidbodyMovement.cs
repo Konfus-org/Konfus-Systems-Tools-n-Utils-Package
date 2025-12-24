@@ -11,19 +11,18 @@ namespace Konfus.Input
         [SerializeField]
         private float moveSpeed = 6f;
 
-        [Tooltip("Max horizontal acceleration in m/s²")]
+        [Tooltip("Max horizontal acceleration rate in m/s²")]
         [SerializeField]
-        private float maxAcceleration = 35f;
-
-        [Tooltip("Max horizontal deceleration in m/s²")]
+        private float accelerationRate = 35f;
+        [Tooltip("Max horizontal deceleration rate in m/s²")]
         [SerializeField]
-        private float maxDeceleration = 45f;
+        private float decelerationRate = 45f;
 
-        [Header("Curves (X = normalized speed 0..1, Y = multiplier)")]
+        [Tooltip("X = normalized speed 0..1, Y = multiplier")]
         [SerializeField]
         private AnimationCurve accelerationCurve =
             AnimationCurve.EaseInOut(0f, 1f, 1f, 0.2f);
-
+        [Tooltip("X = normalized speed 0..1, Y = multiplier")]
         [SerializeField]
         private AnimationCurve decelerationCurve =
             AnimationCurve.EaseInOut(0f, 1f, 1f, 0.6f);
@@ -33,11 +32,6 @@ namespace Konfus.Input
 
         private void Awake()
         {
-            _rigidbody = GetComponent<Rigidbody>();
-            _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-            _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-
             EnsureCurveHasEndpoints(ref accelerationCurve);
             EnsureCurveHasEndpoints(ref decelerationCurve);
         }
@@ -47,8 +41,9 @@ namespace Konfus.Input
             if (!_rigidbody) return;
 
             Vector3 currentVelocity = _rigidbody.linearVelocity;
-            var horizontalVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
 
+            // ---- Horizontal movement (your original logic) ----
+            var horizontalVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
             var desiredDirection = new Vector3(_moveInput.x, 0f, _moveInput.y);
             desiredDirection = Vector3.ClampMagnitude(desiredDirection, 1f);
             desiredDirection = transform.TransformDirection(desiredDirection);
@@ -69,7 +64,7 @@ namespace Konfus.Input
                 ? Mathf.Max(0f, accelerationCurve.Evaluate(normalizedSpeed))
                 : Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
 
-            float maxRate = isAccelerating ? maxAcceleration : maxDeceleration;
+            float maxRate = isAccelerating ? accelerationRate : decelerationRate;
             float maxDeltaVelocity = maxRate * curveMultiplier * Time.fixedDeltaTime;
 
             Vector3 newHorizontalVelocity = Vector3.MoveTowards(
@@ -85,6 +80,17 @@ namespace Konfus.Input
             );
         }
 
+        private void OnValidate()
+        {
+            _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+
+            EnsureCurveHasEndpoints(ref accelerationCurve);
+            EnsureCurveHasEndpoints(ref decelerationCurve);
+        }
+
         /// <summary>
         /// Supplies movement input in local X/Z space.
         /// Expected range: (-1..1) per axis.
@@ -92,6 +98,32 @@ namespace Konfus.Input
         public void OnMoveInput(Vector2 input)
         {
             _moveInput = Vector2.ClampMagnitude(input, 1f);
+        }
+
+        /// <summary>
+        /// Call this when jump is pressed (performed).
+        /// Works well with the new Input System.
+        /// </summary>
+        public void OnJumpPressed()
+        {
+            //_lastJumpPressedTime = Time.time;
+        }
+
+        /// <summary>
+        /// Optional: call this on jump released (canceled) for variable jump height.
+        /// This "cuts" the upward velocity if still rising.
+        /// </summary>
+        public void OnJumpReleased()
+        {
+            /*if (!_rigidbody) return;
+
+            // Simple cut: if we're moving up, reduce it a bit
+            float vy = _rigidbody.linearVelocity.y;
+            if (vy > 0f)
+            {
+                _rigidbody.linearVelocity =
+                    new Vector3(_rigidbody.linearVelocity.x, vy * 0.5f, _rigidbody.linearVelocity.z);
+            }*/
         }
 
         private static void EnsureCurveHasEndpoints(ref AnimationCurve curve)
@@ -104,12 +136,17 @@ namespace Konfus.Input
 
             float firstTime = curve.keys[0].time;
             float lastTime = curve.keys[curve.length - 1].time;
+            float firstVal = curve.keys[0].value;
+            float lastVal = curve.keys[curve.length - 1].value;
 
             if (firstTime > 0f)
                 curve.AddKey(0f, curve.Evaluate(0f));
-
             if (lastTime < 1f)
                 curve.AddKey(1f, curve.Evaluate(1f));
+            if (firstVal <= 0f)
+                curve.keys[0].value = 0.1f;
+            if (lastVal >= 1f)
+                curve.keys[curve.length - 1].value = 1;
         }
     }
 }

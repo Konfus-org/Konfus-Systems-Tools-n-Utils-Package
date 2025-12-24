@@ -8,22 +8,22 @@ namespace Konfus.Scenes
         [SerializeField]
         [ScenePicker]
         [Tooltip("Scene to load into")]
-        private string sceneToLoad;
+        private string sceneToLoad = "";
 
         [SerializeField]
         [ScenePicker]
         [Tooltip("Loading screen scene")]
-        private string loadingScene;
+        private string loadingScene = "";
 
         [SerializeField]
         [ScenePicker]
         [Tooltip("The scene to load that contains transition out of scene effects")]
-        private string outTransitionScene;
+        private string outTransitionScene = "";
 
         [SerializeField]
         [ScenePicker]
         [Tooltip("The scene to load that contains transition into scene effects")]
-        private string inTransitionScene;
+        private string inTransitionScene = "";
 
         [SerializeField]
         [Range(0, 10)]
@@ -41,11 +41,11 @@ namespace Konfus.Scenes
         private float minLoadingTimeInSeconds = 3;
 
         [Inject]
-        private SceneManager _sceneManager;
+        private SceneManager? _sceneManager;
 
         public void LoadScene()
         {
-            _sceneManager.TransitionToScene(
+            _sceneManager?.TransitionToScene(
                 sceneToLoad, loadingScene, inTransitionScene, outTransitionScene, minLoadingTimeInSeconds,
                 inTransitionTimeInSeconds, outTransitionTimeInSeconds);
         }

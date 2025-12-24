@@ -1,4 +1,3 @@
-using System;
 using Konfus.Grids;
 
 namespace Konfus.Pathfinding
@@ -11,10 +10,10 @@ namespace Konfus.Pathfinding
             Generate(pos => new PathNode(this, pos));
         }
 
-        public PathNode GetPathNode(int x, int y, int z)
+        public PathNode? GetPathNode(int x, int y, int z)
         {
             var node = (PathNode?)GetNode(x, y, z);
-            return node ?? throw new NullReferenceException("No nodes found at  position " + x + ", " + y + ", " + z);
+            return node;
         }
 
         public void ResetPathNodes()

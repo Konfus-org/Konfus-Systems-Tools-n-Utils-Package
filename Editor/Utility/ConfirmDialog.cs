@@ -10,32 +10,30 @@ namespace Konfus.Editor.Utility
         private string _message = "Confirm";
         private Action<bool>? _onResult;
         private string _prefsKey = "";
+        private Vector2 _scrollPosition;
 
         private void OnGUI()
         {
-            GUILayout.Space(10);
-
-            EditorGUILayout.LabelField(_message, EditorStyles.wordWrappedLabel);
-
-            GUILayout.FlexibleSpace();
-
-            _doNotAskAgain = EditorGUILayout.ToggleLeft(
-                "Remember choice & don't ask again",
-                _doNotAskAgain
-            );
+            using (var scrollView = new EditorGUILayout.ScrollViewScope(_scrollPosition))
+            {
+                _scrollPosition = scrollView.scrollPosition;
+                EditorGUILayout.LabelField(_message, EditorStyles.wordWrappedLabel);
+            }
 
             GUILayout.Space(10);
 
             using (new GUILayout.HorizontalScope())
             {
-                GUILayout.FlexibleSpace();
+                _doNotAskAgain = EditorGUILayout.ToggleLeft(
+                    "Don't ask again",
+                    _doNotAskAgain
+                );
+
                 if (GUILayout.Button("No", GUILayout.Width(80)))
                     CloseWithResult(false);
                 if (GUILayout.Button("Yes", GUILayout.Width(80)))
                     CloseWithResult(true);
             }
-
-            GUILayout.Space(10);
         }
 
         public static void Show(
@@ -56,9 +54,6 @@ namespace Konfus.Editor.Utility
             window._message = message;
             window._prefsKey = editorPrefsKey;
             window._onResult = onResult;
-
-            window.minSize = new Vector2(360, 140);
-            window.maxSize = window.minSize;
 
             window.ShowUtility();
         }

@@ -24,16 +24,19 @@ namespace Konfus.Sensor_Toolkit
             Hits = null;
 
             var hitsList = new List<Hit>();
-            var spherecastHits = new RaycastHit[10];
-            int size = Physics.SphereCastNonAlloc(transform.position, SensorLength, transform.forward, spherecastHits,
+            var hitsArray = new RaycastHit[10];
+            int numHits = Physics.SphereCastNonAlloc(transform.position, SensorLength, transform.forward, hitsArray,
                 0.001f,
                 DetectionFilter);
 
             // We didn't hit anything...
-            if (size <= 0) return false;
+            if (numHits <= 0) return false;
 
-            var filledHits = new RaycastHit[size];
-            spherecastHits.CopyTo(filledHits, 0);
+            var filledHits = new RaycastHit[numHits];
+            for (var hitIndex = 0; hitIndex < numHits; hitIndex++)
+            {
+                filledHits[hitIndex] = hitsArray[hitIndex];
+            }
 
             // Remove hits not within sight
             foreach (RaycastHit hitInfo in filledHits)
@@ -70,12 +73,14 @@ namespace Konfus.Sensor_Toolkit
                 hitIsInView = hitIsInView || IsHitInView(hitInfo, directionToHit, out hit);
 
                 if (hitIsInView)
+                {
                     hitsList.Add(new Hit
                     {
                         Point = hit.point,
                         Normal = hit.normal,
                         GameObject = hit.collider.gameObject
                     });
+                }
             }
 
             // If no hits after removing what is out of sight

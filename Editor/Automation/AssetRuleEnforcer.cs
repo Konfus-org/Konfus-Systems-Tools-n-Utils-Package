@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Konfus.Editor.Utility;
 using Konfus.Utility.Extensions;
@@ -20,7 +21,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Tools/Konfus/Assets/Auto Suffix Assets", priority = 0)]
+        [MenuItem("Tools/Konfus/Assets/Auto Fix Assets Naming", priority = 0)]
         private static void SuffixAssets()
         {
             _isProcessing = true;
@@ -28,7 +29,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Assets/Konfus/Assets/Auto Organize Selection", priority = 0)]
+        [MenuItem("Assets/Rules/Auto Organize Selection", priority = 0)]
         private static void OrganizeSelection()
         {
             _isProcessing = true;
@@ -36,7 +37,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Assets/Konfus/Assets/Auto Suffix Selection", priority = 0)]
+        [MenuItem("Assets/Rules/Fix Selections Naming", priority = 0)]
         private static void SuffixSelection()
         {
             _isProcessing = true;
@@ -87,30 +88,38 @@ namespace Konfus.Editor.Automation
             var updated = 0;
             var warnings = new List<string>();
 
-            AssetDatabase.StartAssetEditing();
-            try
+            using (new AssetDatabase.AssetEditingScope())
+            {
+                foreach ((string _, string newPath) in changeToMake)
+                {
+                    ProjectManager.Ensure(newPath);
+                }
+            }
+
+            AssetDatabase.Refresh();
+
+            using (new AssetDatabase.AssetEditingScope())
             {
                 foreach ((string oldPath, string newPath) in changeToMake)
                 {
-                    if (ProjectManager.TryMove(oldPath, newPath, out string? warn))
+                    if (ProjectManager.TryMove(oldPath, Path.GetDirectoryName(newPath) ?? string.Empty,
+                            out string? warn))
                         updated++;
                     if (warn != null)
                         warnings.Add(warn);
                 }
             }
-            finally
-            {
-                AssetDatabase.StopAssetEditing();
-                AssetDatabase.Refresh();
-            }
 
+            AssetDatabase.Refresh();
+
+            string warningMsg = warnings.IsNullOrEmpty() ? string.Join("\n", warnings) : "NONE";
             string changes = changeToMake.Count == 0
                 ? "NONE"
                 : string.Join("\n", changeToMake.Select(kvp => $"{kvp.Key} -> {kvp.Value}"));
             string userMsg =
                 $"Updated: {updated}\n" +
                 $"Changes:\n{changes}\n" +
-                $"Warnings:\n{string.Join("\n", warnings)}";
+                $"Warnings:\n{warningMsg}";
             bool hasAnyChanges = changeToMake.Count > 0;
             if ((manuallyTriggered && hasAnyChanges) || (!manuallyTriggered && hasAnyChanges && updated > 0))
                 EditorUtility.DisplayDialog("Konfus Importer", userMsg, "OK");
@@ -119,9 +128,6 @@ namespace Konfus.Editor.Automation
 
         internal sealed class ImportHook : AssetPostprocessor
         {
-            private static readonly HashSet<string> _queued = new(StringComparer.OrdinalIgnoreCase);
-            private static bool _scheduled;
-
             private static void OnPostprocessAllAssets(
                 string[] importedAssets,
                 string[] deletedAssets,
@@ -151,33 +157,17 @@ namespace Konfus.Editor.Automation
                 ConfirmDialog.Show(
                     "Auto enforce naming conventions and organize?",
                     "\n\nSuggested Changes:\n" +
-                    string.Join("\n", suggested.Select(kv => "   -" + kv.Key + " -> " + kv.Value)) +
+                    string.Join("\n",
+                        suggested.Select(kv =>
+                            "   -" + kv.Key + " -> " + kv.Value)) +
                     "\n\nContinue?",
                     result =>
                     {
                         if (!result)
                             return;
 
-                        foreach (string p in suggested.Keys)
-                        {
-                            _queued.Add(p);
-                        }
-
-                        if (_queued.Count == 0 || _scheduled)
-                            return;
-
-                        _scheduled = true;
-
                         EditorApplication.delayCall += () =>
                         {
-                            _scheduled = false;
-
-                            if (_queued.Count == 0)
-                                return;
-
-                            string[] runList = _queued.ToArray();
-                            _queued.Clear();
-
                             _isProcessing = true;
                             try
                             {

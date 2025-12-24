@@ -81,7 +81,7 @@ namespace Konfus.Sensor_Toolkit
 
         private void OnCollision(Collider other)
         {
-            List<Hit> newHits = Hits.ToList();
+            List<Hit> newHits = Hits?.ToList() ?? new List<Hit>();
             newHits.Add(new Hit { Point = other.ClosestPoint(transform.position), GameObject = other.gameObject });
             Hits = newHits;
             IsTriggered = true;
@@ -107,8 +107,8 @@ namespace Konfus.Sensor_Toolkit
     }
 
     /// <summary>
-    ///     Events for triggers being triggered, the first gameobject is the gameobject that holds this script,
-    ///     the second is the gameobject that collided with the one that triggers the event
+    /// Events for triggers being triggered, the first gameobject is the gameobject that holds this script,
+    /// the second is the gameobject that collided with the one that triggers the event
     /// </summary>
     [Serializable]
     public class CollisionEvent : UnityEvent<GameObject, GameObject>

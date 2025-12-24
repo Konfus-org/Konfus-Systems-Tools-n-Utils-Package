@@ -2,7 +2,8 @@
     "name": "Konfus.ToolsAndSystems.Editor",
     "rootNamespace": "Konfus",
     "references": [
-        "Konfus.ToolsAndSystems"
+        "Konfus.ToolsAndSystems",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

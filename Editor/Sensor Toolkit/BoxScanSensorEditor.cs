@@ -4,7 +4,7 @@ using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(BoxScanSensor))]
     internal class BoxScanSensorEditor : SensorEditor
@@ -28,7 +28,8 @@ namespace Konfus.Editor.Sensors
                 case BoxScanSensor.Type.Standard:
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
+                    Gizmos.DrawWireCube(new Vector3(0, 0, length),
+                        new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, length));
                     if (sensor.IsTriggered)
                     {
                         if (sensor.Hits != null)
@@ -52,14 +53,15 @@ namespace Konfus.Editor.Sensors
 
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
                     Gizmos.DrawWireCube(
-                        new Vector3(0, 0, length + sensor.SensorSize.z) / 2,
-                        new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, sensor.SensorSize.z + length));
+                        new Vector3(0, 0, length + sensor.SensorSize.y) / 2,
+                        new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, length));
                     break;
                 }
                 case BoxScanSensor.Type.CheckHitOnly:
                 {
                     Gizmos.matrix = Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
-                    Gizmos.DrawWireCube(new Vector3(0, 0, length), sensor.SensorSize);
+                    Gizmos.DrawWireCube(new Vector3(0, 0, length),
+                        new Vector3(sensor.SensorSize.x, sensor.SensorSize.y, length));
                     break;
                 }
                 default:

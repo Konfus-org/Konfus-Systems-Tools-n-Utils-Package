@@ -33,6 +33,9 @@ namespace Konfus.Grids
 
         public virtual void CalculateNeighbors()
         {
+            if (_grid == null)
+                return;
+
             var neighbors = new List<INode>();
 
             Vector3Int[] potentialNeighborPositions =

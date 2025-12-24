@@ -3,7 +3,7 @@ using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(LineScanSensor))]
     internal class LineScanSensorEditor : SensorEditor
@@ -21,6 +21,7 @@ namespace Konfus.Editor.Sensors
             if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
 
             // transform the gizmo
+            Matrix4x4 oldMatrix = Gizmos.matrix;
             Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
 
             float length = sensor.SensorLength;
@@ -34,6 +35,8 @@ namespace Konfus.Editor.Sensors
             Gizmos.DrawWireCube(Vector3.zero, new Vector3(0.02f, 0.02f, 0.02f));
             Gizmos.color = Color.green;
             Gizmos.DrawWireCube(Vector3.forward * length, new Vector3(0.02f, 0.02f, 0.02f));
+
+            Gizmos.matrix = oldMatrix;
         }
     }
 }

@@ -1,10 +1,9 @@
 using System;
-using System.Linq;
 using Konfus.Sensor_Toolkit;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Sensors
+namespace Konfus.Editor.Sensor_Toolkit
 {
     [CustomEditor(typeof(SphereScanSensor))]
     internal class SphereScanSensorEditor : SensorEditor
@@ -19,7 +18,12 @@ namespace Konfus.Editor.Sensors
         private static void DrawSensor(SphereScanSensor sensor)
         {
             Gizmos.color = SensorColors.NoHitColor;
-            if (sensor.IsTriggered) Gizmos.color = SensorColors.HitColor;
+            Handles.color = SensorColors.NoHitColor;
+            if (sensor.IsTriggered)
+            {
+                Handles.color = SensorColors.HitColor;
+                Gizmos.color = SensorColors.HitColor;
+            }
 
             float length = sensor.SensorLength;
 
@@ -27,25 +31,17 @@ namespace Konfus.Editor.Sensors
             {
                 case SphereScanSensor.Type.Standard:
                 {
-                    if (sensor is { IsTriggered: true, Hits: not null })
-                    {
-                        Gizmos.DrawLine(sensor.transform.position, sensor.Hits.First().Point);
-                        Gizmos.DrawWireSphere(
-                            sensor.transform.position + sensor.transform.forward +
-                            Vector3.forward * sensor.SensorRadius / 2,
-                            sensor.SensorRadius);
-                        Gizmos.DrawSphere(sensor.Hits.First().Point, 0.1f);
-                    }
-                    else
-                    {
-                        Gizmos.DrawLine(sensor.transform.position,
-                            sensor.transform.position + sensor.transform.forward);
-                        Gizmos.DrawWireSphere(
-                            sensor.transform.position + sensor.transform.forward +
-                            Vector3.forward * sensor.SensorRadius / 2,
-                            sensor.SensorRadius);
-                    }
+                    // Calculate the center of the sphere at the impact point
+                    Vector3 startPoint = sensor.transform.position + sensor.transform.forward * length +
+                                         sensor.transform.forward * sensor.SensorRadius;
+                    Vector3 endPoint = sensor.transform.position + sensor.transform.forward * length +
+                                       sensor.transform.forward * length +
+                                       sensor.transform.forward * sensor.SensorRadius;
+                    Handles.DrawWireDisc(startPoint, sensor.transform.forward, sensor.SensorRadius);
+                    Handles.DrawWireDisc(endPoint, sensor.transform.forward, sensor.SensorRadius);
 
+                    // Draw a line representing the full path
+                    Gizmos.DrawLine(sensor.transform.position, endPoint);
                     break;
                 }
                 case SphereScanSensor.Type.Full:
@@ -58,6 +54,7 @@ namespace Konfus.Editor.Sensors
                         }
                     }
 
+                    Matrix4x4 oldMatrix = Gizmos.matrix;
                     Gizmos.matrix *= Matrix4x4.TRS(sensor.transform.position, sensor.transform.rotation, Vector3.one);
                     Gizmos.DrawLine(Vector3.up * sensor.SensorRadius,
                         Vector3.up * sensor.SensorRadius + Vector3.forward * length -
@@ -75,6 +72,9 @@ namespace Konfus.Editor.Sensors
                     Gizmos.DrawWireSphere(
                         Vector3.zero + Vector3.forward * length - Vector3.forward * sensor.SensorRadius / 2,
                         sensor.SensorRadius);
+
+                    Gizmos.matrix = oldMatrix;
+
                     break;
                 }
                 default:

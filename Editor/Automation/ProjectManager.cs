@@ -7,7 +7,7 @@ using Konfus.Utility.Extensions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Konfus.Editor.Utility
+namespace Konfus.Editor.Automation
 {
     public static class ProjectManager
     {
@@ -53,8 +53,7 @@ namespace Konfus.Editor.Utility
             ".shader", ".hlsl", ".cginc", ".shadergraph", ".shadersubgraph"
         };
 
-        // TODO: make this configurable and save via editor settings
-        public static readonly string[] Folders =
+        public static readonly string[] FoldersToAutoCreate =
         {
             // Root
             RootPath,
@@ -76,16 +75,14 @@ namespace Konfus.Editor.Utility
 
             // Code
             RootPath + "/Code/Runtime/",
-            RootPath + "/Code/Runtime/Generated/",
             RootPath + "/Code/Editor/",
-            RootPath + "/Code/Editor/Generated/",
 
             // Scenes
             RootPath + "/Scenes/Release/",
             RootPath + "/Scenes/Dev/"
         };
 
-        public static string RootPath => "Assets/_" + Application.productName + "/";
+        public static string RootPath => "Assets/_Source/";
 
         // Art
         public static string SourcePath => RootPath + "/Art/Source/";
@@ -114,7 +111,6 @@ namespace Konfus.Editor.Utility
         public static string DevScenePath => RootPath + "/Scenes/Dev/";
 
         [MenuItem("Tools/Konfus/Assets/Setup Folders", priority = 0)]
-        [MenuItem("Assets/Konfus/Assets/Setup Folders", priority = 0)]
         public static void SetupFolderStructure()
         {
             var created = 0;
@@ -170,8 +166,8 @@ namespace Konfus.Editor.Utility
         /// </summary>
         public static bool Ensure(string folderPath)
         {
-            folderPath = folderPath.Replace("\\", "/");
-            folderPath = folderPath.Replace("//", "/");
+            folderPath = Path.GetDirectoryName(folderPath) ?? folderPath;
+            folderPath = Sanitize(folderPath);
 
             if (!folderPath.StartsWith("Assets", StringComparison.Ordinal))
                 throw new InvalidOperationException($"Folder path must be under Assets. Got: {folderPath}");
@@ -372,7 +368,7 @@ namespace Konfus.Editor.Utility
                     continue;
 
                 string plannedPath = $"{plannedFolder}/{plannedFileName}".Replace("\\", "/");
-                changes[assetPath] = plannedPath;
+                changes[Sanitize(assetPath)] = Sanitize(plannedPath);
             }
 
             return changes;
@@ -562,7 +558,7 @@ namespace Konfus.Editor.Utility
         private static void EnsureFoldersAndFiles(ref int created, ref int existed)
         {
             // Ensure all folders exist.
-            foreach (string path in Folders)
+            foreach (string path in FoldersToAutoCreate)
             {
                 if (Ensure(path))
                     created++;
