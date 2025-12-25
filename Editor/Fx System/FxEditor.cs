@@ -1,6 +1,10 @@
+using Konfus.Fx_System;
+using UnityEditor;
+using UnityEngine;
+
 namespace Konfus.Editor.Fx_System
 {
-    /*[CustomEditor(typeof(FxSystem))]
+    [CustomEditor(typeof(FxSystem))]
     internal class FxEditor : UnityEditor.Editor
     {
         private Texture2D? _fxIcon;
@@ -75,5 +79,5 @@ namespace Konfus.Editor.Fx_System
             GUI.color = previousColor;
             GUI.enabled = previousEnabled;
         }
-    }*/
+    }
 }
