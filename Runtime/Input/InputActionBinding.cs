@@ -20,14 +20,18 @@ namespace Konfus.Input
         [SerializeField]
         private InputConditionType trigger = InputConditionType.Cancelled;
         [SerializeField]
-        private InputTarget target = new();
+        private InputTarget[] targets = Array.Empty<InputTarget>();
 
         public InputAction? BoundAction => action?.action;
 
         public void Process(InputAction.CallbackContext ctx)
         {
-            if (IsBoundTo(ctx))
+            if (!IsBoundTo(ctx)) return;
+
+            foreach (InputTarget target in targets)
+            {
                 target.Invoke(ctx);
+            }
         }
 
         private bool IsBoundTo(InputAction.CallbackContext ctx)
