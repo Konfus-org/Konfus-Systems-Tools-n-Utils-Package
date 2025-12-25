@@ -1,6 +1,10 @@
-﻿namespace Konfus.Editor.Fx_System
+﻿using Konfus.Fx_System.Effects;
+using UnityEditor;
+using UnityEngine;
+
+namespace Konfus.Editor.Fx_System
 {
-    /*[CustomPropertyDrawer(typeof(Effect), true)]
+    [CustomPropertyDrawer(typeof(Effect), true)]
     internal class FxEffectPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -73,5 +77,5 @@
 
             return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
-    }*/
+    }
 }

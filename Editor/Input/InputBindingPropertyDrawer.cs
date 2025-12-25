@@ -97,7 +97,7 @@ namespace Konfus.Editor.Input
             if (_cache.TryGetValue(type, out List<MethodOption>? cached))
                 return cached;
 
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public;
             MethodInfo[] methods = type.GetMethods(flags);
 
             var list = new List<MethodOption>(64);

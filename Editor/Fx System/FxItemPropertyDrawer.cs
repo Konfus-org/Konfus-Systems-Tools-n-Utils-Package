@@ -1,6 +1,13 @@
+using System;
+using System.Linq;
+using Konfus.Fx_System;
+using Konfus.Fx_System.Effects;
+using UnityEditor;
+using UnityEngine;
+
 namespace Konfus.Editor.Fx_System
 {
-    /*[CustomPropertyDrawer(typeof(FxItem), false)]
+    [CustomPropertyDrawer(typeof(FxItem), false)]
     internal class FxItemPropertyDrawer : PropertyDrawer
     {
         private static string[]? _choices;
@@ -156,5 +163,5 @@ namespace Konfus.Editor.Fx_System
 
             return false;
         }
-    }*/
+    }
 }
