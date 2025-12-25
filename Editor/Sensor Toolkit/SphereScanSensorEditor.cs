@@ -8,7 +8,7 @@ namespace Konfus.Editor.Sensor_Toolkit
     [CustomEditor(typeof(SphereScanSensor))]
     internal class SphereScanSensorEditor : SensorEditor
     {
-        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.InSelectionHierarchy)]
         private static void DrawGizmos(SphereScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();
@@ -32,13 +32,17 @@ namespace Konfus.Editor.Sensor_Toolkit
                 case SphereScanSensor.Type.Standard:
                 {
                     // Calculate the center of the sphere at the impact point
-                    Vector3 startPoint = sensor.transform.position + sensor.transform.forward * length +
-                                         sensor.transform.forward * sensor.SensorRadius;
                     Vector3 endPoint = sensor.transform.position + sensor.transform.forward * length +
-                                       sensor.transform.forward * length +
                                        sensor.transform.forward * sensor.SensorRadius;
-                    Handles.DrawWireDisc(startPoint, sensor.transform.forward, sensor.SensorRadius);
-                    Handles.DrawWireDisc(endPoint, sensor.transform.forward, sensor.SensorRadius);
+                    Vector3 startPoint = endPoint - sensor.transform.forward * length;
+                    Handles.DrawWireDisc(startPoint, sensor.transform.forward, sensor.SensorRadius * .1f);
+                    Handles.DrawWireDisc(Vector3.Lerp(startPoint, endPoint, 0.25f), sensor.transform.forward,
+                        sensor.SensorRadius * 0.25f);
+                    Handles.DrawWireDisc(Vector3.Lerp(startPoint, endPoint, 0.5f), sensor.transform.forward,
+                        sensor.SensorRadius);
+                    Handles.DrawWireDisc(Vector3.Lerp(startPoint, endPoint, 0.75f), sensor.transform.forward,
+                        sensor.SensorRadius * 0.25f);
+                    Handles.DrawWireDisc(endPoint, sensor.transform.forward, sensor.SensorRadius * .1f);
 
                     // Draw a line representing the full path
                     Gizmos.DrawLine(sensor.transform.position, endPoint);

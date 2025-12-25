@@ -7,7 +7,7 @@ namespace Konfus.Input
     [RequireComponent(typeof(CapsuleCollider))]
     public class RigidbodyMovement : MonoBehaviour
     {
-        [Header("Movement")]
+        [Header("Settings")]
         [SerializeField]
         private float moveSpeed = 6f;
 
@@ -29,12 +29,6 @@ namespace Konfus.Input
 
         private Vector2 _moveInput;
         private Rigidbody? _rigidbody;
-
-        private void Awake()
-        {
-            EnsureCurveHasEndpoints(ref accelerationCurve);
-            EnsureCurveHasEndpoints(ref decelerationCurve);
-        }
 
         private void FixedUpdate()
         {
@@ -95,35 +89,9 @@ namespace Konfus.Input
         /// Supplies movement input in local X/Z space.
         /// Expected range: (-1..1) per axis.
         /// </summary>
-        public void OnMoveInput(Vector2 input)
+        public void Move(Vector2 input)
         {
             _moveInput = Vector2.ClampMagnitude(input, 1f);
-        }
-
-        /// <summary>
-        /// Call this when jump is pressed (performed).
-        /// Works well with the new Input System.
-        /// </summary>
-        public void OnJumpPressed()
-        {
-            //_lastJumpPressedTime = Time.time;
-        }
-
-        /// <summary>
-        /// Optional: call this on jump released (canceled) for variable jump height.
-        /// This "cuts" the upward velocity if still rising.
-        /// </summary>
-        public void OnJumpReleased()
-        {
-            /*if (!_rigidbody) return;
-
-            // Simple cut: if we're moving up, reduce it a bit
-            float vy = _rigidbody.linearVelocity.y;
-            if (vy > 0f)
-            {
-                _rigidbody.linearVelocity =
-                    new Vector3(_rigidbody.linearVelocity.x, vy * 0.5f, _rigidbody.linearVelocity.z);
-            }*/
         }
 
         private static void EnsureCurveHasEndpoints(ref AnimationCurve curve)

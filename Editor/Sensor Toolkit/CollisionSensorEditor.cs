@@ -8,7 +8,7 @@ namespace Konfus.Editor.Sensor_Toolkit
     [CustomEditor(typeof(CollisionSensor))]
     internal class CollisionSensorEditor : SensorEditor
     {
-        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.InSelectionHierarchy)]
         private static void DrawGizmos(CollisionSensor sensor, GizmoType gizmoType)
         {
             DrawSensor(sensor);

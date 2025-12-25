@@ -7,7 +7,7 @@ namespace Konfus.Editor.Sensor_Toolkit
     [CustomEditor(typeof(ArcScanSensor))]
     internal class ArcScanSensorEditor : SensorEditor
     {
-        [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected)]
+        [DrawGizmo(GizmoType.Selected | GizmoType.InSelectionHierarchy)]
         private static void DrawGizmos(ArcScanSensor sensor, GizmoType gizmoType)
         {
             sensor.Scan();

@@ -53,7 +53,7 @@ namespace Konfus.Input
             ApplyRotation();
         }
 
-        public void OnLookInput(Vector2 input)
+        public void Look(Vector2 input)
         {
             _lookInput = input;
         }
