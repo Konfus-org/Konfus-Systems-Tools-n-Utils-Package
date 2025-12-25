@@ -9,15 +9,21 @@ namespace Konfus.Input
     {
         [Header("Settings")]
         [SerializeField]
+        [Tooltip("Maximum speed at which the object moves in meters per second")]
+        [Min(0)]
         private float moveSpeed = 6f;
         [SerializeField]
+        [Tooltip("Amount to multiply the amount of movement speed when sprinting")]
+        [Min(1)]
         private float sprintMod = 1.5f;
 
         [Tooltip("Max horizontal acceleration rate in m/s²")]
         [SerializeField]
+        [Min(1)]
         private float accelerationRate = 35f;
         [Tooltip("Max horizontal deceleration rate in m/s²")]
         [SerializeField]
+        [Min(1)]
         private float decelerationRate = 45f;
 
         [Tooltip("X = normalized speed 0..1, Y = multiplier")]

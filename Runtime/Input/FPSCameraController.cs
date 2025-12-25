@@ -13,7 +13,8 @@ namespace Konfus.Input
         [SerializeField]
         [Tooltip("Usually the camera root.")]
         private Transform? pitchTarget;
-        [Header("Look Settings")]
+
+        [Header("Settings")]
         [SerializeField]
         [Range(0f, 100f)]
         private float xSensitivity = 50.0f;

@@ -13,43 +13,75 @@ namespace Konfus.Input
 
         [Header("Settings")]
         [SerializeField]
+        [Min(0)]
+        [Tooltip("Max jump height in meters")]
         private float maxJumpHeight = 0.5f;
-        [Tooltip("Scales overall gravity strength (1 = normal Unity gravity).")]
+        [Tooltip("Scales overall gravity strength (1 = normal Unity gravity)")]
         [SerializeField]
+        [Min(0)]
         private float gravityMultiplier = 2.0f;
-        [Tooltip("Optional extra gravity right after releasing jump early (snappier short hop).")]
+        [Tooltip("Press jump up to this many seconds before landing to buffer the jump")]
         [SerializeField]
-        private float earlyReleaseGravityBoost = 2.0f;
-        [Tooltip("Interpreted as a gravity-shaping curve over the jump phase (0..1). " +
-                 "We map curveValue (0..1) to gravityScale between min/max via an inversion: " +
-                 "gravityScale = Lerp(max, min, curveValue). Default 0-1-0 gives hang-time near the middle.")]
+        [Min(0)]
+        private float jumpBufferTime = 0.1f;
+        [Tooltip("After leaving the ground, you can still jump for this many seconds")]
+        [SerializeField]
+        [Min(0)]
+        private float coyoteTime = 0.1f;
+        [Tooltip("Gravity shaping curve over jump phase (0..1)")]
         [SerializeField]
         private AnimationCurve jumpCurve = new(
             new Keyframe(0f, 0f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0f));
 
+        private float _coyoteUntil;
+        private float _jumpBufferedUntil;
         private bool _jumpHeld;
         private bool _jumping;
         private float _peakY;
         private Rigidbody? _rb;
-        private bool _releasedEarly;
         private float _startY;
+        private bool _wasGrounded;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            if (_rb)
+            {
+                _rb.useGravity = false;
+                _rb.interpolation = RigidbodyInterpolation.Interpolate;
+            }
         }
 
         private void FixedUpdate()
         {
             if (!_rb) return;
 
-            // Always apply custom gravity when not grounded, so falling also respects gravityMultiplier.
             bool grounded = IsGrounded();
 
+            // Coyote bookkeeping
+            if (grounded)
+                _coyoteUntil = Time.unscaledTime + coyoteTime;
+            else if (_wasGrounded && !grounded)
+            {
+                // Just left ground this frame
+                _coyoteUntil = Time.unscaledTime + coyoteTime;
+            }
+
+            _wasGrounded = grounded;
+
+            // Consume buffer when we become allowed to jump (grounded OR within coyote)
+            if (!_jumping && HasBufferedJump() && CanJumpNow(grounded))
+            {
+                ConsumeBufferedJump();
+                PerformJump();
+                grounded = false; // we just jumped; prevents early returns below
+            }
+
+            // If grounded and not jumping, no custom gravity needed.
             if (!_jumping && grounded)
                 return;
 
-            // Hard cap peak height (prevents “held jump” from exceeding maxJumpHeight).
+            // Hard cap peak height.
             if (_jumping && _rb.position.y >= _peakY && _rb.linearVelocity.y > 0f)
             {
                 Vector3 v = _rb.linearVelocity;
@@ -59,68 +91,106 @@ namespace Konfus.Input
 
             ApplyCurveGravity();
 
-            // End jump state once we see we’re falling and we’ve passed the peak-ish region.
+            // End jump state once falling and near peak region.
             if (_jumping && _rb.linearVelocity.y <= 0f && _rb.position.y >= _peakY - 0.01f)
                 _jumping = false;
 
             // If we land, reset.
-            if (grounded && _rb.linearVelocity.y <= 0f)
-            {
-                _jumping = false;
-                _releasedEarly = false;
-            }
+            if (grounded && _rb.linearVelocity.y <= 0f) _jumping = false;
         }
 
         private void OnValidate()
         {
             _rb = GetComponent<Rigidbody>();
+            if (!_rb) return;
             _rb.useGravity = false;
             _rb.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
-        /// <summary>Call on jump button pressed (performed).</summary>
+        /// <summary>Call to perform a jump.</summary>
         public void StartJump()
+        {
+            _jumpHeld = true;
+
+            // Always buffer the press.
+            BufferJumpPress();
+
+            // If we can jump right now (grounded or within coyote), do it immediately.
+            if (_rb && !_jumping && CanJumpNow(IsGrounded()))
+            {
+                ConsumeBufferedJump();
+                PerformJump();
+            }
+        }
+
+        /// <summary>Immediately cancels a jump.</summary>
+        public void StopJump()
+        {
+            _jumpHeld = false;
+
+            if (!_rb) return;
+            if (!_jumping) return;
+
+            // Immediately cancel jump and kill any upward velocity
+            _jumping = false;
+
+            Vector3 v = _rb.linearVelocity;
+            if (v.y > 0f)
+                v.y = 0f;
+            _rb.linearVelocity = v;
+        }
+
+        private bool CanJumpNow(bool grounded)
+        {
+            if (grounded) return true;
+            return Time.unscaledTime <= _coyoteUntil;
+        }
+
+        private void PerformJump()
         {
             if (!_rb) return;
 
-            _jumpHeld = true;
-
-            if (_jumping)
-                return;
-
-            if (!IsGrounded())
-                return;
-
             _jumping = true;
-            _releasedEarly = false;
 
             _startY = _rb.position.y;
             _peakY = _startY + maxJumpHeight;
 
-            // Choose initial velocity so that (under *base* gravity) we’d reach maxJumpHeight.
-            // The curve will then stretch/squash time by changing gravity scale over the arc.
             float baseGMag = Mathf.Abs(Physics.gravity.y * gravityMultiplier);
             float v0 = Mathf.Sqrt(2f * baseGMag * maxJumpHeight);
 
             Vector3 v = _rb.linearVelocity;
             v.y = v0;
             _rb.linearVelocity = v;
+
+            // After we jump, coyote is effectively spent until we touch ground again.
+            _coyoteUntil = 0f;
         }
 
-        /// <summary>Call on jump button released (canceled).</summary>
-        public void StopJump()
+        private void BufferJumpPress()
         {
-            _jumpHeld = false;
+            if (jumpBufferTime <= 0f)
+            {
+                _jumpBufferedUntil = 0f;
+                return;
+            }
 
-            // We don’t instantly zero velocity here; we let gravity shaping do the cut.
-            // The moment you release while rising, _releasedEarly triggers extra gravity.
+            _jumpBufferedUntil = Time.unscaledTime + jumpBufferTime;
+        }
+
+        private bool HasBufferedJump()
+        {
+            return Time.unscaledTime <= _jumpBufferedUntil;
+        }
+
+        private void ConsumeBufferedJump()
+        {
+            _jumpBufferedUntil = 0f;
         }
 
         private void ApplyCurveGravity()
         {
             if (!_rb) return;
 
-            // Base gravity magnitude (Unity’s gravity is negative Y).
             float baseG = Physics.gravity.y * gravityMultiplier; // negative
 
             // If we’re not in a jump (e.g., fell off a ledge), just apply scaled gravity.
@@ -131,42 +201,28 @@ namespace Konfus.Input
             }
 
             // Compute jump phase from height (no explicit time):
-            // phase 0..0.5 while rising (start->peak), 0.5..1 while falling (peak->start height).
             float height01 = Mathf.InverseLerp(_startY, _peakY, _rb.position.y);
             height01 = Mathf.Clamp01(height01);
 
             float phase;
             if (_rb.linearVelocity.y >= 0f)
-            {
-                // Rising: phase 0..0.5
-                phase = height01 * 0.5f;
-            }
+                phase = height01 * 0.5f; // rising: 0..0.5
             else
             {
-                // Falling: phase 0.5..1 (based on descent progress)
                 float descent01 = 1f - height01; // 0 at peak, 1 near start height
-                phase = 0.5f + descent01 * 0.5f;
+                phase = 0.5f + descent01 * 0.5f; // falling: 0.5..1
             }
 
             float curveValue = Mathf.Clamp01(jumpCurve.Evaluate(phase));
 
-            // If player released early *while still rising*, increase gravity to cut the jump short.
-            if (_releasedEarly && _rb.linearVelocity.y > 0f)
-                curveValue *= earlyReleaseGravityBoost;
-
             float gThisFrame = baseG * curveValue;
             AddVerticalAcceleration(gThisFrame);
-
-            // If jump is no longer held and we’re rising, we consider it an early release cut.
-            if (!_jumpHeld && _rb.linearVelocity.y > 0f)
-                _releasedEarly = true;
         }
 
         private void AddVerticalAcceleration(float accelY)
         {
             if (!_rb) return;
 
-            // Velocity += a * dt
             Vector3 v = _rb.linearVelocity;
             v.y += accelY * Time.fixedDeltaTime;
             _rb.linearVelocity = v;
