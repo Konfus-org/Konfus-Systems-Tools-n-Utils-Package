@@ -10,6 +10,8 @@ namespace Konfus.Input
         [Header("Settings")]
         [SerializeField]
         private float moveSpeed = 6f;
+        [SerializeField]
+        private float sprintMod = 1.5f;
 
         [Tooltip("Max horizontal acceleration rate in m/s²")]
         [SerializeField]
@@ -27,6 +29,7 @@ namespace Konfus.Input
         private AnimationCurve decelerationCurve =
             AnimationCurve.EaseInOut(0f, 1f, 1f, 0.6f);
 
+        private bool _isSprinting;
         private Vector2 _moveInput;
         private Rigidbody? _rigidbody;
 
@@ -42,7 +45,8 @@ namespace Konfus.Input
             desiredDirection = Vector3.ClampMagnitude(desiredDirection, 1f);
             desiredDirection = transform.TransformDirection(desiredDirection);
 
-            Vector3 desiredHorizontalVelocity = desiredDirection * moveSpeed;
+            float sprintModifier = _isSprinting ? sprintMod : 1f;
+            Vector3 desiredHorizontalVelocity = desiredDirection * (moveSpeed * sprintModifier);
 
             float speed = horizontalVelocity.magnitude;
             float normalizedSpeed = moveSpeed > 0.0001f
@@ -59,7 +63,7 @@ namespace Konfus.Input
                 : Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
 
             float maxRate = isAccelerating ? accelerationRate : decelerationRate;
-            float maxDeltaVelocity = maxRate * curveMultiplier * Time.fixedDeltaTime;
+            float maxDeltaVelocity = maxRate * curveMultiplier * sprintModifier * Time.fixedDeltaTime;
 
             Vector3 newHorizontalVelocity = Vector3.MoveTowards(
                 horizontalVelocity,
@@ -83,6 +87,16 @@ namespace Konfus.Input
 
             EnsureCurveHasEndpoints(ref accelerationCurve);
             EnsureCurveHasEndpoints(ref decelerationCurve);
+        }
+
+        public void StartSprint()
+        {
+            _isSprinting = true;
+        }
+
+        public void StopSprint()
+        {
+            _isSprinting = false;
         }
 
         /// <summary>

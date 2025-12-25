@@ -6,9 +6,10 @@ namespace Konfus.Input
 {
     public enum InputConditionType
     {
+        Started,
         Performed,
         Cancelled,
-        Both
+        Any
     }
 
     [Serializable]
@@ -20,6 +21,8 @@ namespace Konfus.Input
         private InputConditionType trigger = InputConditionType.Cancelled;
         [SerializeField]
         private InputTarget target = new();
+
+        public InputAction? BoundAction => action?.action;
 
         public void Process(InputAction.CallbackContext ctx)
         {
@@ -34,9 +37,10 @@ namespace Konfus.Input
 
             return trigger switch
             {
+                InputConditionType.Started => ctx.started,
                 InputConditionType.Performed => ctx.performed,
                 InputConditionType.Cancelled => ctx.canceled,
-                InputConditionType.Both => true,
+                InputConditionType.Any => true,
                 _ => false
             };
         }

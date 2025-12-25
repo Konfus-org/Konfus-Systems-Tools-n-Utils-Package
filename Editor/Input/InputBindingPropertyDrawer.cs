@@ -34,13 +34,13 @@ namespace Konfus.Editor.Input
                 var r1 = new Rect(position.x, position.y + lineH + space, position.width, lineH);
 
                 // Target field
-                EditorGUI.PropertyField(r0, targetProp, new GUIContent(label.text + " Target"));
+                EditorGUI.PropertyField(r0, targetProp, new GUIContent(label.text));
 
                 // Method dropdown (disabled until target exists)
                 Object targetObj = targetProp.objectReferenceValue;
                 using (new EditorGUI.DisabledScope(targetObj == null))
                 {
-                    DrawMethodPopup(r1, targetObj as MonoBehaviour, methodProp, label.text + " Method");
+                    DrawMethodPopup(r1, targetObj as MonoBehaviour, methodProp, "Method");
                 }
             }
         }

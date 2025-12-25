@@ -1,10 +1,9 @@
 ﻿using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Konfus.Input
 {
-    [RequireComponent(typeof(PlayerInput))]
+    [DisallowMultipleComponent]
     public class FPSCameraController : MonoBehaviour
     {
         [Header("References")]

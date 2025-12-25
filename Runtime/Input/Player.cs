@@ -4,29 +4,30 @@ using UnityEngine.InputSystem;
 
 namespace Konfus.Input
 {
-    [RequireComponent(typeof(PlayerInput))]
+    [DisallowMultipleComponent]
     public class Player : MonoBehaviour
     {
         [SerializeField]
         private InputActionBinding[] inputBindings = Array.Empty<InputActionBinding>();
 
-        private PlayerInput? _playerInput;
-
-        private void Awake()
-        {
-            _playerInput = GetComponent<PlayerInput>();
-        }
-
         private void OnEnable()
         {
-            if (!_playerInput) return;
-            _playerInput.onActionTriggered += OnInput;
+            foreach (InputActionBinding binding in inputBindings)
+            {
+                if (binding.BoundAction == null) continue;
+                binding.BoundAction.actionMap.actionTriggered += OnInput;
+                binding.BoundAction.Enable();
+            }
         }
 
         private void OnDisable()
         {
-            if (!_playerInput) return;
-            _playerInput.onActionTriggered -= OnInput;
+            foreach (InputActionBinding binding in inputBindings)
+            {
+                if (binding.BoundAction == null) continue;
+                binding.BoundAction.actionMap.actionTriggered -= OnInput;
+                binding.BoundAction.Disable();
+            }
         }
 
         private void OnInput(InputAction.CallbackContext ctx)

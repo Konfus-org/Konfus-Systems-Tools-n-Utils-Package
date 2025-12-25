@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Konfus.Input
 {
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody))]
     public class RigidbodyJumping : MonoBehaviour
     {
