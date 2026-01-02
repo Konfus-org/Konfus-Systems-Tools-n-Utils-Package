@@ -4,12 +4,13 @@ using UnityEngine.InputSystem;
 
 namespace Konfus.Input
 {
+    [Flags]
     public enum InputConditionType
     {
-        Started,
-        Performed,
-        Cancelled,
-        Any
+        None = 0,
+        Started = 1 << 0,
+        Performed = 1 << 1,
+        Cancelled = 1 << 2
     }
 
     [Serializable]
@@ -18,7 +19,7 @@ namespace Konfus.Input
         [SerializeField]
         private InputActionReference? action;
         [SerializeField]
-        private InputConditionType trigger = InputConditionType.Cancelled;
+        private InputConditionType triggers = InputConditionType.Cancelled;
         [SerializeField]
         private InputTarget[] targets = Array.Empty<InputTarget>();
 
@@ -26,7 +27,7 @@ namespace Konfus.Input
 
         public void Process(InputAction.CallbackContext ctx)
         {
-            if (!IsBoundTo(ctx)) return;
+            if (!ShouldProcess(ctx)) return;
 
             foreach (InputTarget target in targets)
             {
@@ -34,19 +35,13 @@ namespace Konfus.Input
             }
         }
 
-        private bool IsBoundTo(InputAction.CallbackContext ctx)
+        private bool ShouldProcess(InputAction.CallbackContext ctx)
         {
             if (!Matches(ctx))
                 return false;
-
-            return trigger switch
-            {
-                InputConditionType.Started => ctx.started,
-                InputConditionType.Performed => ctx.performed,
-                InputConditionType.Cancelled => ctx.canceled,
-                InputConditionType.Any => true,
-                _ => false
-            };
+            if (triggers.HasFlag(InputConditionType.Started) && ctx.started) return true;
+            if (triggers.HasFlag(InputConditionType.Performed) && ctx.performed) return true;
+            return triggers.HasFlag(InputConditionType.Cancelled) && ctx.canceled;
         }
 
         private bool Matches(InputAction.CallbackContext ctx)
