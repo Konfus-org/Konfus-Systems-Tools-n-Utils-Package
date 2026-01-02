@@ -15,7 +15,7 @@ namespace Konfus.Editor.Context_Menu
     {
         private const string GeneratedSuffix = "_PinnedMenuItem";
 
-        [MenuItem("Tools/Konfus/Pinned/Edit", priority = 1)]
+        [MenuItem("Tools/Konfus/Pinned/Edit", priority = -2)]
         private static void OpenWindow()
         {
             ContextMenuPinnedItemsWindow.ShowWindow();
@@ -27,7 +27,7 @@ namespace Konfus.Editor.Context_Menu
             GenerateContextMenuItems(true);
         }
 
-        [MenuItem("Assets/Pinned/Edit Pins", priority = 1)]
+        [MenuItem("Assets/Pinned/Edit", priority = -2)]
         private static void OpenContext()
         {
             ContextMenuPinnedItemsWindow.ShowWindow();

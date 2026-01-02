@@ -11,7 +11,7 @@ namespace Konfus.Input
         [SerializeField]
         private ScanSensor? groundSensor;
 
-        [Header("Settings")]
+        [Header("Feel")]
         [SerializeField]
         [Min(0)]
         [Tooltip("Max jump height in meters")]
@@ -20,6 +20,12 @@ namespace Konfus.Input
         [SerializeField]
         [Min(0)]
         private float gravityMultiplier = 2.0f;
+        [Tooltip("Gravity shaping curve over jump phase (0..1)")]
+        [SerializeField]
+        private AnimationCurve jumpCurve = new(
+            new Keyframe(0f, 0f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0f));
+
+        [Header("Forgiveness")]
         [Tooltip("Press jump up to this many seconds before landing to buffer the jump")]
         [SerializeField]
         [Min(0)]
@@ -28,29 +34,14 @@ namespace Konfus.Input
         [SerializeField]
         [Min(0)]
         private float coyoteTime = 0.1f;
-        [Tooltip("Gravity shaping curve over jump phase (0..1)")]
-        [SerializeField]
-        private AnimationCurve jumpCurve = new(
-            new Keyframe(0f, 0f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0f));
 
         private float _coyoteUntil;
         private float _jumpBufferedUntil;
-        private bool _jumpHeld;
         private bool _jumping;
         private float _peakY;
         private Rigidbody? _rb;
         private float _startY;
         private bool _wasGrounded;
-
-        private void Awake()
-        {
-            _rb = GetComponent<Rigidbody>();
-            if (_rb)
-            {
-                _rb.useGravity = false;
-                _rb.interpolation = RigidbodyInterpolation.Interpolate;
-            }
-        }
 
         private void FixedUpdate()
         {
@@ -66,7 +57,6 @@ namespace Konfus.Input
                 // Just left ground this frame
                 _coyoteUntil = Time.unscaledTime + coyoteTime;
             }
-
             _wasGrounded = grounded;
 
             // Consume buffer when we become allowed to jump (grounded OR within coyote)
@@ -110,8 +100,6 @@ namespace Konfus.Input
         /// <summary>Call to perform a jump.</summary>
         public void StartJump()
         {
-            _jumpHeld = true;
-
             // Always buffer the press.
             BufferJumpPress();
 
@@ -126,8 +114,6 @@ namespace Konfus.Input
         /// <summary>Immediately cancels a jump.</summary>
         public void StopJump()
         {
-            _jumpHeld = false;
-
             if (!_rb) return;
             if (!_jumping) return;
 
@@ -214,7 +200,6 @@ namespace Konfus.Input
             }
 
             float curveValue = Mathf.Clamp01(jumpCurve.Evaluate(phase));
-
             float gThisFrame = baseG * curveValue;
             AddVerticalAcceleration(gThisFrame);
         }

@@ -6,7 +6,6 @@ namespace Konfus.Sensor_Toolkit
     [ExecuteInEditMode]
     public abstract class Sensor : MonoBehaviour
     {
-        [Header("Filters")]
         [Tooltip("The layers detectable by sensor")]
         [SerializeField]
         private LayerMask detectionFilter;

@@ -95,13 +95,14 @@ namespace Konfus.Editor.Automation
                 }
             }
 
-            bool isOdinPresent = IsOdinPresent();
+            //bool isOdinPresent = IsOdinPresent();
             bool isDotweenPresent = IsDotweenPresent();
-            if (!missingDeps.Any() && isOdinPresent && isDotweenPresent) return;
+            if (!missingDeps.Any() /*&& isOdinPresent*/ && isDotweenPresent) return;
 
             Debug.LogWarning("Required SDKs are not installed!");
             var msg = "The following required dependencies are not installed:";
-            if (!isOdinPresent) msg += "\n-Odin Inspector";
+
+            //if (!isOdinPresent) msg += "\n-Odin Inspector";
             if (!isDotweenPresent) msg += "\n-DOTween";
             msg = missingDeps.Aggregate(msg, (current, dep) => current + $"\n-{dep}");
 
@@ -117,11 +118,11 @@ namespace Konfus.Editor.Automation
                 InstallViaUpm(requiredPackageId, requiredPackageId);
             }
 
-            if (!isOdinPresent)
+            /*if (!isOdinPresent)
             {
                 Application.OpenURL(
                     "https://assetstore.unity.com/packages/tools/utilities/odin-inspector-and-serializer-89041");
-            }
+            }*/
 
             if (!isDotweenPresent)
             {
@@ -132,11 +133,12 @@ namespace Konfus.Editor.Automation
             SetupIsRunning = false;
         }
 
-        private static bool IsOdinPresent()
+        /*private static bool IsOdinPresent()
         {
             return TypeExists("Sirenix.OdinInspector.OdinInspectorConfig")
                    || TypeExists("Sirenix.Serialization.SerializationUtility");
         }
+        */
 
         private static bool IsDotweenPresent()
         {

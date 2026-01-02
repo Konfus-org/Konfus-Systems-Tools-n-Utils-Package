@@ -13,7 +13,7 @@ namespace Konfus.Editor.Automation
     {
         private static bool _isProcessing;
 
-        [MenuItem("Tools/Konfus/Assets/Auto Organize Assets", priority = 0)]
+        [MenuItem("Tools/Konfus/Assets/Auto Organize Assets", priority = -1)]
         private static void OrganizeAssets()
         {
             _isProcessing = true;
@@ -21,7 +21,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Tools/Konfus/Assets/Auto Fix Assets Naming", priority = 0)]
+        [MenuItem("Tools/Konfus/Assets/Auto Fix Assets Naming", priority = -1)]
         private static void SuffixAssets()
         {
             _isProcessing = true;
@@ -29,7 +29,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Assets/Rules/Auto Organize Selection", priority = 0)]
+        [MenuItem("Assets/Rules/Auto Organize Selection", priority = -1)]
         private static void OrganizeSelection()
         {
             _isProcessing = true;
@@ -37,7 +37,7 @@ namespace Konfus.Editor.Automation
             _isProcessing = false;
         }
 
-        [MenuItem("Assets/Rules/Fix Selections Naming", priority = 0)]
+        [MenuItem("Assets/Rules/Fix Selections Naming", priority = -1)]
         private static void SuffixSelection()
         {
             _isProcessing = true;
