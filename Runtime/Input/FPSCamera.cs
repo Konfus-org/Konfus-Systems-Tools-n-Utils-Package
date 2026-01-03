@@ -9,6 +9,7 @@ namespace Konfus.Input
     {
         private const float IdleSpeed = 0.1f;
         private const float MaxSpeedForBob = 7f;
+        private const float StrafeLeanWeight = 0.65f;
 
         [Header("References")]
         [SerializeField]
@@ -30,18 +31,16 @@ namespace Konfus.Input
         private float ySensitivity = 50f;
         [SerializeField]
         [Range(0f, 0.25f)]
-        private float smoothTime = 0.06f;
+        private float lookSmoothing = 0.06f;
         [SerializeField]
         [MinMaxRangeSlider(-90f, 90f)]
         private Vector2 lookAngleMinMax = new(-80f, 85f);
 
         [Header("Head Bob")]
         [SerializeField]
-        private AnimationCurve amplitudeBySpeed =
-            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        private AnimationCurve amplitudeBySpeed = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField]
-        private AnimationCurve frequencyBySpeed =
-            AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        private AnimationCurve frequencyBySpeed = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
         [SerializeField]
         [Min(0)]
         private float amplitudeMultiplier = 1f;
@@ -56,50 +55,55 @@ namespace Konfus.Input
         [Header("Lean")]
         [SerializeField]
         [Min(0)]
-        [Tooltip("Max camera roll (degrees) at full lean input.")]
-        private float maxLeanAngle = 12f;
+        [Tooltip("Max camera roll (degrees) at full strafe lean.")]
+        private float maxStrafeLean = 2f;
+        [SerializeField]
+        [Min(0)]
+        [Tooltip("Max camera pitch offset (degrees) from forward/back movement.")]
+        private float maxForwardLean = 1f;
         [SerializeField]
         [Tooltip("How quickly lean reacts (seconds). 0 = instant.")]
         [Range(0f, 0.25f)]
-        private float leanSmoothTime = 0.08f;
-        [SerializeField]
-        [Tooltip("Deadzone for lean input.")]
-        [Range(0f, 0.5f)]
-        private float leanDeadzone = 0.05f;
-        [SerializeField]
-        [Tooltip("Also lean based on strafing speed (world motion).")]
-        private bool leanFromStrafeSpeed = true;
+        private float leanSmoothing = 0.08f;
         [SerializeField]
         [Min(0)]
-        [Tooltip("Strafe speed (m/s) that maps to full lean when leaning from strafe speed.")]
-        private float maxStrafeSpeedForLean = 5f;
-
+        [Tooltip("Strafe speed (m/s) that maps to full roll lean.")]
+        private float maxStrafeSpeedForLean = 3f;
         [SerializeField]
-        [Tooltip("How much of the lean comes from strafe speed (0..1).")]
-        [Range(0f, 1f)]
-        private float strafeLeanWeight = 0.65f;
+        [Min(0)]
+        [Tooltip("Forward speed (m/s) that maps to full forward/back tilt.")]
+        private float maxForwardSpeedForLean = 4f;
 
         private CinemachineCamera? _camera;
 
+        private float _desiredMovePitch; // pitch offset from movement
+
         private float _desiredPitch;
-        private float _desiredRoll;
+        private float _desiredRoll; // Z
         private float _desiredYaw;
 
+        // Speed sampling (single source of truth per frame)
         private Vector3 _lastSpeedPos;
 
         // Lean state
-        private float _leanInput;
+        private float _leanInput; // -1..1 (strafe input)
+
         private Vector2 _lookInput;
+        private float _movePitch;
+        private float _movePitchVel;
 
         private CinemachineBasicMultiChannelPerlin? _perlin;
         private float _perlinCurrentAmp;
         private float _perlinCurrentFreq;
 
+        // Look smoothing state
         private float _pitch;
         private float _pitchVel;
+        private float _rawSpeed;
         private float _roll;
         private float _rollVel;
         private float _smoothedSpeed;
+        private Vector3 _worldVelocity;
         private float _yaw;
         private float _yawVel;
 
@@ -118,8 +122,8 @@ namespace Konfus.Input
             _desiredPitch = Mathf.Clamp(_desiredPitch, lookAngleMinMax.x, lookAngleMinMax.y);
             _pitch = _desiredPitch;
 
-            // Initialize roll from current pitchTarget roll (signed), in case prefab starts rolled.
             _roll = _desiredRoll = NormalizeAngle(pitchTarget.localEulerAngles.z);
+            _movePitch = _desiredMovePitch = 0f;
 
             _lastSpeedPos = speedTarget.position;
 
@@ -129,9 +133,12 @@ namespace Konfus.Input
 
         private void LateUpdate()
         {
-            CalculateRotation();
+            SampleVelocity(); // <-- compute _worldVelocity/_rawSpeed once per frame
+
+            CalculateRotation(); // includes CalculateLean() using sampled velocity
             SmoothRotation();
             ApplyRotation();
+
             UpdateHeadBob();
         }
 
@@ -153,16 +160,34 @@ namespace Konfus.Input
         }
 
         /// <summary>
-        /// Lean left (-1) or right (1). Expected range [-1..1].
+        /// Strafe lean left (-1) or right (1). Expected range [-1..1].
         /// </summary>
         public void Lean(float input)
         {
             if (Cursor.lockState != CursorLockMode.Locked)
                 input = 0f;
 
-            // Deadzone + clamp.
-            if (Mathf.Abs(input) < leanDeadzone) input = 0f;
             _leanInput = Mathf.Clamp(input, -1f, 1f);
+        }
+
+        private void SampleVelocity()
+        {
+            if (!speedTarget)
+            {
+                _worldVelocity = Vector3.zero;
+                _rawSpeed = 0f;
+                return;
+            }
+
+            float dt = Time.deltaTime;
+            if (dt <= 0f)
+                return;
+
+            Vector3 pos = speedTarget.position;
+            _worldVelocity = (pos - _lastSpeedPos) / dt;
+            _rawSpeed = _worldVelocity.magnitude;
+
+            _lastSpeedPos = pos;
         }
 
         private void CalculateRotation()
@@ -178,51 +203,58 @@ namespace Konfus.Input
 
         private void CalculateLean()
         {
-            // Base lean comes from player input.
-            float inputTarget = _leanInput;
-
-            // Optional: add lean from actual strafe velocity (measured from speedTarget motion).
-            if (leanFromStrafeSpeed && speedTarget && yawTarget)
+            if (!yawTarget)
             {
-                float dt = Time.deltaTime;
-                if (dt > 0f)
-                {
-                    Vector3 pos = speedTarget.position;
-                    Vector3 worldVel = (pos - _lastSpeedPos) / dt;
-
-                    // Strafe speed = velocity along yawTarget's right axis.
-                    float strafeSpeed = Vector3.Dot(worldVel, yawTarget.right);
-
-                    var strafeNorm = 0f;
-                    if (maxStrafeSpeedForLean > 0f)
-                        strafeNorm = Mathf.Clamp(strafeSpeed / maxStrafeSpeedForLean, -1f, 1f);
-
-                    // Blend: input dominates, strafe adds “physicality”.
-                    inputTarget = Mathf.Lerp(inputTarget, strafeNorm, strafeLeanWeight);
-                }
+                _desiredRoll = 0f;
+                _desiredMovePitch = 0f;
+                return;
             }
 
-            _desiredRoll = -inputTarget * maxLeanAngle; // negative so leaning right rolls right (typical FPS feel)
+            // ----- ROLL (Z) from strafe input + optional strafe-speed influence
+            if (maxStrafeSpeedForLean > 0f)
+            {
+                float rollInput = _leanInput;
+                float strafeSpeed = Vector3.Dot(_worldVelocity, yawTarget.right);
+                float strafeNorm = Mathf.Clamp(strafeSpeed / maxStrafeSpeedForLean, -1f, 1f);
+                rollInput = Mathf.Lerp(rollInput, strafeNorm, StrafeLeanWeight);
+                _desiredRoll = -rollInput * maxStrafeLean;
+            }
+
+            // ----- MOVE PITCH (X offset) from forward/back speed
+            if (maxForwardSpeedForLean > 0f)
+            {
+                float forwardSpeed = Vector3.Dot(_worldVelocity, yawTarget.forward);
+                float forwardNorm = Mathf.Clamp(forwardSpeed / maxForwardSpeedForLean, -1f, 1f);
+
+                // Typical feel: tilt forward when moving forward (camera looks slightly down),
+                // tilt back when moving backward (camera looks slightly up).
+                _desiredMovePitch = forwardNorm * maxForwardLean;
+            }
         }
 
         private void SmoothRotation()
         {
-            if (smoothTime <= 0f)
+            if (lookSmoothing <= 0f)
             {
                 _yaw = _desiredYaw;
                 _pitch = _desiredPitch;
             }
             else
             {
-                _yaw = Mathf.SmoothDampAngle(_yaw, _desiredYaw, ref _yawVel, smoothTime);
-                _pitch = Mathf.SmoothDampAngle(_pitch, _desiredPitch, ref _pitchVel, smoothTime);
+                _yaw = Mathf.SmoothDampAngle(_yaw, _desiredYaw, ref _yawVel, lookSmoothing);
+                _pitch = Mathf.SmoothDampAngle(_pitch, _desiredPitch, ref _pitchVel, lookSmoothing);
             }
 
-            // Lean smoothing can be separate so you can make it snappier/slower than look.
-            if (leanSmoothTime <= 0f)
+            if (leanSmoothing <= 0f)
+            {
                 _roll = _desiredRoll;
+                _movePitch = _desiredMovePitch;
+            }
             else
-                _roll = Mathf.SmoothDampAngle(_roll, _desiredRoll, ref _rollVel, leanSmoothTime);
+            {
+                _roll = Mathf.SmoothDampAngle(_roll, _desiredRoll, ref _rollVel, leanSmoothing);
+                _movePitch = Mathf.SmoothDampAngle(_movePitch, _desiredMovePitch, ref _movePitchVel, leanSmoothing);
+            }
         }
 
         private void ApplyRotation()
@@ -231,27 +263,22 @@ namespace Konfus.Input
 
             yawTarget.rotation = Quaternion.Euler(0f, _yaw, 0f);
 
-            // Apply pitch + roll together on pitch pivot.
-            pitchTarget.localRotation = Quaternion.Euler(_pitch, 0f, _roll);
+            // Apply mouse pitch + movement pitch offset + roll together on pitch pivot.
+            pitchTarget.localRotation = Quaternion.Euler(_pitch + _movePitch, 0f, _roll);
         }
 
         private void UpdateHeadBob()
         {
-            if (!_perlin || !speedTarget)
+            if (!_perlin)
                 return;
 
             float dt = Time.deltaTime;
             if (dt <= 0f)
                 return;
 
-            // World-space speed from transform motion
-            Vector3 pos = speedTarget.position;
-            float rawSpeed = (pos - _lastSpeedPos).magnitude / dt;
-
-            // Smooth speed to avoid jitter
             _smoothedSpeed = Mathf.Lerp(
                 _smoothedSpeed,
-                rawSpeed,
+                _rawSpeed,
                 1f - Mathf.Exp(-bobResponse * dt)
             );
 
@@ -276,10 +303,6 @@ namespace Konfus.Input
 
             _perlin.AmplitudeGain = _perlinCurrentAmp;
             _perlin.FrequencyGain = _perlinCurrentFreq;
-
-            // IMPORTANT: _lastSpeedPos is used by BOTH bob + lean-from-strafe.
-            // We only update it here once per frame, after both have sampled it.
-            _lastSpeedPos = pos;
         }
 
         private static float NormalizeAngle(float angle)
