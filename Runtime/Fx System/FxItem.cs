@@ -10,6 +10,8 @@ namespace Konfus.Fx_System
         [SerializeReference]
         private Effect? effect;
 
+        public string effectType = string.Empty;
+
         public Effect? Effect => effect;
     }
 }
