@@ -14,6 +14,7 @@ namespace Konfus.Fx_System
         private bool loopForever;
 
         [SerializeField]
+        [InspectorName("Effects")]
         private List<FxItem> fxItems = new();
 
         [Tooltip("Called when the FxSystem is played")]
@@ -77,6 +78,7 @@ namespace Konfus.Fx_System
             if (IsPlaying || (IsPaused && _hasPlaybackState)) return false;
 
             InitializeEffects();
+            PrepareForFreshPlayback();
             startedPlaying?.Invoke();
 
             IsPlaying = true;
@@ -136,8 +138,13 @@ namespace Konfus.Fx_System
 
         public void StopEffects()
         {
-            // Full stop semantics: pause + reset.
-            ResetEffects();
+            bool wasActive = _hasPlaybackState || IsPlaying || IsPaused;
+
+            PauseEffectsState();
+            ClearPlaybackState();
+
+            if (wasActive)
+                stoppedPlaying?.Invoke();
         }
 
         private void InitializeEffects()
@@ -172,8 +179,7 @@ namespace Konfus.Fx_System
 
             if (_nextItemIndex < fxItems.Count || _playingEffects.Count != 0) return;
 
-            CompletePlaybackWithoutReset();
-            finishedPlaying?.Invoke();
+            FinishPlayback();
         }
 
         private void StartDueRuntimeEffects()
@@ -233,13 +239,22 @@ namespace Konfus.Fx_System
 
         private void ResetEffectsState()
         {
-            foreach (FxItem fxItem in fxItems)
+            for (int i = fxItems.Count - 1; i >= 0; i--)
             {
+                FxItem fxItem = fxItems[i];
                 if (fxItem == null || fxItem.Effect == null) continue;
 
                 fxItem.Effect.IsPlaying = false;
                 fxItem.Effect.Reset();
             }
+        }
+
+        private void PrepareForFreshPlayback()
+        {
+            // Fresh play should always restart from baseline unless we're explicitly resuming.
+            PauseEffectsState();
+            ResetEffectsState();
+            ClearPlaybackState();
         }
 
         private void ClearPlaybackState()
@@ -253,13 +268,15 @@ namespace Konfus.Fx_System
             _playingEffects.Clear();
         }
 
-        private void CompletePlaybackWithoutReset()
+        private void FinishPlayback()
         {
             bool wasActive = _hasPlaybackState || IsPlaying || IsPaused;
             ClearPlaybackState();
 
             if (wasActive)
                 stoppedPlaying?.Invoke();
+
+            finishedPlaying?.Invoke();
         }
 
         private readonly struct PlayingEffect

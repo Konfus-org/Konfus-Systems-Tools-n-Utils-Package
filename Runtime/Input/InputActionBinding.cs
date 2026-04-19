@@ -1,4 +1,5 @@
 ﻿using System;
+using Konfus.Utility.Attributes;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,6 +17,9 @@ namespace Konfus.Input
     [Serializable]
     public sealed class InputActionBinding
     {
+        [ReadOnly]
+        public string actionName;
+        
         [SerializeField]
         private InputActionReference? action;
         [SerializeField]
@@ -33,6 +37,12 @@ namespace Konfus.Input
             {
                 target.Invoke(ctx);
             }
+        }
+
+        public void Validate()
+        {
+            if (action != null)
+                actionName = action.name;
         }
 
         private bool ShouldProcess(InputAction.CallbackContext ctx)

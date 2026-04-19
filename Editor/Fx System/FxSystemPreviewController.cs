@@ -79,13 +79,24 @@ namespace Konfus.Editor.Fx_System
                 StopUpdateLoop();
         }
 
+        public static void ResetPreview(FxSystem fxSystem)
+        {
+            if (!fxSystem) return;
+
+            States.Remove(fxSystem);
+            fxSystem.ResetEffects();
+
+            if (States.Count == 0)
+                StopUpdateLoop();
+        }
+
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             if (state != PlayModeStateChange.ExitingEditMode || States.Count == 0) return;
 
             List<FxSystem> previewSystems = new(States.Keys);
             for (int i = 0; i < previewSystems.Count; i++)
-                StopPreview(previewSystems[i]);
+                ResetPreview(previewSystems[i]);
         }
 
         private static void EnsureUpdateRegistered()
@@ -173,7 +184,7 @@ namespace Konfus.Editor.Fx_System
 
             List<FxSystem> systems = new(States.Keys);
             for (int i = 0; i < systems.Count; i++)
-                StopPreview(systems[i]);
+                ResetPreview(systems[i]);
         }
 
         private static bool HasActivePreviewStates()
@@ -210,8 +221,7 @@ namespace Konfus.Editor.Fx_System
 
             if (state.NextItemIndex < fxSystem.Items.Count || state.PlayingEffects.Count != 0) return;
 
-            States.Remove(fxSystem);
-            fxSystem.StopEffects();
+            ResetPreview(fxSystem);
             fxSystem.finishedPlaying?.Invoke();
 
             if (fxSystem.LoopForever)

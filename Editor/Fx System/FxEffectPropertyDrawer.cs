@@ -21,12 +21,12 @@ namespace Konfus.Editor.Fx_System
                 }
             }
 
-            // Draw fields - pass GUIContent.none to each so they are drawn without labels
+            // Draw the managed-reference foldout and its children.
             float effectHeight = EditorGUI.GetPropertyHeight(property, true);
             EditorGUI.PropertyField(
                 new Rect(position.x, position.y, position.width, effectHeight),
                 property,
-                GUIContent.none,
+                label,
                 true);
 
             // Draw duration for non configurable durations

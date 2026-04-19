@@ -20,6 +20,14 @@ namespace Konfus.Input
             }
         }
 
+        private void OnValidate()
+        {
+            foreach (var binding in inputBindings)
+            {
+                binding.Validate();
+            }
+        }
+
         private void OnDisable()
         {
             foreach (InputActionBinding binding in inputBindings)

@@ -107,7 +107,7 @@ namespace Konfus.Editor.Fx_System
             if (effectTypeIndex > 0)
             {
                 Rect effectRect = new Rect(position.x, y, position.width, EditorGUI.GetPropertyHeight(effectProperty, true));
-                EditorGUI.PropertyField(effectRect, effectProperty, GUIContent.none, true);
+                EditorGUI.PropertyField(effectRect, effectProperty, new GUIContent("Settings"), true);
             }
 
             GUI.color = originalColor;
