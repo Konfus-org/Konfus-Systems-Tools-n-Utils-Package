@@ -10,7 +10,7 @@ namespace Konfus.Fx_System.Effects
             // Do nothing
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             // do nothing...
         }

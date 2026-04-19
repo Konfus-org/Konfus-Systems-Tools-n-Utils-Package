@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Konfus.Editor.Automation
 {
-    [InitializeOnLoad]
+    //[InitializeOnLoad]
     internal static class ProjectAutoSetup
     {
         private static ListRequest? _request;
@@ -25,19 +25,19 @@ namespace Konfus.Editor.Automation
         private static AddRequest? _addRequest;
         private static bool _isEnsuring;
 
-        static ProjectAutoSetup()
-        {
-            ConfirmDialog.Show(
-                "Auto Setup?",
-                "This will attempt to auto add required packages for the Konfus plugin. " +
-                "It will also auto setup a folder structure for the project and generate some code for menu items. Continue?",
-                result =>
-                {
-                    if (!result) return;
-                    Setup();
-                }
-            );
-        }
+        // static ProjectAutoSetup()
+        // {
+        //     ConfirmDialog.Show(
+        //         "Auto Setup?",
+        //         "This will attempt to auto add required packages for the Konfus plugin. " +
+        //         "It will also auto setup a folder structure for the project and generate some code for menu items. Continue?",
+        //         result =>
+        //         {
+        //             if (!result) return;
+        //             Setup();
+        //         }
+        //     );
+        // }
 
         public static bool SetupIsRunning { get; private set; }
 

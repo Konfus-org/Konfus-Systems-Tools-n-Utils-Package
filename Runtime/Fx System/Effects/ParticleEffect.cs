@@ -19,12 +19,32 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
-            particleSystem.Play();
+            particleSystem.Play(true);
         }
 
-        public override void Stop()
+        public override void Pause()
         {
-            particleSystem?.Stop();
+            if (!particleSystem) return;
+            particleSystem.Pause(true);
+        }
+
+        public override void Resume()
+        {
+            if (!particleSystem) return;
+            particleSystem.Play(true);
+        }
+
+        public override void Reset()
+        {
+            if (!particleSystem) return;
+            particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            particleSystem.Simulate(0f, true, true, true);
+        }
+
+        public override void Tick(float deltaTime)
+        {
+            if (Application.isPlaying || !particleSystem || deltaTime <= 0f) return;
+            particleSystem.Simulate(deltaTime, true, false, true);
         }
     }
 }

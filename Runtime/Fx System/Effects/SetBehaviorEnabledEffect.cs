@@ -14,6 +14,9 @@ namespace Konfus.Fx_System.Effects
         [ComponentPicker(new[] { typeof(Behaviour) })]
         private Behaviour? behaviour;
 
+        private bool _previewOriginalEnabled;
+        private bool _hasPreviewOriginalState;
+
         public override float Duration => 0;
 
         public override void Play()
@@ -24,12 +27,25 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            if (!_hasPreviewOriginalState)
+            {
+                _previewOriginalEnabled = behaviour.enabled;
+                _hasPreviewOriginalState = true;
+            }
+
             behaviour.enabled = isBehaviourEnabled;
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             // do nothing...
+        }
+
+        public override void Reset()
+        {
+            if (!_hasPreviewOriginalState || !behaviour) return;
+            behaviour.enabled = _previewOriginalEnabled;
+            _hasPreviewOriginalState = false;
         }
     }
 }

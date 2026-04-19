@@ -33,8 +33,9 @@ namespace Konfus.Fx_System.Effects
         {
             get
             {
-                if (audioSource == null) return 0;
-                return audioSource.clip.length;
+                if (audioClip != null) return audioClip.length;
+                if (audioSource?.clip != null) return audioSource.clip.length;
+                return 0f;
             }
         }
 
@@ -51,7 +52,19 @@ namespace Konfus.Fx_System.Effects
             audioSource.PlayOneShot(audioClip);
         }
 
-        public override void Stop()
+        public override void Pause()
+        {
+            if (!audioSource) return;
+            audioSource.Pause();
+        }
+
+        public override void Resume()
+        {
+            if (!audioSource) return;
+            audioSource.UnPause();
+        }
+
+        public override void Reset()
         {
             if (!audioSource) return;
             audioSource.Stop();

@@ -12,6 +12,9 @@ namespace Konfus.Fx_System.Effects
         [SerializeField]
         private bool isRigidBodyKinematic;
 
+        private bool _previewOriginalKinematic;
+        private bool _hasPreviewOriginalState;
+
         public override float Duration => 0;
 
         public override void Play()
@@ -22,12 +25,25 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            if (!_hasPreviewOriginalState)
+            {
+                _previewOriginalKinematic = rigidbody.isKinematic;
+                _hasPreviewOriginalState = true;
+            }
+
             rigidbody.isKinematic = isRigidBodyKinematic;
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             // do nothing...
+        }
+
+        public override void Reset()
+        {
+            if (!_hasPreviewOriginalState || !rigidbody) return;
+            rigidbody.isKinematic = _previewOriginalKinematic;
+            _hasPreviewOriginalState = false;
         }
     }
 }

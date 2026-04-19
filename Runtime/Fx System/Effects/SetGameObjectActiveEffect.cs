@@ -12,6 +12,9 @@ namespace Konfus.Fx_System.Effects
         [SerializeField]
         private GameObject? gameObject;
 
+        private bool _previewOriginalActive;
+        private bool _hasPreviewOriginalState;
+
         public override float Duration => 0;
 
         public override void Play()
@@ -22,12 +25,25 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            if (!_hasPreviewOriginalState)
+            {
+                _previewOriginalActive = gameObject.activeSelf;
+                _hasPreviewOriginalState = true;
+            }
+
             gameObject.SetActive(isGameObjectActive);
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             // do nothing...
+        }
+
+        public override void Reset()
+        {
+            if (!_hasPreviewOriginalState || !gameObject) return;
+            gameObject.SetActive(_previewOriginalActive);
+            _hasPreviewOriginalState = false;
         }
     }
 }

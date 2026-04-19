@@ -1,4 +1,3 @@
-﻿using System.Collections;
 using System.Collections.Generic;
 using Konfus.Fx_System.Effects;
 using UnityEngine;
@@ -28,20 +27,31 @@ namespace Konfus.Fx_System
 
         public IReadOnlyList<FxItem> Items => fxItems;
 
+        public bool LoopForever => loopForever;
+
         public bool IsPlaying { get; private set; }
+        public bool IsPaused { get; private set; }
+
+        private readonly List<PlayingEffect> _playingEffects = new();
+        private int _nextItemIndex;
+        private float _nextSequentialStartTime;
+        private float _elapsedTime;
+        private bool _hasPlaybackState;
 
         private void Awake()
         {
-            foreach (FxItem fxItem in fxItems)
-            {
-                if (fxItem.Effect is MultiEffect multiEffect && multiEffect.FxSystem != null)
-                    multiEffect.IsPlaying = multiEffect.FxSystem.playOnAwake;
+            InitializeEffects();
 
-                fxItem.Effect?.Initialize(gameObject);
-            }
+            if (!Application.isPlaying) return;
 
             if (loopForever) finishedPlaying?.AddListener(PlayEffects);
             if (playOnAwake) PlayEffects();
+        }
+
+        private void Update()
+        {
+            if (!Application.isPlaying || !IsPlaying || IsPaused || !_hasPlaybackState) return;
+            TickRuntimePlayback(Time.deltaTime);
         }
 
         private void OnDisable()
@@ -62,62 +72,206 @@ namespace Konfus.Fx_System
             }
         }
 
+        public bool TryBeginPlayback()
+        {
+            if (IsPlaying || (IsPaused && _hasPlaybackState)) return false;
+
+            InitializeEffects();
+            startedPlaying?.Invoke();
+
+            IsPlaying = true;
+            IsPaused = false;
+            _hasPlaybackState = true;
+            _nextItemIndex = 0;
+            _nextSequentialStartTime = 0f;
+            _elapsedTime = 0f;
+            _playingEffects.Clear();
+
+            return true;
+        }
+
         public void PlayEffects()
         {
-            if (IsPlaying) return;
-            startedPlaying?.Invoke();
-            StartCoroutine(PlayEffectsCoroutine());
+            if (!Application.isPlaying) return;
+
+            if (IsPaused && _hasPlaybackState)
+            {
+                ResumeEffects();
+                return;
+            }
+
+            if (!TryBeginPlayback()) return;
+            TickRuntimePlayback(0f);
+        }
+
+        public void PauseEffects()
+        {
+            if (!_hasPlaybackState && !IsPlaying) return;
+
+            PauseEffectsState();
+            IsPlaying = false;
+            IsPaused = true;
+        }
+
+        public void ResumeEffects()
+        {
+            if (!_hasPlaybackState || !IsPaused) return;
+
+            ResumeEffectsState();
+            IsPaused = false;
+            IsPlaying = true;
+        }
+
+        public void ResetEffects()
+        {
+            bool wasActive = _hasPlaybackState || IsPlaying || IsPaused;
+
+            PauseEffectsState();
+            ResetEffectsState();
+            ClearPlaybackState();
+
+            if (wasActive)
+                stoppedPlaying?.Invoke();
         }
 
         public void StopEffects()
         {
-            StopAllCoroutines();
+            // Full stop semantics: pause + reset.
+            ResetEffects();
+        }
+
+        private void InitializeEffects()
+        {
+            foreach (FxItem fxItem in fxItems)
+            {
+                if (fxItem == null || fxItem.Effect == null) continue;
+
+                if (fxItem.Effect is MultiEffect multiEffect && multiEffect.FxSystem != null)
+                    multiEffect.IsPlaying = multiEffect.FxSystem.playOnAwake;
+
+                fxItem.Effect.Initialize(gameObject);
+            }
+        }
+
+        private void TickRuntimePlayback(float deltaTime)
+        {
+            _elapsedTime += Mathf.Max(0f, deltaTime);
+            StartDueRuntimeEffects();
+
+            for (int i = _playingEffects.Count - 1; i >= 0; i--)
+            {
+                PlayingEffect playingEffect = _playingEffects[i];
+                if (playingEffect.Effect.IsPlaying)
+                    playingEffect.Effect.Tick(deltaTime);
+
+                if (playingEffect.EndTime > _elapsedTime) continue;
+
+                playingEffect.Effect.IsPlaying = false;
+                _playingEffects.RemoveAt(i);
+            }
+
+            if (_nextItemIndex < fxItems.Count || _playingEffects.Count != 0) return;
+
+            CompletePlaybackWithoutReset();
+            finishedPlaying?.Invoke();
+        }
+
+        private void StartDueRuntimeEffects()
+        {
+            while (_nextItemIndex < fxItems.Count && _elapsedTime >= _nextSequentialStartTime)
+            {
+                FxItem fxItem = fxItems[_nextItemIndex++];
+                Effect effect = fxItem?.Effect;
+                if (effect == null) continue;
+
+                effect.IsPlaying = true;
+                effect.Play();
+
+                bool isLoopingMultiEffect = effect is MultiEffect multiEffect &&
+                                            (multiEffect.FxSystem?.LoopForever ?? false);
+
+                if (!isLoopingMultiEffect)
+                {
+                    float duration = Mathf.Max(0f, effect.Duration);
+                    _playingEffects.Add(new PlayingEffect(effect, _elapsedTime + duration));
+                }
+
+                if (effect.ShouldPlayAsync) continue;
+
+                if (isLoopingMultiEffect)
+                {
+                    _nextSequentialStartTime = _elapsedTime;
+                    continue;
+                }
+
+                float effectDuration = Mathf.Max(0f, effect.Duration);
+                _nextSequentialStartTime = _elapsedTime + effectDuration;
+                if (effectDuration > 0f)
+                    break;
+            }
+        }
+
+        private void PauseEffectsState()
+        {
+            foreach (FxItem fxItem in fxItems)
+            {
+                Effect effect = fxItem?.Effect;
+                if (effect == null || !effect.IsPlaying) continue;
+                effect.Pause();
+            }
+        }
+
+        private void ResumeEffectsState()
+        {
+            foreach (FxItem fxItem in fxItems)
+            {
+                Effect effect = fxItem?.Effect;
+                if (effect == null || !effect.IsPlaying) continue;
+                effect.Resume();
+            }
+        }
+
+        private void ResetEffectsState()
+        {
             foreach (FxItem fxItem in fxItems)
             {
                 if (fxItem == null || fxItem.Effect == null) continue;
 
                 fxItem.Effect.IsPlaying = false;
-                fxItem.Effect.Stop();
+                fxItem.Effect.Reset();
             }
-
-            IsPlaying = false;
-            stoppedPlaying?.Invoke();
         }
 
-        private IEnumerator PlayEffectsCoroutine()
+        private void ClearPlaybackState()
         {
-            IsPlaying = true;
+            IsPlaying = false;
+            IsPaused = false;
+            _hasPlaybackState = false;
+            _elapsedTime = 0f;
+            _nextItemIndex = 0;
+            _nextSequentialStartTime = 0f;
+            _playingEffects.Clear();
+        }
 
-            foreach (FxItem fxItem in fxItems)
+        private void CompletePlaybackWithoutReset()
+        {
+            bool wasActive = _hasPlaybackState || IsPlaying || IsPaused;
+            ClearPlaybackState();
+
+            if (wasActive)
+                stoppedPlaying?.Invoke();
+        }
+
+        private readonly struct PlayingEffect
+        {
+            public PlayingEffect(Effect effect, float endTime)
             {
-                if (fxItem?.Effect == null) continue;
-
-                if (fxItem.Effect.ShouldPlayAsync && !fxItem.Effect.IsPlaying)
-                    StartCoroutine(PlayEffectRoutine(fxItem));
-                else
-                    yield return PlayEffectRoutine(fxItem);
+                Effect = effect;
+                EndTime = endTime;
             }
 
-            IsPlaying = false;
-            stoppedPlaying?.Invoke();
-            finishedPlaying?.Invoke();
-            yield return null;
-        }
-
-        private static IEnumerator PlayEffectRoutine(FxItem item)
-        {
-            if (item.Effect == null) yield break;
-
-            item.Effect.IsPlaying = true;
-            item.Effect.Play();
-
-            if (item.Effect is MultiEffect multiEffect &&
-                (multiEffect.FxSystem?.loopForever ?? false))
-                // If we play forever, set is playing to true and bail out...
-                yield break;
-
-            yield return new WaitForSeconds(item.Effect.Duration);
-            item.Effect.IsPlaying = false;
+            public Effect Effect { get; }
+            public float EndTime { get; }
         }
     }
 }

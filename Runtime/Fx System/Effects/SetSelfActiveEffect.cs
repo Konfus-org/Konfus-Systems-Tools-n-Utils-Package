@@ -10,6 +10,8 @@ namespace Konfus.Fx_System.Effects
         private bool active;
 
         private GameObject? _go;
+        private bool _previewOriginalActive;
+        private bool _hasPreviewOriginalState;
 
         public override float Duration => 0;
 
@@ -27,11 +29,25 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            if (!_hasPreviewOriginalState)
+            {
+                _previewOriginalActive = _go.activeSelf;
+                _hasPreviewOriginalState = true;
+            }
+
             _go.SetActive(active);
         }
 
-        public override void Stop()
+        public override void Pause()
         {
+            // do nothing...
+        }
+
+        public override void Reset()
+        {
+            if (!_hasPreviewOriginalState || !_go) return;
+            _go.SetActive(_previewOriginalActive);
+            _hasPreviewOriginalState = false;
         }
     }
 }

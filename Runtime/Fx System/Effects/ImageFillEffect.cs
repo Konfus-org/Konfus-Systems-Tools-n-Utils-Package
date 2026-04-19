@@ -47,6 +47,7 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
+            _tween?.Kill();
             _tween = DOTween.To(
                 () => image ? image.fillAmount : targetFillAmount,
                 newFillAmount =>
@@ -56,15 +57,29 @@ namespace Konfus.Fx_System.Effects
                 targetFillAmount,
                 Duration);
             _tween.SetEase(easing);
+            _tween.SetAutoKill(false);
+            if (!Application.isPlaying) _tween.SetUpdate(UpdateType.Manual);
             _tween.Play();
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             if (_tween == null) return;
-            _tween.timeScale = 20;
-            _tween.SmoothRewind();
-            _tween.timeScale = 1;
+            _tween.Pause();
+        }
+
+        public override void Resume()
+        {
+            if (_tween == null) return;
+            _tween.Play();
+        }
+
+        public override void Reset()
+        {
+            if (_tween == null) return;
+            _tween.Rewind();
+            _tween.Kill();
+            _tween = null;
         }
 
         public override void OnValidate()

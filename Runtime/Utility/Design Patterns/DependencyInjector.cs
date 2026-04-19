@@ -18,7 +18,7 @@ namespace Konfus.Utility.Design_Patterns
         private void Awake()
         {
             // Register dependency providers
-            var monoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            var monoBehaviours = FindObjectsByType<MonoBehaviour>();
             foreach (var provider in monoBehaviours)
             {
                 RegisterProvider(provider);

@@ -26,15 +26,33 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            _tween?.Kill();
             _tween = target.DOLocalRotate(to, Duration);
             _tween.SetRelative(false);
             _tween.SetEase(easing);
+            _tween.SetAutoKill(false);
+            if (!Application.isPlaying) _tween.SetUpdate(UpdateType.Manual);
             _tween.Restart();
         }
 
-        public override void Stop()
+        public override void Pause()
         {
-            _tween?.Kill();
+            if (_tween == null) return;
+            _tween.Pause();
+        }
+
+        public override void Resume()
+        {
+            if (_tween == null) return;
+            _tween.Play();
+        }
+
+        public override void Reset()
+        {
+            if (_tween == null) return;
+            _tween.Rewind();
+            _tween.Kill();
+            _tween = null;
         }
     }
 }

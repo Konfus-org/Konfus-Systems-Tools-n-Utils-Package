@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace Konfus.Fx_System.Effects
@@ -23,7 +23,7 @@ namespace Konfus.Fx_System.Effects
         public bool IsPlaying
         {
             get => _isPlaying;
-            internal set => _isPlaying = value;
+            set => _isPlaying = value;
         }
 
         /// <summary>
@@ -44,9 +44,39 @@ namespace Konfus.Fx_System.Effects
         public abstract void Play();
 
         /// <summary>
-        /// Called when the owning FxSystem is stopped, used for any cleanup or stop logic
+        /// Called when the owning FxSystem is paused, used for non-destructive pause logic
         /// </summary>
-        public abstract void Stop();
+        public abstract void Pause();
+
+        /// <summary>
+        /// Called when a paused FxSystem resumes.
+        /// </summary>
+        public virtual void Resume()
+        {
+        }
+
+        /// <summary>
+        /// Called when the owning FxSystem is explicitly reset.
+        /// </summary>
+        public virtual void Reset()
+        {
+        }
+
+        /// <summary>
+        /// Called when the owning FxSystem is fully stopped (pause + reset).
+        /// </summary>
+        public virtual void Stop()
+        {
+            Pause();
+            Reset();
+        }
+
+        /// <summary>
+        /// Called each preview tick while this effect is playing in edit mode.
+        /// </summary>
+        public virtual void Tick(float deltaTime)
+        {
+        }
 
         public virtual void OnValidate()
         {

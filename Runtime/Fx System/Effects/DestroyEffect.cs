@@ -9,6 +9,8 @@ namespace Konfus.Fx_System.Effects
     {
         [SerializeField]
         private GameObject? gameObjectToDestroy;
+        private bool _previewOriginalActive;
+        private bool _hasPreviewOriginalState;
 
         public override float Duration => 0;
 
@@ -20,12 +22,31 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
+            if (!Application.isPlaying)
+            {
+                if (!_hasPreviewOriginalState)
+                {
+                    _previewOriginalActive = gameObjectToDestroy.activeSelf;
+                    _hasPreviewOriginalState = true;
+                }
+
+                gameObjectToDestroy.SetActive(false);
+                return;
+            }
+
             Object.Destroy(gameObjectToDestroy);
         }
 
-        public override void Stop()
+        public override void Pause()
         {
             // do nothing...
+        }
+
+        public override void Reset()
+        {
+            if (Application.isPlaying || !_hasPreviewOriginalState || !gameObjectToDestroy) return;
+            gameObjectToDestroy.SetActive(_previewOriginalActive);
+            _hasPreviewOriginalState = false;
         }
     }
 }

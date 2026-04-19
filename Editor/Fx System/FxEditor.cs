@@ -25,10 +25,14 @@ namespace Konfus.Editor.Fx_System
             DrawIcon();
 
             EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(
+                "FX items are shown as auto-timed timeline tracks. Start/Stop are calculated from item order and effect duration; async tracks are striped and play in parallel.",
+                MessageType.Info);
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
             DrawPlayButton();
+            DrawPauseButton();
             DrawStopButton();
         }
 
@@ -51,13 +55,40 @@ namespace Konfus.Editor.Fx_System
             bool previousEnabled = GUI.enabled;
             Color previousColor = GUI.color;
 
-            if (!Application.isPlaying || fxSystem.IsPlaying) GUI.enabled = false;
+            if (fxSystem.IsPlaying) GUI.enabled = false;
 
             GUI.color = Color.green;
-            if (GUILayout.Button(new GUIContent("Play", "Plays effects, only available in play mode.")))
+            if (GUILayout.Button(new GUIContent("Play", "Plays effects in runtime play mode or editor preview mode.")))
             {
-                fxSystem.StopEffects();
-                fxSystem.PlayEffects();
+                if (Application.isPlaying)
+                {
+                    fxSystem.PlayEffects();
+                }
+                else
+                {
+                    FxSystemPreviewController.PlayPreview(fxSystem);
+                }
+            }
+
+            GUI.color = previousColor;
+            GUI.enabled = previousEnabled;
+        }
+
+        private void DrawPauseButton()
+        {
+            var fxSystem = (FxSystem)target;
+            bool previousEnabled = GUI.enabled;
+            Color previousColor = GUI.color;
+
+            if (!fxSystem.IsPlaying) GUI.enabled = false;
+
+            GUI.color = new Color(1f, 0.82f, 0.1f);
+            if (GUILayout.Button(new GUIContent("Pause", "Pauses runtime playback or editor preview without resetting.")))
+            {
+                if (Application.isPlaying)
+                    fxSystem.PauseEffects();
+                else
+                    FxSystemPreviewController.PausePreview(fxSystem);
             }
 
             GUI.color = previousColor;
@@ -70,11 +101,14 @@ namespace Konfus.Editor.Fx_System
             bool previousEnabled = GUI.enabled;
             Color previousColor = GUI.color;
 
-            if (!Application.isPlaying || fxSystem.IsPlaying) GUI.enabled = false;
-
             GUI.color = Color.red;
-            if (GUILayout.Button(new GUIContent("Stop", "Stops playing effects, only available in play mode.")))
-                fxSystem.StopEffects();
+            if (GUILayout.Button(new GUIContent("Stop", "Fully stops and resets runtime playback or editor preview.")))
+            {
+                if (Application.isPlaying)
+                    fxSystem.StopEffects();
+                else
+                    FxSystemPreviewController.StopPreview(fxSystem);
+            }
 
             GUI.color = previousColor;
             GUI.enabled = previousEnabled;
