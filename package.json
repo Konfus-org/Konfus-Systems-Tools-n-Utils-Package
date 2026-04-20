@@ -16,7 +16,7 @@
     {
       "displayName": "FPS Player Controller",
       "description": "Example FPS player controller.",
-      "path": "Samples/FPS Controller"
+      "path": "Samples~/FPS Controller"
     }
   ]
 }
