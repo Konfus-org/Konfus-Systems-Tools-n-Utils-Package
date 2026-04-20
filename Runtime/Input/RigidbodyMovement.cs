@@ -1,8 +1,5 @@
 ﻿using Konfus.Sensor_Toolkit;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Konfus.Input
 {
@@ -11,12 +8,12 @@ namespace Konfus.Input
     [RequireComponent(typeof(CapsuleCollider))]
     public class RigidbodyMovement : MonoBehaviour
     {
-        private const float DebugSphereRadius = 0.05f;
-        private const float DebugVelocityScale = 0.15f;
-
         [Header("References")]
         [SerializeField]
         private ScanSensor? groundSensor;
+        [SerializeField]
+        [Tooltip("Planar facing reference used to convert move input into world space. Defaults to this transform or the FPS camera yaw target when available.")]
+        private Transform? movementReference;
 
         [Header("Speed & Modifiers")]
         [SerializeField]
@@ -63,9 +60,34 @@ namespace Konfus.Input
         private Vector2 _moveInput;
         private Rigidbody? _rigidbody;
 
+        private Vector3 _currentHorizontalVelocity;
+        private Vector3 _desiredHorizontalVelocity;
+        private Vector3 _inputDirectionWorld;
+        private Vector3 _resultingHorizontalVelocity;
+
+        public bool IsSprinting => _isSprinting;
+        public bool IsGroundedNow => IsGrounded();
+        public Vector3 CurrentHorizontalVelocity => _currentHorizontalVelocity;
+        public Vector3 DesiredHorizontalVelocity => _desiredHorizontalVelocity;
+        public Vector3 InputDirection => _inputDirectionWorld;
+        public Vector3 HorizontalVelocity => _resultingHorizontalVelocity;
+
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
+            ApplyRigidbodyDefaults();
+            EnsureCurveHasEndpoints(ref accelerationCurve);
+            EnsureCurveHasEndpoints(ref decelerationCurve);
+            AutoAssignMovementReference();
+        }
+
+        private void Reset()
+        {
+            _rigidbody = GetComponent<Rigidbody>();
+            ApplyRigidbodyDefaults();
+            EnsureCurveHasEndpoints(ref accelerationCurve);
+            EnsureCurveHasEndpoints(ref decelerationCurve);
+            AutoAssignMovementReference();
         }
 
         private void FixedUpdate()
@@ -81,8 +103,9 @@ namespace Konfus.Input
             inputLocal = Vector3.ClampMagnitude(inputLocal, 1f);
             bool hasInput = inputLocal.sqrMagnitude > 0.0001f;
 
-            // Local -> World direction (player facing)
-            Vector3 desiredDirWorld = transform.TransformDirection(inputLocal);
+            // Local -> World direction using a planar facing reference so movement matches FPS yaw.
+            GetPlanarMovementBasis(out Vector3 referenceRight, out Vector3 referenceForward);
+            Vector3 desiredDirWorld = (referenceRight * inputLocal.x) + (referenceForward * inputLocal.z);
             Vector3 desiredDirNorm = desiredDirWorld.sqrMagnitude > 0.0001f ? desiredDirWorld.normalized : Vector3.zero;
 
             // Speed modifiers
@@ -115,7 +138,10 @@ namespace Konfus.Input
                     Vector3 newHoriz = Vector3.MoveTowards(horiz, Vector3.zero, decelMaxDelta);
                     _rigidbody.linearVelocity = new Vector3(newHoriz.x, v.y, newHoriz.z);
 
-                    CacheDebug(horiz, Vector3.zero, Vector3.zero, newHoriz);
+                    _currentHorizontalVelocity = horiz;
+                    _desiredHorizontalVelocity = Vector3.zero;
+                    _inputDirectionWorld = Vector3.zero;
+                    _resultingHorizontalVelocity = newHoriz;
                     break;
                 }
                 case true when hasInput: // Grounded + input => move toward desired velocity (direction * targetSpeed)
@@ -126,12 +152,18 @@ namespace Konfus.Input
                     Vector3 newGroundHoriz = Vector3.MoveTowards(horiz, desiredVel, maxDeltaV);
                     _rigidbody.linearVelocity = new Vector3(newGroundHoriz.x, v.y, newGroundHoriz.z);
 
-                    CacheDebug(horiz, desiredVel, desiredDirNorm, newGroundHoriz);
+                    _currentHorizontalVelocity = horiz;
+                    _desiredHorizontalVelocity = desiredVel;
+                    _inputDirectionWorld = desiredDirNorm;
+                    _resultingHorizontalVelocity = newGroundHoriz;
                     break;
                 }
                 case false when !hasInput: // Airborne + no input => preserve momentum (no artificial drag)
                 {
-                    CacheDebug(horiz, Vector3.zero, Vector3.zero, horiz);
+                    _currentHorizontalVelocity = horiz;
+                    _desiredHorizontalVelocity = Vector3.zero;
+                    _inputDirectionWorld = Vector3.zero;
+                    _resultingHorizontalVelocity = horiz;
                     break;
                 }
                 default: // Airborne + input => steer toward desired direction using airControl
@@ -139,7 +171,10 @@ namespace Konfus.Input
                     if (airControl <= 0.0001f || desiredDirNorm == Vector3.zero || horiz.sqrMagnitude <= 0.0001f)
                     {
                         // No air control or no usable direction/momentum => preserve momentum
-                        CacheDebug(horiz, desiredDirNorm * targetSpeed, desiredDirNorm, horiz);
+                        _currentHorizontalVelocity = horiz;
+                        _desiredHorizontalVelocity = desiredDirNorm * targetSpeed;
+                        _inputDirectionWorld = desiredDirNorm;
+                        _resultingHorizontalVelocity = horiz;
                         return;
                     }
 
@@ -159,7 +194,10 @@ namespace Konfus.Input
                     Vector3 newAirHoriz = newDir * newSpeed;
                     _rigidbody.linearVelocity = new Vector3(newAirHoriz.x, v.y, newAirHoriz.z);
 
-                    CacheDebug(horiz, desiredDirNorm * targetSpeed, desiredDirNorm, newAirHoriz);
+                    _currentHorizontalVelocity = horiz;
+                    _desiredHorizontalVelocity = desiredDirNorm * targetSpeed;
+                    _inputDirectionWorld = desiredDirNorm;
+                    _resultingHorizontalVelocity = newAirHoriz;
                     break;
                 }
             }
@@ -206,74 +244,39 @@ namespace Konfus.Input
             return groundSensor?.Scan() ?? false;
         }
 
-        private void CacheDebug(
-            Vector3 horizVel,
-            Vector3 desiredVel,
-            Vector3 inputDirWorld,
-            Vector3 newHorizVel)
+        private void AutoAssignMovementReference()
         {
-#if UNITY_EDITOR
-            _dbgHorizVel = horizVel;
-            _dbgDesiredVel = desiredVel;
-            _dbgInputDir = inputDirWorld;
-            _dbgNewHorizVel = newHorizVel;
-#endif
-        }
-
-#if UNITY_EDITOR
-        private Vector3 _dbgDesiredVel;
-        private Vector3 _dbgHorizVel;
-        private Vector3 _dbgInputDir;
-        private Vector3 _dbgNewHorizVel;
-
-        private void OnDrawGizmosSelected()
-        {
-            if (!Application.isPlaying)
+            if (movementReference)
                 return;
 
-            Vector3 origin = transform.position + Vector3.up * 0.1f;
+            var fpsCamera = GetComponent<FPSCamera>();
+            if (!fpsCamera)
+                fpsCamera = GetComponentInChildren<FPSCamera>();
 
-            float velScale = DebugVelocityScale;
-            float r = DebugSphereRadius;
-
-            Gizmos.color = Color.green; // current horizontal velocity
-            Gizmos.DrawLine(origin, origin + _dbgHorizVel * velScale);
-            Gizmos.DrawSphere(origin + _dbgHorizVel * velScale, r);
-
-            Gizmos.color = Color.blue; // desired velocity
-            Gizmos.DrawLine(origin, origin + _dbgDesiredVel * velScale);
-            Gizmos.DrawSphere(origin + _dbgDesiredVel * velScale, r);
-
-            Gizmos.color = Color.yellow; // input direction
-            Vector3 dir = _dbgInputDir.sqrMagnitude > 0.0001f ? _dbgInputDir.normalized : Vector3.zero;
-            Gizmos.DrawLine(origin, origin + dir);
-            Gizmos.DrawSphere(origin + dir, r * 0.8f);
-
-            Gizmos.color = Color.cyan; // resulting velocity
-            Gizmos.DrawLine(origin, origin + _dbgNewHorizVel * velScale);
-            Gizmos.DrawSphere(origin + _dbgNewHorizVel * velScale, r);
-
-            Handles.color = Color.white;
-            Handles.Label(
-                origin + Vector3.up * 0.5f,
-                $"Sprinting: {_isSprinting}\n" +
-                $"Grounded: {IsGrounded()}\n"
-            );
+            movementReference = fpsCamera ? fpsCamera.YawTarget : transform;
         }
 
-        private void OnValidate()
+        private void GetPlanarMovementBasis(out Vector3 right, out Vector3 forward)
         {
-            _rigidbody = GetComponent<Rigidbody>();
-            if (_rigidbody)
-            {
-                _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
-                _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            }
+            Transform reference = movementReference ? movementReference : transform;
 
-            EnsureCurveHasEndpoints(ref accelerationCurve);
-            EnsureCurveHasEndpoints(ref decelerationCurve);
+            forward = Vector3.ProjectOnPlane(reference.forward, Vector3.up);
+            if (forward.sqrMagnitude <= 0.0001f)
+                forward = Vector3.ProjectOnPlane(reference.up, Vector3.up);
+            if (forward.sqrMagnitude <= 0.0001f)
+                forward = transform.forward;
+
+            forward.Normalize();
+            right = Vector3.Cross(Vector3.up, forward);
         }
-#endif
+
+        private void ApplyRigidbodyDefaults()
+        {
+            if (!_rigidbody) return;
+
+            _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+            _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        }
     }
 }

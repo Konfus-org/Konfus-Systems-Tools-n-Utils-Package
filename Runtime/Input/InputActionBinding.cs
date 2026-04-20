@@ -42,7 +42,9 @@ namespace Konfus.Input
         public void Validate()
         {
             if (action != null)
-                actionName = action.name;
+                actionName = $"{action.name} {triggers}";
+            else
+                actionName = "Unknown";
         }
 
         private bool ShouldProcess(InputAction.CallbackContext ctx)

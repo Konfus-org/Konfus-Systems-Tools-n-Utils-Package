@@ -1,5 +1,6 @@
 ﻿using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Konfus.Input
 {
@@ -21,6 +22,8 @@ namespace Konfus.Input
         [SerializeField]
         [Tooltip("Transform used to calculate movement speed.")]
         private Transform? speedTarget;
+
+        public Transform? YawTarget => yawTarget;
 
         [Header("Look")]
         [SerializeField]
@@ -133,6 +136,9 @@ namespace Konfus.Input
 
         private void LateUpdate()
         {
+            if (ShouldStopLookThisFrame())
+                StopLook();
+
             SampleVelocity(); // <-- compute _worldVelocity/_rawSpeed once per frame
 
             CalculateRotation(); // includes CalculateLean() using sampled velocity
@@ -153,7 +159,7 @@ namespace Konfus.Input
 
         public void Look(Vector2 input)
         {
-            if (Cursor.lockState != CursorLockMode.Locked)
+            if (!IsCursorLocked())
                 input = Vector2.zero;
 
             _lookInput = input;
@@ -164,10 +170,32 @@ namespace Konfus.Input
         /// </summary>
         public void Lean(float input)
         {
-            if (Cursor.lockState != CursorLockMode.Locked)
+            if (!IsCursorLocked())
                 input = 0f;
 
             _leanInput = Mathf.Clamp(input, -1f, 1f);
+        }
+
+        private bool IsCursorLocked()
+        {
+            return Cursor.lockState == CursorLockMode.Locked;
+        }
+
+        private static bool ShouldStopLookThisFrame()
+        {
+            if (Cursor.lockState != CursorLockMode.Locked || !Application.isFocused)
+                return true;
+
+            return false;
+        }
+
+        private void StopLook()
+        {
+            _lookInput = Vector2.zero;
+            _desiredYaw = _yaw;
+            _desiredPitch = _pitch;
+            _yawVel = 0f;
+            _pitchVel = 0f;
         }
 
         private void SampleVelocity()
