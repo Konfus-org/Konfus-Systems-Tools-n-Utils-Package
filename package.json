@@ -14,29 +14,9 @@
   },
   "samples": [
     {
-      "displayName": "3d Cursor",
-      "description": "Simple example of how to use the 3d cursor sysem.",
-      "path": "Samples~/3d Cursor"
-    },
-    {
-      "displayName": "Grid System",
-      "description": "Simple example of how to use the grid system.",
-      "path": "Samples~/Grid System"
-    },
-    {
-      "displayName": "Modular Agents",
-      "description": "Simple example of how to use the modular agent system.",
-      "path": "Samples~/Modular Agents"
-    },
-    {
-      "displayName": "Rts Camera",
-      "description": "Simple example of how to use the rts camera system.",
-      "path": "Samples~/Rts Camera"
-    },
-    {
-      "displayName": "Sensors",
-      "description": "Simple example of how to use the sensor system.",
-      "path": "Samples~/Sensors"
+      "displayName": "FPS Player Controller",
+      "description": "Example FPS player controller.",
+      "path": "Samples/FPS Controller"
     }
   ]
 }
