@@ -187,7 +187,7 @@ namespace Konfus.Fx_System
             while (_nextItemIndex < fxItems.Count && _elapsedTime >= _nextSequentialStartTime)
             {
                 FxItem fxItem = fxItems[_nextItemIndex++];
-                Effect effect = fxItem?.Effect;
+                Effect? effect = fxItem?.Effect;
                 if (effect == null) continue;
 
                 effect.IsPlaying = true;
@@ -221,7 +221,7 @@ namespace Konfus.Fx_System
         {
             foreach (FxItem fxItem in fxItems)
             {
-                Effect effect = fxItem?.Effect;
+                Effect? effect = fxItem?.Effect;
                 if (effect == null || !effect.IsPlaying) continue;
                 effect.Pause();
             }
@@ -231,7 +231,7 @@ namespace Konfus.Fx_System
         {
             foreach (FxItem fxItem in fxItems)
             {
-                Effect effect = fxItem?.Effect;
+                Effect? effect = fxItem?.Effect;
                 if (effect == null || !effect.IsPlaying) continue;
                 effect.Resume();
             }
@@ -251,9 +251,9 @@ namespace Konfus.Fx_System
 
         private void PrepareForFreshPlayback()
         {
-            // Fresh play should always restart from baseline unless we're explicitly resuming.
+            // Fresh runtime playback should start from the scene's current state.
+            // Explicit ResetEffects is the destructive path that rewinds effects to baseline.
             PauseEffectsState();
-            ResetEffectsState();
             ClearPlaybackState();
         }
 
