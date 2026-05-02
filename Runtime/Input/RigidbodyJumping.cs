@@ -1,5 +1,6 @@
 ﻿using Konfus.Sensor_Toolkit;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Konfus.Input
 {
@@ -35,6 +36,13 @@ namespace Konfus.Input
         [Min(0)]
         private float coyoteTime = 0.1f;
 
+        [Header("Events")]
+        [SerializeField]
+        [Tooltip("Explicit landing feedback hook. Wire this to FPSCamera.PlayLandingBounce if the camera should react to landing.")]
+        private LandingEvent landed = new();
+
+        private readonly JumpStateMachine _stateMachine = new();
+
         private float _coyoteUntil;
         private float _jumpBufferedUntil;
         private bool _jumping;
@@ -49,10 +57,7 @@ namespace Konfus.Input
 
             bool grounded = IsGrounded();
 
-            // Coyote bookkeeping
-            if (grounded)
-                _coyoteUntil = Time.unscaledTime + coyoteTime;
-            else if (_wasGrounded && !grounded)
+            JumpFrame frame = new()
             {
                 // Just left ground this frame
                 _coyoteUntil = Time.unscaledTime + coyoteTime;
@@ -97,39 +102,91 @@ namespace Konfus.Input
             _rb.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
-        /// <summary>Call to perform a jump.</summary>
+        /// <summary>
+        /// Buffers a jump press and performs it immediately when the current state allows it.
+        /// </summary>
         public void StartJump()
         {
-            // Always buffer the press.
             BufferJumpPress();
 
-            // If we can jump right now (grounded or within coyote), do it immediately.
             if (_rb && !_jumping && CanJumpNow(IsGrounded()))
             {
                 ConsumeBufferedJump();
                 PerformJump();
+                _stateMachine.ForceState(JumpStateId.Jumping);
+                _currentState = JumpStateId.Jumping;
             }
         }
 
-        /// <summary>Immediately cancels a jump.</summary>
+        /// <summary>
+        /// Cancels the active jump and removes upward velocity for variable-height jumps.
+        /// </summary>
         public void StopJump()
         {
-            if (!_rb) return;
-            if (!_jumping) return;
+            if (!_rb || !_jumping)
+                return;
 
-            // Immediately cancel jump and kill any upward velocity
             _jumping = false;
 
-            Vector3 v = _rb.linearVelocity;
-            if (v.y > 0f)
-                v.y = 0f;
-            _rb.linearVelocity = v;
+            Vector3 velocity = _rb.linearVelocity;
+            if (velocity.y > 0f)
+                velocity.y = 0f;
+            _rb.linearVelocity = velocity;
+        }
+
+        private void ConfigureStateMachine()
+        {
+            if (_stateMachine.IsConfigured)
+                return;
+
+            // Jump states own vertical motion only. Movement and camera effects consume public state/events instead
+            // of being queried directly from here.
+            _stateMachine.Configure(
+                new GroundedJumpState(this),
+                new JumpingJumpState(this),
+                new AirborneJumpState(this));
+        }
+
+        private void UpdateGrounding()
+        {
+            bool sensorGrounded = IsGrounded();
+            bool grounded = sensorGrounded && !_jumping && _rb!.linearVelocity.y <= GroundedVerticalVelocityThreshold;
+            _isGroundedNow = grounded;
+            float verticalVelocityBeforeStep = _rb.linearVelocity.y;
+
+            if (grounded)
+                _coyoteUntil = Time.unscaledTime + coyoteTime;
+            else if (_wasGrounded)
+                _coyoteUntil = Time.unscaledTime + coyoteTime;
+
+            if (grounded)
+            {
+                if (!_wasGrounded)
+                    RaiseLanded(verticalVelocityBeforeStep);
+                _airborneTime = 0f;
+            }
+            else
+            {
+                _airborneTime += Time.fixedDeltaTime;
+            }
+
+            _wasGrounded = grounded;
         }
 
         private bool CanJumpNow(bool grounded)
         {
-            if (grounded) return true;
-            return Time.unscaledTime <= _coyoteUntil;
+            return grounded || Time.unscaledTime <= _coyoteUntil;
+        }
+
+        private void TryConsumeBufferedJump(JumpFrame frame)
+        {
+            if (_jumping || !frame.HasBufferedJump || !frame.CanJump)
+                return;
+
+            ConsumeBufferedJump();
+            PerformJump();
+            _stateMachine.ForceState(JumpStateId.Jumping);
+            _currentState = JumpStateId.Jumping;
         }
 
         private void PerformJump()
@@ -137,30 +194,26 @@ namespace Konfus.Input
             if (!_rb) return;
 
             _jumping = true;
+            _isGroundedNow = false;
 
             _startY = _rb.position.y;
             _peakY = _startY + maxJumpHeight;
 
-            float baseGMag = Mathf.Abs(Physics.gravity.y * gravityMultiplier);
-            float v0 = Mathf.Sqrt(2f * baseGMag * maxJumpHeight);
+            float baseGravityMagnitude = Mathf.Abs(Physics.gravity.y * gravityMultiplier);
+            float jumpVelocity = Mathf.Sqrt(2f * baseGravityMagnitude * maxJumpHeight);
 
-            Vector3 v = _rb.linearVelocity;
-            v.y = v0;
-            _rb.linearVelocity = v;
+            Vector3 velocity = _rb.linearVelocity;
+            velocity.y = jumpVelocity;
+            _rb.linearVelocity = velocity;
 
-            // After we jump, coyote is effectively spent until we touch ground again.
             _coyoteUntil = 0f;
         }
 
         private void BufferJumpPress()
         {
-            if (jumpBufferTime <= 0f)
-            {
-                _jumpBufferedUntil = 0f;
-                return;
-            }
-
-            _jumpBufferedUntil = Time.unscaledTime + jumpBufferTime;
+            _jumpBufferedUntil = jumpBufferTime <= 0f
+                ? 0f
+                : Time.unscaledTime + jumpBufferTime;
         }
 
         private bool HasBufferedJump()
@@ -173,49 +226,86 @@ namespace Konfus.Input
             _jumpBufferedUntil = 0f;
         }
 
+        private void TickJumping()
+        {
+            if (!_rb) return;
+
+            if (_rb.position.y >= _peakY && _rb.linearVelocity.y > 0f)
+            {
+                Vector3 velocity = _rb.linearVelocity;
+                velocity.y = 0f;
+                _rb.linearVelocity = velocity;
+            }
+
+            ApplyCurveGravity();
+
+            if (_rb.linearVelocity.y <= 0f && _rb.position.y >= _peakY - 0.01f)
+                _jumping = false;
+
+            if (_isGroundedNow && _rb.linearVelocity.y <= 0f)
+                _jumping = false;
+        }
+
+        private void TickAirborne(JumpFrame frame)
+        {
+            TryConsumeBufferedJump(frame);
+            if (_jumping)
+                return;
+
+            ApplyCurveGravity();
+        }
+
         private void ApplyCurveGravity()
         {
             if (!_rb) return;
 
-            float baseG = Physics.gravity.y * gravityMultiplier; // negative
-
-            // If we’re not in a jump (e.g., fell off a ledge), just apply scaled gravity.
+            float baseGravity = Physics.gravity.y * gravityMultiplier;
             if (!_jumping)
             {
-                AddVerticalAcceleration(baseG);
+                AddVerticalAcceleration(baseGravity);
                 return;
             }
 
-            // Compute jump phase from height (no explicit time):
-            float height01 = Mathf.InverseLerp(_startY, _peakY, _rb.position.y);
-            height01 = Mathf.Clamp01(height01);
-
+            float height01 = Mathf.Clamp01(Mathf.InverseLerp(_startY, _peakY, _rb.position.y));
             float phase;
             if (_rb.linearVelocity.y >= 0f)
-                phase = height01 * 0.5f; // rising: 0..0.5
+            {
+                phase = height01 * 0.5f;
+            }
             else
             {
-                float descent01 = 1f - height01; // 0 at peak, 1 near start height
-                phase = 0.5f + descent01 * 0.5f; // falling: 0.5..1
+                float descent01 = 1f - height01;
+                phase = 0.5f + descent01 * 0.5f;
             }
 
             float curveValue = Mathf.Clamp01(jumpCurve.Evaluate(phase));
-            float gThisFrame = baseG * curveValue;
-            AddVerticalAcceleration(gThisFrame);
+            AddVerticalAcceleration(baseGravity * curveValue);
         }
 
         private void AddVerticalAcceleration(float accelY)
         {
             if (!_rb) return;
 
-            Vector3 v = _rb.linearVelocity;
-            v.y += accelY * Time.fixedDeltaTime;
-            _rb.linearVelocity = v;
+            Vector3 velocity = _rb.linearVelocity;
+            velocity.y += accelY * Time.fixedDeltaTime;
+            _rb.linearVelocity = velocity;
         }
 
         private bool IsGrounded()
         {
-            return groundSensor?.Scan() ?? false;
+            if (!groundSensor || !groundSensor.Scan() || groundSensor.Hits == null)
+                return false;
+
+            foreach (Sensor.Hit hit in groundSensor.Hits)
+            {
+                if (!hit.GameObject || hit.GameObject == gameObject || hit.GameObject.transform.IsChildOf(transform))
+                    continue;
+
+                if (Vector3.Dot(hit.Normal.normalized, Vector3.up) > 0f)
+                    return true;
+            }
+
+            return false;
         }
     }
 }
