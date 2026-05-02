@@ -8,10 +8,10 @@ namespace Konfus.Fx_System.Effects
     public class ScaleToEffect : ConfigurableDurationEffect
     {
         [SerializeField]
-        private Vector3 to;
-
-        [SerializeField]
         private Transform? target;
+        
+        [SerializeField]
+        private Transform? to;
 
         [SerializeField]
         private Ease easing = Ease.Linear;
@@ -20,19 +20,19 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
-            if (!target)
+            if (!target || !to)
             {
-                Debug.LogWarning($"{nameof(ScaleToEffect)} requires a target GameObject");
+                Debug.LogWarning($"{nameof(RotateToEffect)} requires a target GameObject and to GameObject!");
                 return;
             }
 
             _tween?.Kill();
-            _tween = target.DOScale(to, Duration);
-            _tween.SetRelative(false);
+            _tween = target.DOScale(to.localScale, Duration);
             _tween.SetEase(easing);
+            _tween.SetRelative(false);
             _tween.SetAutoKill(false);
             if (!Application.isPlaying) _tween.SetUpdate(UpdateType.Manual);
-            _tween.Restart();
+            _tween.Play();
         }
 
         public override void Pause()

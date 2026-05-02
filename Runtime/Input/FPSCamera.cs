@@ -54,6 +54,24 @@ namespace Konfus.Input
         [Min(0)]
         private float bobResponse = 12f;
 
+        [Header("Landing Bounce")]
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Maximum camera drop distance on landing.")]
+        private float maxLandingDrop = 0.12f;
+        [SerializeField]
+        [Min(0.01f)]
+        [Tooltip("Air time that maps to full landing bounce intensity.")]
+        private float maxAirTimeForLandingBounce = 0.8f;
+        [SerializeField]
+        [Min(0f)]
+        [Tooltip("Additional landing intensity contributed by impact speed.")]
+        private float landingImpactSpeedWeight = 0.03f;
+        [SerializeField]
+        [Range(0f, 0.5f)]
+        [Tooltip("How quickly the landing bounce settles back to neutral.")]
+        private float landingBounceSmoothing = 0.12f;
+
         [Header("Lean")]
         [SerializeField]
         [Min(0)]
@@ -96,6 +114,9 @@ namespace Konfus.Input
         private CinemachineBasicMultiChannelPerlin? _perlin;
         private float _perlinCurrentAmp;
         private float _perlinCurrentFreq;
+        private float _landingDrop;
+        private float _landingDropVel;
+        private Vector3 _pitchTargetBaseLocalPosition;
 
         // Look smoothing state
         private float _pitch;
@@ -126,9 +147,24 @@ namespace Konfus.Input
             _movePitch = _desiredMovePitch = 0f;
 
             _lastSpeedPos = speedTarget.position;
+            _pitchTargetBaseLocalPosition = pitchTarget.localPosition;
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+
+        private void OnEnable()
+        {
+            if (!_jumping)
+                _jumping = GetComponentInParent<RigidbodyJumping>();
+            if (_jumping)
+                _jumping.Landed += OnLanded;
+        }
+
+        private void OnDisable()
+        {
+            if (_jumping)
+                _jumping.Landed -= OnLanded;
         }
 
         private void LateUpdate()
@@ -140,6 +176,7 @@ namespace Konfus.Input
 
             CalculateRotation(); // includes CalculateLean() using sampled velocity
             SmoothRotation();
+            UpdateLandingBounce();
             ApplyRotation();
 
             UpdateHeadBob();
@@ -152,6 +189,8 @@ namespace Konfus.Input
             if (!_perlin) _perlin = _camera.gameObject.AddComponent<CinemachineBasicMultiChannelPerlin>();
             _perlin.AmplitudeGain = 0f;
             _perlin.FrequencyGain = 0f;
+            if (pitchTarget)
+                _pitchTargetBaseLocalPosition = pitchTarget.localPosition;
         }
 
         public void Look(Vector2 input)
@@ -305,6 +344,7 @@ namespace Konfus.Input
 
             // Apply mouse pitch + movement pitch offset + roll together on pitch pivot.
             pitchTarget.localRotation = Quaternion.Euler(_pitch + _movePitch, 0f, _roll);
+            pitchTarget.localPosition = _pitchTargetBaseLocalPosition + (Vector3.down * _landingDrop);
         }
 
         private void UpdateHeadBob()
@@ -343,6 +383,39 @@ namespace Konfus.Input
 
             _perlin.AmplitudeGain = _perlinCurrentAmp;
             _perlin.FrequencyGain = _perlinCurrentFreq;
+        }
+
+        private void OnLanded(float airTime, float impactSpeed)
+        {
+            float airTime01 = maxAirTimeForLandingBounce > 0f
+                ? Mathf.Clamp01(airTime / maxAirTimeForLandingBounce)
+                : 1f;
+            float impactContribution = impactSpeed * landingImpactSpeedWeight;
+            float landingIntensity = Mathf.Clamp01(airTime01 + impactContribution);
+            float targetDrop = maxLandingDrop * landingIntensity;
+            _landingDrop = Mathf.Max(_landingDrop, targetDrop);
+        }
+
+        private void UpdateLandingBounce()
+        {
+            float dt = Time.deltaTime;
+            if (dt <= 0f)
+                return;
+
+            if (landingBounceSmoothing <= 0f)
+            {
+                _landingDrop = 0f;
+                _landingDropVel = 0f;
+                return;
+            }
+
+            _landingDrop = Mathf.SmoothDamp(
+                _landingDrop,
+                0f,
+                ref _landingDropVel,
+                landingBounceSmoothing,
+                Mathf.Infinity,
+                dt);
         }
 
         private static float NormalizeAngle(float angle)

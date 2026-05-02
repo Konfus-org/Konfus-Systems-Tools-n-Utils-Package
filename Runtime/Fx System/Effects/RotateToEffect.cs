@@ -8,10 +8,10 @@ namespace Konfus.Fx_System.Effects
     public class RotateToEffect : ConfigurableDurationEffect
     {
         [SerializeField]
-        private Vector3 to;
-
-        [SerializeField]
         private Transform? target;
+        
+        [SerializeField]
+        private Transform? to;
 
         [SerializeField]
         private Ease easing = Ease.Linear;
@@ -20,14 +20,14 @@ namespace Konfus.Fx_System.Effects
 
         public override void Play()
         {
-            if (!target)
+            if (!target || !to)
             {
-                Debug.LogWarning($"{nameof(RotateToEffect)} requires a target GameObject");
+                Debug.LogWarning($"{nameof(RotateToEffect)} requires a target GameObject and to GameObject!");
                 return;
             }
 
             _tween?.Kill();
-            _tween = target.DOLocalRotate(to, Duration);
+            _tween = target.DOLocalRotate(to.localEulerAngles, Duration, RotateMode.Fast);
             _tween.SetRelative(false);
             _tween.SetEase(easing);
             _tween.SetAutoKill(false);

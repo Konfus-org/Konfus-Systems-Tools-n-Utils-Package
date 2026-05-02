@@ -5,35 +5,33 @@ using UnityEngine;
 namespace Konfus.Fx_System.Effects
 {
     [Serializable]
-    public class MoveToEffect : ConfigurableDurationEffect
+    public class MoveObjToEffect : ConfigurableDurationEffect
     {
         [SerializeField]
-        private Vector3 position;
+        private Transform? target;
+
+        [SerializeField]
+        private Transform? to;
 
         [SerializeField]
         private Ease easing = Ease.Linear;
 
-        private Transform? _transform;
         private Tween? _tween;
-
-        public override void Initialize(GameObject parentGo)
-        {
-            _transform = parentGo.transform;
-            base.Initialize(parentGo);
-        }
 
         public override void Play()
         {
-            if (!_transform)
+            if (!target || !to)
             {
-                Debug.LogWarning($"{nameof(MoveToEffect)} requires an transform component.");
+                Debug.LogWarning($"{nameof(RotateToEffect)} requires a target GameObject and to GameObject!");
                 return;
             }
 
+            Transform transform = target;
             _tween?.Kill();
-            _tween = _transform.DOLocalMove(position, Duration);
+            _tween = transform.DOLocalMove(to.localPosition, Duration);
             _tween.SetEase(easing);
             _tween.SetAutoKill(false);
+            _tween.SetRelative(false);
             if (!Application.isPlaying) _tween.SetUpdate(UpdateType.Manual);
             _tween.Play();
         }

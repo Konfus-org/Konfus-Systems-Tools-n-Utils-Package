@@ -18,7 +18,7 @@ namespace Konfus.Input
     public sealed class InputActionBinding
     {
         [ReadOnly]
-        public string actionName;
+        public string? actionName;
         
         [SerializeField]
         private InputActionReference? action;

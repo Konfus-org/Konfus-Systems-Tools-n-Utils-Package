@@ -1,4 +1,5 @@
-﻿using Konfus.Sensor_Toolkit;
+﻿using System;
+using Konfus.Sensor_Toolkit;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,6 +9,8 @@ namespace Konfus.Input
     [RequireComponent(typeof(Rigidbody))]
     public class RigidbodyJumping : MonoBehaviour
     {
+        public event Action<float, float>? Landed;
+
         [Header("References")]
         [SerializeField]
         private ScanSensor? groundSensor;
@@ -49,19 +52,56 @@ namespace Konfus.Input
         private float _peakY;
         private Rigidbody? _rb;
         private float _startY;
+        private float _airborneTime;
         private bool _wasGrounded;
+        private bool _isGroundedNow;
+
+        public bool IsJumping => _jumping;
+        public bool IsGroundedNow => _isGroundedNow;
+        public bool HasBufferedJumpNow => HasBufferedJump();
+        public float CoyoteUntil => _coyoteUntil;
+        public float JumpBufferedUntil => _jumpBufferedUntil;
+        public float StartY => _startY;
+        public float PeakY => _peakY;
+        public float JumpHeight01 => _rb ? Mathf.Clamp01(Mathf.InverseLerp(_startY, _peakY, _rb.position.y)) : 0f;
+        public float VerticalVelocity => _rb ? _rb.linearVelocity.y : 0f;
+        public float AirborneTime => _airborneTime;
+
+        private void Awake()
+        {
+            _rb = GetComponent<Rigidbody>();
+            ApplyRigidbodyDefaults();
+        }
+
+        private void Reset()
+        {
+            _rb = GetComponent<Rigidbody>();
+            ApplyRigidbodyDefaults();
+        }
 
         private void FixedUpdate()
         {
             if (!_rb) return;
 
             bool grounded = IsGrounded();
+            _isGroundedNow = grounded;
+            float verticalVelocityBeforeStep = _rb.linearVelocity.y;
 
             JumpFrame frame = new()
             {
                 // Just left ground this frame
                 _coyoteUntil = Time.unscaledTime + coyoteTime;
             }
+
+            if (grounded)
+            {
+                if (!_wasGrounded)
+                    RaiseLanded(verticalVelocityBeforeStep);
+                _airborneTime = 0f;
+            }
+            else
+                _airborneTime += Time.fixedDeltaTime;
+
             _wasGrounded = grounded;
 
             // Consume buffer when we become allowed to jump (grounded OR within coyote)
@@ -97,9 +137,8 @@ namespace Konfus.Input
         private void OnValidate()
         {
             _rb = GetComponent<Rigidbody>();
-            if (!_rb) return;
-            _rb.useGravity = false;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate;
+            ApplyRigidbodyDefaults();
+            _isGroundedNow = false;
         }
 
         /// <summary>
@@ -306,6 +345,18 @@ namespace Konfus.Input
             }
 
             return false;
+        }
+
+        private void ApplyRigidbodyDefaults()
+        {
+            if (!_rb) return;
+            _rb.useGravity = false;
+            _rb.interpolation = RigidbodyInterpolation.Interpolate;
+        }
+
+        private void RaiseLanded(float verticalVelocityBeforeStep)
+        {
+            Landed?.Invoke(_airborneTime, Mathf.Max(0f, -verticalVelocityBeforeStep));
         }
     }
 }
