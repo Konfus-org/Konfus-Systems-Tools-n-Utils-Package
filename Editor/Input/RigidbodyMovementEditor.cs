@@ -170,7 +170,7 @@ namespace Konfus.Editor.Input
 
             bool changed = rigidbody.interpolation != RigidbodyInterpolation.Interpolate ||
                            rigidbody.collisionDetectionMode != CollisionDetectionMode.ContinuousDynamic ||
-                           rigidbody.constraints != RigidbodyConstraints.FreezeRotation;
+                           rigidbody.constraints != (RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ);
 
             if (!changed)
                 return;
@@ -178,7 +178,7 @@ namespace Konfus.Editor.Input
             Undo.RecordObject(rigidbody, "Sync Rigidbody Movement");
             rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
             EditorUtility.SetDirty(rigidbody);
         }
 
@@ -209,9 +209,7 @@ namespace Konfus.Editor.Input
 
             if (!movementReference.objectReferenceValue)
             {
-                FPSCamera fpsCamera = movement.GetComponent<FPSCamera>() ?? movement.GetComponentInChildren<FPSCamera>();
-                Transform reference = fpsCamera && fpsCamera.YawTarget ? fpsCamera.YawTarget : movement.transform;
-                movementReference.objectReferenceValue = reference;
+                movementReference.objectReferenceValue = movement.transform;
                 changed = true;
             }
 

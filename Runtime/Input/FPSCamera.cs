@@ -1,6 +1,5 @@
 ﻿using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Konfus.Input
 {
@@ -112,8 +111,6 @@ namespace Konfus.Input
         private Vector2 _lookInput;
         private float _movePitch;
         private float _movePitchVel;
-        private RigidbodyJumping? _jumping;
-
         private CinemachineBasicMultiChannelPerlin? _perlin;
         private float _perlinCurrentAmp;
         private float _perlinCurrentFreq;
@@ -136,8 +133,6 @@ namespace Konfus.Input
         {
             _camera = GetComponent<CinemachineCamera>();
             _perlin = _camera.GetComponent<CinemachineBasicMultiChannelPerlin>();
-            _jumping = GetComponentInParent<RigidbodyJumping>();
-
             yawTarget ??= transform;
             pitchTarget ??= transform;
             speedTarget ??= yawTarget;
@@ -215,6 +210,21 @@ namespace Konfus.Input
                 input = 0f;
 
             _leanInput = Mathf.Clamp(input, -1f, 1f);
+        }
+
+        /// <summary>
+        /// Landing feedback endpoint for jump systems. Wire RigidbodyJumping's Landed UnityEvent here
+        /// to keep camera effects explicit and independent from the jumping component.
+        /// </summary>
+        public void PlayLandingBounce(float airTime, float impactSpeed)
+        {
+            float airTime01 = maxAirTimeForLandingBounce > 0f
+                ? Mathf.Clamp01(airTime / maxAirTimeForLandingBounce)
+                : 1f;
+            float impactContribution = impactSpeed * landingImpactSpeedWeight;
+            float landingIntensity = Mathf.Clamp01(airTime01 + impactContribution);
+            float targetDrop = maxLandingDrop * landingIntensity;
+            _landingDrop = Mathf.Max(_landingDrop, targetDrop);
         }
 
         private bool IsCursorLocked()

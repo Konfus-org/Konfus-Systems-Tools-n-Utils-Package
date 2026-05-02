@@ -43,8 +43,7 @@ namespace Konfus.Input
         private float steeringMod = 1.5f;
         [SerializeField]
         [Range(0, 1)]
-        [Tooltip("Amount of control when in air (0 = no control, 1 = full control). " +
-                 "This ONLY affects how much new input can steer you; existing momentum is preserved.")]
+        [Tooltip("Amount of control when in air (0 = no control, 1 = full control). Existing momentum is preserved.")]
         private float airControl = 0.5f;
 
         [Header("Grounding")]
@@ -87,6 +86,8 @@ namespace Konfus.Input
         private AnimationCurve decelerationCurve =
             AnimationCurve.EaseInOut(0f, 1f, 1f, 0.6f);
 
+        private readonly MovementStateMachine _stateMachine = new();
+
         private bool _isSprinting;
         private Vector2 _moveInput;
         private Rigidbody? _rigidbody;
@@ -110,7 +111,7 @@ namespace Konfus.Input
         private Vector3 _positionDelta;
 
         public bool IsSprinting => _isSprinting;
-        public bool IsGroundedNow => IsGrounded();
+        public bool IsGroundedNow => _hasGroundContact && _isWalkableGround && !_isAscendingFromGround;
         public Vector3 CurrentHorizontalVelocity => _currentHorizontalVelocity;
         public Vector3 DesiredHorizontalVelocity => _desiredHorizontalVelocity;
         public Vector3 InputDirection => _inputDirectionWorld;
@@ -150,6 +151,12 @@ namespace Konfus.Input
             EnsureCurveHasEndpoints(ref accelerationCurve);
             EnsureCurveHasEndpoints(ref decelerationCurve);
             AutoAssignMovementReference();
+        }
+
+        private void OnValidate()
+        {
+            EnsureCurveHasEndpoints(ref accelerationCurve);
+            EnsureCurveHasEndpoints(ref decelerationCurve);
         }
 
         private void FixedUpdate()
@@ -361,12 +368,90 @@ namespace Konfus.Input
         }
 
         /// <summary>
-        /// Supplies movement input in local X/Z space.
-        /// Expected range: (-1..1) per axis.
+        /// Supplies movement input in local X/Z space. Expected range is -1..1 per axis.
         /// </summary>
         public void Move(Vector2 input)
         {
             _moveInput = Vector2.ClampMagnitude(input, 1f);
+        }
+
+        private void ConfigureStateMachine()
+        {
+            if (_stateMachine.IsConfigured)
+                return;
+
+            // Movement states own only horizontal motor behavior. Jumping is inferred from Rigidbody velocity,
+            // which keeps this component independent from any specific jump implementation.
+            _stateMachine.Configure(
+                new GroundedIdleState(this),
+                new GroundedMoveState(this),
+                new SlidingState(this),
+                new AirborneState(this));
+        }
+
+        private MovementFrame BuildFrame()
+        {
+            Vector3 velocity = _rigidbody ? _rigidbody.linearVelocity : Vector3.zero;
+            bool hasGroundContact = TryGetGroundHit(out GroundHit groundHit);
+            bool walkableGround = hasGroundContact && groundHit.SurfaceAngle <= maxInclineAngle;
+            bool ascendingFromGround = walkableGround && velocity.y > AscendingGroundReleaseVelocity;
+
+            CacheGroundState(hasGroundContact, walkableGround, ascendingFromGround, groundHit);
+
+            Vector3 inputLocal = new(_moveInput.x, 0f, _moveInput.y);
+            inputLocal = Vector3.ClampMagnitude(inputLocal, 1f);
+            _debugMoveInput = _moveInput;
+
+            bool hasInput = inputLocal.sqrMagnitude > InputDeadZone;
+            Vector3 movementPlaneNormal = walkableGround && !ascendingFromGround ? groundHit.Normal : Vector3.up;
+            Vector3 tangentVelocity = walkableGround && !ascendingFromGround
+                ? Vector3.ProjectOnPlane(velocity, movementPlaneNormal)
+                : new Vector3(velocity.x, 0f, velocity.z);
+
+            GetPlanarMovementBasis(out Vector3 referenceRight, out Vector3 referenceForward);
+            Vector3 desiredDirWorld = referenceRight * inputLocal.x + referenceForward * inputLocal.z;
+            Vector3 desiredDirProjected = walkableGround && !ascendingFromGround
+                ? Vector3.ProjectOnPlane(desiredDirWorld, movementPlaneNormal)
+                : Vector3.ProjectOnPlane(desiredDirWorld, Vector3.up);
+            Vector3 desiredDirNorm = desiredDirProjected.sqrMagnitude > InputDeadZone
+                ? desiredDirProjected.normalized
+                : Vector3.zero;
+
+            float sprintModifier = _isSprinting ? sprintMod : 1f;
+            float reverseModifier = inputLocal.z < 0f ? reverseMod : 1f;
+            float targetSpeed = moveSpeed * sprintModifier * reverseModifier;
+
+            float normalizedSpeed = moveSpeed > InputDeadZone ? Mathf.Clamp01(tangentVelocity.magnitude / moveSpeed) : 0f;
+            float accelCurveMul = Mathf.Max(0f, accelerationCurve.Evaluate(normalizedSpeed));
+            float decelCurveMul = Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
+
+            float accelMaxDelta = accelerationRate * accelCurveMul * Time.fixedDeltaTime;
+            float decelMaxDelta = decelerationRate * decelCurveMul * Time.fixedDeltaTime;
+
+            float dot = tangentVelocity.sqrMagnitude > InputDeadZone && desiredDirNorm.sqrMagnitude > InputDeadZone
+                ? Vector3.Dot(tangentVelocity.normalized, desiredDirNorm)
+                : 1f;
+            float steeringFactor = 1f - Mathf.Abs(dot);
+
+            return new MovementFrame
+            {
+                Velocity = velocity,
+                GroundHit = groundHit,
+                HasGroundContact = hasGroundContact,
+                HasWalkableGround = walkableGround && !ascendingFromGround,
+                CanSlide = hasGroundContact && !walkableGround && !ascendingFromGround,
+                HasInput = hasInput,
+                InputLocal = inputLocal,
+                DesiredDirectionWorld = desiredDirWorld,
+                DesiredDirection = desiredDirNorm,
+                MovementPlaneNormal = movementPlaneNormal,
+                TangentVelocity = tangentVelocity,
+                TargetSpeed = targetSpeed,
+                AccelMaxDelta = accelMaxDelta,
+                DecelMaxDelta = decelMaxDelta,
+                IsBraking = dot < 0f,
+                SteerBoost = Mathf.Lerp(1f, steeringMod, steeringFactor)
+            };
         }
 
         private static void EnsureCurveHasEndpoints(ref AnimationCurve curve)
@@ -512,11 +597,7 @@ namespace Konfus.Input
             if (movementReference)
                 return;
 
-            var fpsCamera = GetComponent<FPSCamera>();
-            if (!fpsCamera)
-                fpsCamera = GetComponentInChildren<FPSCamera>();
-
-            movementReference = fpsCamera ? fpsCamera.YawTarget : transform;
+            movementReference = transform;
         }
 
         private void GetPlanarMovementBasis(out Vector3 right, out Vector3 forward)
@@ -524,9 +605,9 @@ namespace Konfus.Input
             Transform reference = movementReference ? movementReference : transform;
 
             forward = Vector3.ProjectOnPlane(reference.forward, Vector3.up);
-            if (forward.sqrMagnitude <= 0.0001f)
+            if (forward.sqrMagnitude <= InputDeadZone)
                 forward = Vector3.ProjectOnPlane(reference.up, Vector3.up);
-            if (forward.sqrMagnitude <= 0.0001f)
+            if (forward.sqrMagnitude <= InputDeadZone)
                 forward = transform.forward;
 
             forward.Normalize();
@@ -540,6 +621,165 @@ namespace Konfus.Input
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        }
+
+        private struct GroundHit
+        {
+            public Vector3 Point;
+            public Vector3 Normal;
+            public float SurfaceAngle;
+        }
+
+        private struct MovementFrame
+        {
+            public Vector3 Velocity;
+            public GroundHit GroundHit;
+            public bool HasGroundContact;
+            public bool HasWalkableGround;
+            public bool CanSlide;
+            public bool HasInput;
+            public Vector3 InputLocal;
+            public Vector3 DesiredDirectionWorld;
+            public Vector3 DesiredDirection;
+            public Vector3 MovementPlaneNormal;
+            public Vector3 TangentVelocity;
+            public float TargetSpeed;
+            public float AccelMaxDelta;
+            public float DecelMaxDelta;
+            public bool IsBraking;
+            public float SteerBoost;
+        }
+
+        private abstract class MovementState
+        {
+            protected MovementState(RigidbodyMovement movement, MovementStateId id)
+            {
+                Movement = movement;
+                Id = id;
+            }
+
+            protected RigidbodyMovement Movement { get; }
+            public MovementStateId Id { get; protected set; }
+
+            public virtual void Enter()
+            {
+            }
+
+            public abstract void FixedTick(MovementFrame frame);
+        }
+
+        private sealed class GroundedIdleState : MovementState
+        {
+            public GroundedIdleState(RigidbodyMovement movement) : base(movement, MovementStateId.GroundedIdle)
+            {
+            }
+
+            public override void FixedTick(MovementFrame frame)
+            {
+                Movement.ApplyGroundedIdle(frame);
+            }
+        }
+
+        private sealed class GroundedMoveState : MovementState
+        {
+            public GroundedMoveState(RigidbodyMovement movement) : base(movement, MovementStateId.GroundedMove)
+            {
+            }
+
+            public override void FixedTick(MovementFrame frame)
+            {
+                Movement.ApplyGroundedMove(frame);
+            }
+        }
+
+        private sealed class SlidingState : MovementState
+        {
+            public SlidingState(RigidbodyMovement movement) : base(movement, MovementStateId.Sliding)
+            {
+            }
+
+            public override void FixedTick(MovementFrame frame)
+            {
+                Movement.ApplySliding(frame);
+            }
+        }
+
+        private sealed class AirborneState : MovementState
+        {
+            public AirborneState(RigidbodyMovement movement) : base(movement, MovementStateId.AirborneIdle)
+            {
+            }
+
+            public void SetId(MovementStateId id)
+            {
+                Id = id;
+            }
+
+            public override void FixedTick(MovementFrame frame)
+            {
+                Movement.ApplyAirborne(frame);
+            }
+        }
+
+        private sealed class MovementStateMachine
+        {
+            private GroundedIdleState? _groundedIdle;
+            private GroundedMoveState? _groundedMove;
+            private SlidingState? _sliding;
+            private AirborneState? _airborne;
+            private MovementState? _currentState;
+
+            public bool IsConfigured { get; private set; }
+            public MovementStateId CurrentStateId => _currentState?.Id ?? MovementStateId.AirborneIdle;
+
+            public void Configure(
+                GroundedIdleState groundedIdle,
+                GroundedMoveState groundedMove,
+                SlidingState sliding,
+                AirborneState airborne)
+            {
+                _groundedIdle = groundedIdle;
+                _groundedMove = groundedMove;
+                _sliding = sliding;
+                _airborne = airborne;
+                _currentState = airborne;
+                IsConfigured = true;
+            }
+
+            public void Tick(MovementFrame frame)
+            {
+                if (!IsConfigured)
+                    return;
+
+                MovementState nextState = SelectState(frame);
+                if (nextState != _currentState)
+                {
+                    _currentState = nextState;
+                    _currentState.Enter();
+                }
+
+                _currentState.FixedTick(frame);
+            }
+
+            private MovementState SelectState(MovementFrame frame)
+            {
+                if (frame.HasWalkableGround)
+                    return frame.HasInput ? _groundedMove! : _groundedIdle!;
+
+                if (frame.CanSlide)
+                    return _sliding!;
+
+                if (frame.HasInput)
+                    return AirborneWithId(MovementStateId.AirborneMove);
+
+                return AirborneWithId(MovementStateId.AirborneIdle);
+            }
+
+            private MovementState AirborneWithId(MovementStateId id)
+            {
+                _airborne!.SetId(id);
+                return _airborne!;
+            }
         }
     }
 }
