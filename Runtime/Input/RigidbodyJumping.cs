@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using Konfus.Sensor_Toolkit;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
+using SensorHit = Konfus.Sensor_Toolkit.Sensor.Hit;
 
 namespace Konfus.Input
 {
@@ -9,6 +11,8 @@ namespace Konfus.Input
     [RequireComponent(typeof(Rigidbody))]
     public class RigidbodyJumping : MonoBehaviour
     {
+        private const float GroundedVerticalVelocityThreshold = 0.05f;
+
         public event Action<float, float>? Landed;
 
         [Header("References")]
@@ -20,22 +24,22 @@ namespace Konfus.Input
         [Min(0)]
         [Tooltip("Max jump height in meters")]
         private float maxJumpHeight = 0.5f;
-        [Tooltip("Scales overall gravity strength (1 = normal Unity gravity)")]
         [SerializeField]
+        [Tooltip("Scales overall gravity strength (1 = normal Unity gravity)")]
         [Min(0)]
         private float gravityMultiplier = 2.0f;
-        [Tooltip("Gravity shaping curve over jump phase (0..1)")]
         [SerializeField]
+        [Tooltip("Gravity shaping curve over jump phase (0..1)")]
         private AnimationCurve jumpCurve = new(
             new Keyframe(0f, 0f), new Keyframe(0.5f, 1f), new Keyframe(1f, 0f));
 
         [Header("Forgiveness")]
-        [Tooltip("Press jump up to this many seconds before landing to buffer the jump")]
         [SerializeField]
+        [Tooltip("Press jump up to this many seconds before landing to buffer the jump")]
         [Min(0)]
         private float jumpBufferTime = 0.1f;
-        [Tooltip("After leaving the ground, you can still jump for this many seconds")]
         [SerializeField]
+        [Tooltip("After leaving the ground, you can still jump for this many seconds")]
         [Min(0)]
         private float coyoteTime = 0.1f;
 
@@ -43,8 +47,6 @@ namespace Konfus.Input
         [SerializeField]
         [Tooltip("Explicit landing feedback hook. Wire this to FPSCamera.PlayLandingBounce if the camera should react to landing.")]
         private LandingEvent landed = new();
-
-        private readonly JumpStateMachine _stateMachine = new();
 
         private float _coyoteUntil;
         private float _jumpBufferedUntil;
@@ -55,17 +57,7 @@ namespace Konfus.Input
         private float _airborneTime;
         private bool _wasGrounded;
         private bool _isGroundedNow;
-
-        public bool IsJumping => _jumping;
-        public bool IsGroundedNow => _isGroundedNow;
-        public bool HasBufferedJumpNow => HasBufferedJump();
-        public float CoyoteUntil => _coyoteUntil;
-        public float JumpBufferedUntil => _jumpBufferedUntil;
-        public float StartY => _startY;
-        public float PeakY => _peakY;
-        public float JumpHeight01 => _rb ? Mathf.Clamp01(Mathf.InverseLerp(_startY, _peakY, _rb.position.y)) : 0f;
-        public float VerticalVelocity => _rb ? _rb.linearVelocity.y : 0f;
-        public float AirborneTime => _airborneTime;
+        private JumpStateId _currentState = JumpStateId.Airborne;
 
         private void Awake()
         {
@@ -79,67 +71,32 @@ namespace Konfus.Input
             ApplyRigidbodyDefaults();
         }
 
-        private void FixedUpdate()
-        {
-            if (!_rb) return;
-
-            bool grounded = IsGrounded();
-            _isGroundedNow = grounded;
-            float verticalVelocityBeforeStep = _rb.linearVelocity.y;
-
-            JumpFrame frame = new()
-            {
-                // Just left ground this frame
-                _coyoteUntil = Time.unscaledTime + coyoteTime;
-            }
-
-            if (grounded)
-            {
-                if (!_wasGrounded)
-                    RaiseLanded(verticalVelocityBeforeStep);
-                _airborneTime = 0f;
-            }
-            else
-                _airborneTime += Time.fixedDeltaTime;
-
-            _wasGrounded = grounded;
-
-            // Consume buffer when we become allowed to jump (grounded OR within coyote)
-            if (!_jumping && HasBufferedJump() && CanJumpNow(grounded))
-            {
-                ConsumeBufferedJump();
-                PerformJump();
-                grounded = false; // we just jumped; prevents early returns below
-            }
-
-            // If grounded and not jumping, no custom gravity needed.
-            if (!_jumping && grounded)
-                return;
-
-            // Hard cap peak height.
-            if (_jumping && _rb.position.y >= _peakY && _rb.linearVelocity.y > 0f)
-            {
-                Vector3 v = _rb.linearVelocity;
-                v.y = 0f;
-                _rb.linearVelocity = v;
-            }
-
-            ApplyCurveGravity();
-
-            // End jump state once falling and near peak region.
-            if (_jumping && _rb.linearVelocity.y <= 0f && _rb.position.y >= _peakY - 0.01f)
-                _jumping = false;
-
-            // If we land, reset.
-            if (grounded && _rb.linearVelocity.y <= 0f) _jumping = false;
-        }
-
         private void OnValidate()
         {
             _rb = GetComponent<Rigidbody>();
             ApplyRigidbodyDefaults();
             _isGroundedNow = false;
         }
+
+        private void FixedUpdate()
+        {
+            if (!_rb) return;
+
+            UpdateGrounding();
+            TickJump(BuildFrame());
+        }
+
+        public bool IsJumping => _jumping;
+        public bool IsGroundedNow => _isGroundedNow;
+        public bool HasBufferedJumpNow => HasBufferedJump();
+        public JumpStateId CurrentState => _currentState;
+        public float CoyoteUntil => _coyoteUntil;
+        public float JumpBufferedUntil => _jumpBufferedUntil;
+        public float StartY => _startY;
+        public float PeakY => _peakY;
+        public float JumpHeight01 => _rb ? Mathf.Clamp01(Mathf.InverseLerp(_startY, _peakY, _rb.position.y)) : 0f;
+        public float VerticalVelocity => _rb ? _rb.linearVelocity.y : 0f;
+        public float AirborneTime => _airborneTime;
 
         /// <summary>
         /// Buffers a jump press and performs it immediately when the current state allows it.
@@ -152,7 +109,6 @@ namespace Konfus.Input
             {
                 ConsumeBufferedJump();
                 PerformJump();
-                _stateMachine.ForceState(JumpStateId.Jumping);
                 _currentState = JumpStateId.Jumping;
             }
         }
@@ -173,25 +129,69 @@ namespace Konfus.Input
             _rb.linearVelocity = velocity;
         }
 
-        private void ConfigureStateMachine()
+        private JumpFrame BuildFrame()
         {
-            if (_stateMachine.IsConfigured)
-                return;
+            return new JumpFrame
+            {
+                Grounded = _isGroundedNow,
+                HasBufferedJump = HasBufferedJump(),
+                CanJump = CanJumpNow(_isGroundedNow),
+                IsJumping = _jumping
+            };
+        }
 
-            // Jump states own vertical motion only. Movement and camera effects consume public state/events instead
-            // of being queried directly from here.
-            _stateMachine.Configure(
-                new GroundedJumpState(this),
-                new JumpingJumpState(this),
-                new AirborneJumpState(this));
+        private void TickJump(JumpFrame frame)
+        {
+            _currentState = SelectState(frame);
+
+            switch (_currentState)
+            {
+                case JumpStateId.Grounded:
+                    TryConsumeBufferedJump(frame);
+                    break;
+                case JumpStateId.Jumping:
+                    TickJumping();
+                    break;
+                case JumpStateId.Airborne:
+                    TickAirborne(frame);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void HandleJump(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+            {
+                StartJump();
+            }
+            else if (ctx.canceled)
+            {
+                StopJump();
+            }
+        }
+
+        private JumpStateId SelectState(JumpFrame frame)
+        {
+            if (frame.IsJumping)
+                return JumpStateId.Jumping;
+
+            if (frame.Grounded)
+                return JumpStateId.Grounded;
+
+            return JumpStateId.Airborne;
         }
 
         private void UpdateGrounding()
         {
+            Rigidbody? rb = _rb;
+            if (rb == null) return;
+
             bool sensorGrounded = IsGrounded();
-            bool grounded = sensorGrounded && !_jumping && _rb!.linearVelocity.y <= GroundedVerticalVelocityThreshold;
+            bool grounded = sensorGrounded && !_jumping && rb.linearVelocity.y <= GroundedVerticalVelocityThreshold;
             _isGroundedNow = grounded;
-            float verticalVelocityBeforeStep = _rb.linearVelocity.y;
+            float verticalVelocityBeforeStep = rb.linearVelocity.y;
 
             if (grounded)
                 _coyoteUntil = Time.unscaledTime + coyoteTime;
@@ -224,7 +224,6 @@ namespace Konfus.Input
 
             ConsumeBufferedJump();
             PerformJump();
-            _stateMachine.ForceState(JumpStateId.Jumping);
             _currentState = JumpStateId.Jumping;
         }
 
@@ -335,7 +334,7 @@ namespace Konfus.Input
             if (!groundSensor || !groundSensor.Scan() || groundSensor.Hits == null)
                 return false;
 
-            foreach (Sensor.Hit hit in groundSensor.Hits)
+            foreach (SensorHit hit in groundSensor.Hits)
             {
                 if (!hit.GameObject || hit.GameObject == gameObject || hit.GameObject.transform.IsChildOf(transform))
                     continue;
@@ -350,13 +349,36 @@ namespace Konfus.Input
         private void ApplyRigidbodyDefaults()
         {
             if (!_rb) return;
+
             _rb.useGravity = false;
             _rb.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
         private void RaiseLanded(float verticalVelocityBeforeStep)
         {
-            Landed?.Invoke(_airborneTime, Mathf.Max(0f, -verticalVelocityBeforeStep));
+            float impactSpeed = Mathf.Max(0f, -verticalVelocityBeforeStep);
+            Landed?.Invoke(_airborneTime, impactSpeed);
+            landed.Invoke(_airborneTime, impactSpeed);
+        }
+
+        public enum JumpStateId
+        {
+            Grounded,
+            Jumping,
+            Airborne
+        }
+
+        [Serializable]
+        public sealed class LandingEvent : UnityEvent<float, float>
+        {
+        }
+        
+        private struct JumpFrame
+        {
+            public bool Grounded;
+            public bool HasBufferedJump;
+            public bool CanJump;
+            public bool IsJumping;
         }
     }
 }

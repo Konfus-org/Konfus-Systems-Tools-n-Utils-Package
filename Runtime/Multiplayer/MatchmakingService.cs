@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Konfus.Utility.Extensions;
 using Unity.Services.Authentication;
-using Unity.Services.Lobbies.Models;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
@@ -16,8 +14,6 @@ namespace Konfus.Multiplayer
         private const string PlayerNameKey = "playerName";
 
         public static ISession? ActiveSession { get; private set; }
-
-        public static event Action<Lobby>? CurrentLobbyRefreshed;
 
         public static async Task<Dictionary<string, PlayerProperty>> GetPlayerProperties()
         {

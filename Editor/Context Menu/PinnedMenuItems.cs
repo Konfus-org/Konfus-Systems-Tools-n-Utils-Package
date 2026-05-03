@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Konfus.Editor.Automation;
@@ -13,28 +14,37 @@ namespace Konfus.Editor.Context_Menu
     //[InitializeOnLoad]
     internal class PinnedMenuItems
     {
+        private const bool Disabled = true;
         private const string GeneratedSuffix = "_PinnedMenuItem";
 
-        [MenuItem("Tools/Konfus/Pinned/Edit", priority = -2)]
+        //[MenuItem("Tools/Konfus/Pinned/Edit", priority = -2)]
         private static void OpenWindow()
         {
+            if (Disabled) return;
             ContextMenuPinnedItemsWindow.ShowWindow();
         }
 
-        [MenuItem("Tools/Konfus/Pinned/Regenerate Menu Items", priority = 1)]
+        //[MenuItem("Tools/Konfus/Pinned/Regenerate Menu Items", priority = 1)]
         private static void GenerateContextMenuItems()
         {
             GenerateContextMenuItems(true);
         }
 
-        [MenuItem("Assets/Pinned/Edit", priority = -2)]
+        //[MenuItem("Assets/Pinned/Edit", priority = -2)]
         private static void OpenContext()
         {
+            if (Disabled) return;
             ContextMenuPinnedItemsWindow.ShowWindow();
         }
 
         public static void GenerateContextMenuItems(bool promptToDelete)
         {
+            if (Disabled)
+            {
+                ProjectManager.TryDeleteBySuffix(GeneratedSuffix, ProjectManager.EditorGeneratedCodePath, false);
+                return;
+            }
+
             List<MenuItemReflection.MenuItemInfo> pinnedItems =
                 ProjectSettings.LoadPinnedItems(MenuItemReflection.GetAllMenuItems());
             if (pinnedItems.IsNullOrEmpty()) return;
@@ -148,6 +158,7 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
 
             public static void ShowWindow()
             {
+                if (Disabled) return;
                 var w = GetWindow<ContextMenuPinnedItemsWindow>("Pinned Context Menu Items");
                 w.minSize = new Vector2(150, 100);
             }
@@ -175,3 +186,4 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
         }
     }
 }
+*/

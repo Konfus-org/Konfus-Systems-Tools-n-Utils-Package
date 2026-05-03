@@ -1,5 +1,7 @@
-﻿using Konfus.Sensor_Toolkit;
+using Konfus.Sensor_Toolkit;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using SensorHit = Konfus.Sensor_Toolkit.Sensor.Hit;
 
 namespace Konfus.Input
 {
@@ -8,20 +10,15 @@ namespace Konfus.Input
     [RequireComponent(typeof(CapsuleCollider))]
     public class RigidbodyMovement : MonoBehaviour
     {
-        public enum MovementDebugState
-        {
-            GroundedIdle,
-            GroundedMove,
-            Sliding,
-            AirIdle,
-            AirMove
-        }
+        private const float InputDeadZone = 0.0001f;
+        private const float AscendingGroundReleaseVelocity = 0.05f;
+        private const float DynamicSupportContactUpDotThreshold = 0.25f;
 
         [Header("References")]
         [SerializeField]
         private ScanSensor? groundSensor;
         [SerializeField]
-        [Tooltip("Planar facing reference used to convert move input into world space. Defaults to this transform or the FPS camera yaw target when available.")]
+        [Tooltip("Planar facing reference used to convert move input into world space. Defaults to this transform.")]
         private Transform? movementReference;
 
         [Header("Speed & Modifiers")]
@@ -67,74 +64,58 @@ namespace Konfus.Input
         [Min(0.05f)]
         [Tooltip("Forward distance used to probe for step-ups.")]
         private float stepCheckDistance = 0.4f;
+        [SerializeField]
+        [Range(0.01f, 1f)]
+        [Tooltip("Scales the player's rigidbody mass while the ground sensor is on a dynamic rigidbody platform to reduce force transfer into movable objects.")]
+        private float dynamicGroundMassMultiplier = 0.01f;
 
         [Header("Acceleration & Deceleration")]
-        [Tooltip("Max horizontal acceleration rate in m/s²")]
         [SerializeField]
+        [Tooltip("Max horizontal acceleration rate in m/s²")]
         [Min(1)]
         private float accelerationRate = 35f;
-        [Tooltip("Max horizontal deceleration rate in m/s²")]
         [SerializeField]
+        [Tooltip("Max horizontal deceleration rate in m/s²")]
         [Min(1)]
         private float decelerationRate = 45f;
-        [Tooltip("X = normalized speed 0..1, Y = multiplier")]
         [SerializeField]
-        private AnimationCurve accelerationCurve =
-            AnimationCurve.EaseInOut(0f, 1f, 1f, 0.2f);
         [Tooltip("X = normalized speed 0..1, Y = multiplier")]
+        private AnimationCurve accelerationCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0.2f);
         [SerializeField]
-        private AnimationCurve decelerationCurve =
-            AnimationCurve.EaseInOut(0f, 1f, 1f, 0.6f);
-
-        private readonly MovementStateMachine _stateMachine = new();
+        [Tooltip("X = normalized speed 0..1, Y = multiplier")]
+        private AnimationCurve decelerationCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0.6f);
 
         private bool _isSprinting;
         private Vector2 _moveInput;
         private Rigidbody? _rigidbody;
         private CapsuleCollider? _capsuleCollider;
-        private RigidbodyJumping? _jumping;
 
         private Vector3 _currentHorizontalVelocity;
         private Vector3 _desiredHorizontalVelocity;
         private Vector3 _inputDirectionWorld;
         private Vector3 _resultingHorizontalVelocity;
+        private float _baseMass = 1f;
         private bool _hasGroundContact;
         private bool _isWalkableGround;
-        private bool _isJumpingNow;
+        private bool _isAscendingFromGround;
+        private bool _isStandingOnDynamicBody;
         private float _groundSurfaceAngle;
-        private Vector3 _groundNormal;
+        private Vector3 _groundNormal = Vector3.up;
         private Vector3 _groundPoint;
         private Vector2 _debugMoveInput;
-        private MovementDebugState _debugState;
+        private MovementStateId _currentState = MovementStateId.AirborneIdle;
         private Vector3 _lastAppliedVelocity;
         private Vector3 _lastPosition;
         private Vector3 _positionDelta;
-
-        public bool IsSprinting => _isSprinting;
-        public bool IsGroundedNow => _hasGroundContact && _isWalkableGround && !_isAscendingFromGround;
-        public Vector3 CurrentHorizontalVelocity => _currentHorizontalVelocity;
-        public Vector3 DesiredHorizontalVelocity => _desiredHorizontalVelocity;
-        public Vector3 InputDirection => _inputDirectionWorld;
-        public Vector3 HorizontalVelocity => _resultingHorizontalVelocity;
-        public bool HasGroundContact => _hasGroundContact;
-        public bool IsWalkableGround => _isWalkableGround;
-        public bool IsJumpingNow => _isJumpingNow;
-        public float GroundSurfaceAngle => _groundSurfaceAngle;
-        public Vector3 GroundNormal => _groundNormal;
-        public Vector3 GroundPoint => _groundPoint;
-        public Vector2 MoveInput => _debugMoveInput;
-        public MovementDebugState DebugState => _debugState;
-        public float MaxInclineAngle => maxInclineAngle;
-        public Vector3 LastAppliedVelocity => _lastAppliedVelocity;
-        public Vector3 RawLinearVelocity => _rigidbody ? _rigidbody.linearVelocity : Vector3.zero;
-        public Vector3 PositionDelta => _positionDelta;
+        private bool _hasDynamicSupportCollision;
 
         private void Awake()
         {
             _rigidbody = GetComponent<Rigidbody>();
             _capsuleCollider = GetComponent<CapsuleCollider>();
-            _jumping = GetComponent<RigidbodyJumping>();
             _lastPosition = transform.position;
+            _baseMass = _rigidbody ? _rigidbody.mass : 1f;
+
             ApplyRigidbodyDefaults();
             EnsureCurveHasEndpoints(ref accelerationCurve);
             EnsureCurveHasEndpoints(ref decelerationCurve);
@@ -145,8 +126,9 @@ namespace Konfus.Input
         {
             _rigidbody = GetComponent<Rigidbody>();
             _capsuleCollider = GetComponent<CapsuleCollider>();
-            _jumping = GetComponent<RigidbodyJumping>();
             _lastPosition = transform.position;
+            _baseMass = _rigidbody ? _rigidbody.mass : 1f;
+
             ApplyRigidbodyDefaults();
             EnsureCurveHasEndpoints(ref accelerationCurve);
             EnsureCurveHasEndpoints(ref decelerationCurve);
@@ -166,196 +148,44 @@ namespace Konfus.Input
             _positionDelta = _rigidbody.position - _lastPosition;
             _lastPosition = _rigidbody.position;
 
-            bool hasGroundContact = TryGetGroundHit(out GroundHit groundHit);
-            bool walkableGround = hasGroundContact && groundHit.SurfaceAngle <= maxInclineAngle;
-            bool jumping = _jumping && _jumping.IsJumping;
-            CacheGroundDebugState(hasGroundContact, walkableGround, jumping, groundHit);
-            Vector3 v = _rigidbody.linearVelocity;
-            Vector3 movementPlaneNormal = walkableGround ? groundHit.Normal : Vector3.up;
-            Vector3 tangentVelocity = walkableGround ? Vector3.ProjectOnPlane(v, movementPlaneNormal) : new Vector3(v.x, 0f, v.z);
-            float tangentSpeed = tangentVelocity.magnitude;
+            bool hasDynamicSupportCollision = _hasDynamicSupportCollision;
+            _hasDynamicSupportCollision = false;
 
-            var inputLocal = new Vector3(_moveInput.x, 0f, _moveInput.y);
-            inputLocal = Vector3.ClampMagnitude(inputLocal, 1f);
-            bool hasInput = inputLocal.sqrMagnitude > 0.0001f;
-            _debugMoveInput = _moveInput;
-
-            // Local -> World direction using a planar facing reference so movement matches FPS yaw.
-            GetPlanarMovementBasis(out Vector3 referenceRight, out Vector3 referenceForward);
-            Vector3 desiredDirWorld = (referenceRight * inputLocal.x) + (referenceForward * inputLocal.z);
-            Vector3 desiredDirProjected = walkableGround
-                ? Vector3.ProjectOnPlane(desiredDirWorld, movementPlaneNormal)
-                : desiredDirWorld;
-            Vector3 desiredDirNorm = desiredDirProjected.sqrMagnitude > 0.0001f ? desiredDirProjected.normalized : Vector3.zero;
-
-            // Speed modifiers
-            float sprintModifier = _isSprinting ? sprintMod : 1f;
-            float reverseModifier = inputLocal.z < 0f ? reverseMod : 1f;
-            float targetSpeed = moveSpeed * sprintModifier * reverseModifier;
-
-            // Curves -> per-tick delta-V budgets
-            float normalizedSpeed = moveSpeed > 0.0001f ? Mathf.Clamp01(tangentSpeed / moveSpeed) : 0f;
-
-            float accelCurveMul = Mathf.Max(0f, accelerationCurve.Evaluate(normalizedSpeed));
-            float decelCurveMul = Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
-
-            float accelMaxDelta = accelerationRate * accelCurveMul * Time.fixedDeltaTime;
-            float decelMaxDelta = decelerationRate * decelCurveMul * Time.fixedDeltaTime;
-
-            // Steering context (used by both branches when input exists)
-            float dot = tangentVelocity.sqrMagnitude > 0.0001f && desiredDirNorm.sqrMagnitude > 0.0001f
-                ? Vector3.Dot(tangentVelocity.normalized, desiredDirNorm)
-                : 1f;
-
-            bool braking = dot < 0f;
-            float steeringFactor = 1f - Mathf.Abs(dot); // 0 aligned, 1 perpendicular
-            float steerBoost = Mathf.Lerp(1f, steeringMod, steeringFactor);
-
-            if (walkableGround && !jumping && hasInput)
-            {
-                TryStepUp(desiredDirNorm, groundHit);
-                hasGroundContact = TryGetGroundHit(out groundHit);
-                walkableGround = hasGroundContact && groundHit.SurfaceAngle <= maxInclineAngle;
-                CacheGroundDebugState(hasGroundContact, walkableGround, jumping, groundHit);
-                movementPlaneNormal = walkableGround ? groundHit.Normal : Vector3.up;
-                v = _rigidbody.linearVelocity;
-                tangentVelocity = walkableGround ? Vector3.ProjectOnPlane(v, movementPlaneNormal) : new Vector3(v.x, 0f, v.z);
-                desiredDirProjected = walkableGround ? Vector3.ProjectOnPlane(desiredDirWorld, movementPlaneNormal) : desiredDirWorld;
-                desiredDirNorm = desiredDirProjected.sqrMagnitude > 0.0001f ? desiredDirProjected.normalized : Vector3.zero;
-                dot = tangentVelocity.sqrMagnitude > 0.0001f && desiredDirNorm.sqrMagnitude > 0.0001f
-                    ? Vector3.Dot(tangentVelocity.normalized, desiredDirNorm)
-                    : 1f;
-                braking = dot < 0f;
-                steeringFactor = 1f - Mathf.Abs(dot);
-                steerBoost = Mathf.Lerp(1f, steeringMod, steeringFactor);
-            }
-
-            switch (walkableGround && !jumping)
-            {
-                case true when !hasInput: // Grounded + no input => friction/brake to stop
-                {
-                    Vector3 newTangent = Vector3.MoveTowards(tangentVelocity, Vector3.zero, decelMaxDelta);
-                    _rigidbody.linearVelocity = ComposeGroundVelocity(newTangent, v, movementPlaneNormal);
-                    _lastAppliedVelocity = _rigidbody.linearVelocity;
-
-                    _currentHorizontalVelocity = tangentVelocity;
-                    _desiredHorizontalVelocity = Vector3.zero;
-                    _inputDirectionWorld = Vector3.zero;
-                    _resultingHorizontalVelocity = newTangent;
-                    _debugState = MovementDebugState.GroundedIdle;
-                    break;
-                }
-                case true when hasInput: // Grounded + input => move toward desired velocity (direction * targetSpeed)
-                {
-                    Vector3 desiredVel = desiredDirNorm * (targetSpeed * inputLocal.magnitude);
-                    float maxDeltaV = braking ? decelMaxDelta : accelMaxDelta * steerBoost;
-
-                    Vector3 newGroundTangent = Vector3.MoveTowards(tangentVelocity, desiredVel, maxDeltaV);
-                    _rigidbody.linearVelocity = ComposeGroundVelocity(newGroundTangent, v, movementPlaneNormal);
-                    _lastAppliedVelocity = _rigidbody.linearVelocity;
-
-                    _currentHorizontalVelocity = tangentVelocity;
-                    _desiredHorizontalVelocity = desiredVel;
-                    _inputDirectionWorld = desiredDirNorm;
-                    _resultingHorizontalVelocity = newGroundTangent;
-                    _debugState = MovementDebugState.GroundedMove;
-                    break;
-                }
-                case false when hasGroundContact && !jumping: // Too steep => slide down slope while preserving player steering lockout
-                {
-                    Vector3 slopeTangent = Vector3.ProjectOnPlane(Vector3.down, groundHit.Normal).normalized;
-                    Vector3 slideVelocity = tangentVelocity + (slopeTangent * (slopeSlideAcceleration * Time.fixedDeltaTime));
-                    float downwardBias = groundStickVelocity * Time.fixedDeltaTime;
-                    _rigidbody.linearVelocity = new Vector3(slideVelocity.x, Mathf.Min(v.y, -downwardBias), slideVelocity.z);
-                    _lastAppliedVelocity = _rigidbody.linearVelocity;
-
-                    _currentHorizontalVelocity = tangentVelocity;
-                    _desiredHorizontalVelocity = Vector3.zero;
-                    _inputDirectionWorld = Vector3.zero;
-                    _resultingHorizontalVelocity = slideVelocity;
-                    _debugState = MovementDebugState.Sliding;
-                    break;
-                }
-                case false when !hasInput: // Airborne + no input => preserve momentum (no artificial drag)
-                {
-                    _currentHorizontalVelocity = tangentVelocity;
-                    _desiredHorizontalVelocity = Vector3.zero;
-                    _inputDirectionWorld = Vector3.zero;
-                    _resultingHorizontalVelocity = tangentVelocity;
-                    _lastAppliedVelocity = _rigidbody.linearVelocity;
-                    _debugState = MovementDebugState.AirIdle;
-                    break;
-                }
-                default: // Airborne + input => steer toward desired direction using airControl
-                {
-                    Vector3 airHorizontal = new Vector3(v.x, 0f, v.z);
-                    float airHorizontalSpeed = airHorizontal.magnitude;
-                    Vector3 airDesiredDir = Vector3.ProjectOnPlane(desiredDirWorld, Vector3.up);
-                    if (airDesiredDir.sqrMagnitude > 0.0001f)
-                        airDesiredDir.Normalize();
-                    else
-                        airDesiredDir = desiredDirNorm;
-                    Vector3 desiredAirVelocity = airDesiredDir * (targetSpeed * inputLocal.magnitude);
-
-                    if (airControl <= 0.0001f || airDesiredDir == Vector3.zero)
-                    {
-                        _currentHorizontalVelocity = airHorizontal;
-                        _desiredHorizontalVelocity = desiredAirVelocity;
-                        _inputDirectionWorld = airDesiredDir;
-                        _resultingHorizontalVelocity = airHorizontal;
-                        _lastAppliedVelocity = _rigidbody.linearVelocity;
-                        _debugState = MovementDebugState.AirIdle;
-                        return;
-                    }
-
-                    if (airHorizontal.sqrMagnitude <= 0.0001f)
-                    {
-                        Vector3 newAirHorizFromRest = Vector3.MoveTowards(
-                            airHorizontal,
-                            desiredAirVelocity,
-                            accelMaxDelta * airControl);
-
-                        _rigidbody.linearVelocity = new Vector3(newAirHorizFromRest.x, v.y, newAirHorizFromRest.z);
-                        _lastAppliedVelocity = _rigidbody.linearVelocity;
-
-                        _currentHorizontalVelocity = airHorizontal;
-                        _desiredHorizontalVelocity = desiredAirVelocity;
-                        _inputDirectionWorld = airDesiredDir;
-                        _resultingHorizontalVelocity = newAirHorizFromRest;
-                        _debugState = MovementDebugState.AirMove;
-                        break;
-                    }
-
-                    // Airborne steering:
-                    // - preserve horizontal speed
-                    // - rotate current velocity direction toward desired input direction
-                    // - allow a bit of acceleration up to targetSpeed, but never force decel in air
-                    float airDot = airHorizontal.sqrMagnitude > 0.0001f && desiredDirNorm.sqrMagnitude > 0.0001f
-                        ? Vector3.Dot(airHorizontal.normalized, desiredDirNorm)
-                        : 1f;
-                    bool airBraking = airDot < 0f;
-                    float maxDeltaVAir = (airBraking ? decelMaxDelta : accelMaxDelta) * airControl * steerBoost;
-                    float maxAngleRad = airHorizontalSpeed > 0.25f ? maxDeltaVAir / airHorizontalSpeed : 999f;
-
-                    Vector3 newDir = Vector3.RotateTowards(airHorizontal.normalized, airDesiredDir, maxAngleRad, 0f);
-
-                    float newSpeed = airHorizontalSpeed;
-                    if (airHorizontalSpeed < targetSpeed)
-                        newSpeed = Mathf.Min(targetSpeed, airHorizontalSpeed + accelMaxDelta * airControl);
-
-                    Vector3 newAirHoriz = newDir * newSpeed;
-                    _rigidbody.linearVelocity = new Vector3(newAirHoriz.x, v.y, newAirHoriz.z);
-                    _lastAppliedVelocity = _rigidbody.linearVelocity;
-
-                    _currentHorizontalVelocity = airHorizontal;
-                    _desiredHorizontalVelocity = desiredAirVelocity;
-                    _inputDirectionWorld = airDesiredDir;
-                    _resultingHorizontalVelocity = newAirHoriz;
-                    _debugState = MovementDebugState.AirMove;
-                    break;
-                }
-            }
+            MovementFrame frame = BuildFrame();
+            UpdateDynamicGroundMass(frame.GroundHit.IsDynamicBody || hasDynamicSupportCollision);
+            TickMovement(frame);
         }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            CacheDynamicSupportCollision(collision);
+        }
+
+        private void OnCollisionStay(Collision collision)
+        {
+            CacheDynamicSupportCollision(collision);
+        }
+
+        public bool IsSprinting => _isSprinting;
+        public bool IsGroundedNow => _hasGroundContact && _isWalkableGround && !_isAscendingFromGround;
+        public Vector3 CurrentHorizontalVelocity => _currentHorizontalVelocity;
+        public Vector3 DesiredHorizontalVelocity => _desiredHorizontalVelocity;
+        public Vector3 InputDirection => _inputDirectionWorld;
+        public Vector3 HorizontalVelocity => _resultingHorizontalVelocity;
+        public bool HasGroundContact => _hasGroundContact;
+        public bool IsWalkableGround => _isWalkableGround;
+        public bool IsAscendingFromGround => _isAscendingFromGround;
+        public bool IsStandingOnDynamicBody => _isStandingOnDynamicBody;
+        public float GroundSurfaceAngle => _groundSurfaceAngle;
+        public Vector3 GroundNormal => _groundNormal;
+        public Vector3 GroundPoint => _groundPoint;
+        public Vector2 MoveInput => _debugMoveInput;
+        public MovementStateId CurrentState => _currentState;
+        public float MaxInclineAngle => maxInclineAngle;
+        public Vector3 LastAppliedVelocity => _lastAppliedVelocity;
+        public Vector3 RawLinearVelocity => _rigidbody ? _rigidbody.linearVelocity : Vector3.zero;
+        public Vector3 PositionDelta => _positionDelta;
+        public ScanSensor? GroundSensor => groundSensor;
 
         public void StartSprint()
         {
@@ -367,26 +197,24 @@ namespace Konfus.Input
             _isSprinting = false;
         }
 
+        public void HandleSprint(InputAction.CallbackContext ctx)
+        {
+            if (ctx.performed)
+            {
+                StartSprint();
+            }
+            else if (ctx.canceled)
+            {
+                StopSprint();
+            }
+        }
+
         /// <summary>
         /// Supplies movement input in local X/Z space. Expected range is -1..1 per axis.
         /// </summary>
         public void Move(Vector2 input)
         {
             _moveInput = Vector2.ClampMagnitude(input, 1f);
-        }
-
-        private void ConfigureStateMachine()
-        {
-            if (_stateMachine.IsConfigured)
-                return;
-
-            // Movement states own only horizontal motor behavior. Jumping is inferred from Rigidbody velocity,
-            // which keeps this component independent from any specific jump implementation.
-            _stateMachine.Configure(
-                new GroundedIdleState(this),
-                new GroundedMoveState(this),
-                new SlidingState(this),
-                new AirborneState(this));
         }
 
         private MovementFrame BuildFrame()
@@ -398,82 +226,120 @@ namespace Konfus.Input
 
             CacheGroundState(hasGroundContact, walkableGround, ascendingFromGround, groundHit);
 
-            Vector3 inputLocal = new(_moveInput.x, 0f, _moveInput.y);
-            inputLocal = Vector3.ClampMagnitude(inputLocal, 1f);
-            _debugMoveInput = _moveInput;
-
+            Vector3 inputLocal = GetClampedInput();
             bool hasInput = inputLocal.sqrMagnitude > InputDeadZone;
-            Vector3 movementPlaneNormal = walkableGround && !ascendingFromGround ? groundHit.Normal : Vector3.up;
-            Vector3 tangentVelocity = walkableGround && !ascendingFromGround
+            bool useGroundPlane = walkableGround && !ascendingFromGround;
+            Vector3 movementPlaneNormal = useGroundPlane ? groundHit.Normal : Vector3.up;
+            Vector3 tangentVelocity = useGroundPlane
                 ? Vector3.ProjectOnPlane(velocity, movementPlaneNormal)
                 : new Vector3(velocity.x, 0f, velocity.z);
 
-            GetPlanarMovementBasis(out Vector3 referenceRight, out Vector3 referenceForward);
-            Vector3 desiredDirWorld = referenceRight * inputLocal.x + referenceForward * inputLocal.z;
-            Vector3 desiredDirProjected = walkableGround && !ascendingFromGround
-                ? Vector3.ProjectOnPlane(desiredDirWorld, movementPlaneNormal)
-                : Vector3.ProjectOnPlane(desiredDirWorld, Vector3.up);
-            Vector3 desiredDirNorm = desiredDirProjected.sqrMagnitude > InputDeadZone
-                ? desiredDirProjected.normalized
-                : Vector3.zero;
-
-            float sprintModifier = _isSprinting ? sprintMod : 1f;
-            float reverseModifier = inputLocal.z < 0f ? reverseMod : 1f;
-            float targetSpeed = moveSpeed * sprintModifier * reverseModifier;
-
-            float normalizedSpeed = moveSpeed > InputDeadZone ? Mathf.Clamp01(tangentVelocity.magnitude / moveSpeed) : 0f;
-            float accelCurveMul = Mathf.Max(0f, accelerationCurve.Evaluate(normalizedSpeed));
-            float decelCurveMul = Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
-
-            float accelMaxDelta = accelerationRate * accelCurveMul * Time.fixedDeltaTime;
-            float decelMaxDelta = decelerationRate * decelCurveMul * Time.fixedDeltaTime;
-
-            float dot = tangentVelocity.sqrMagnitude > InputDeadZone && desiredDirNorm.sqrMagnitude > InputDeadZone
-                ? Vector3.Dot(tangentVelocity.normalized, desiredDirNorm)
-                : 1f;
-            float steeringFactor = 1f - Mathf.Abs(dot);
+            Vector3 desiredDirectionWorld = GetDesiredDirectionWorld(inputLocal);
+            Vector3 desiredDirection = ProjectDesiredDirection(desiredDirectionWorld, movementPlaneNormal, useGroundPlane);
+            float targetSpeed = GetTargetSpeed(inputLocal);
+            MovementDeltas deltas = CalculateMovementDeltas(tangentVelocity, desiredDirection);
 
             return new MovementFrame
             {
                 Velocity = velocity,
                 GroundHit = groundHit,
-                HasGroundContact = hasGroundContact,
                 HasWalkableGround = walkableGround && !ascendingFromGround,
                 CanSlide = hasGroundContact && !walkableGround && !ascendingFromGround,
                 HasInput = hasInput,
                 InputLocal = inputLocal,
-                DesiredDirectionWorld = desiredDirWorld,
-                DesiredDirection = desiredDirNorm,
+                DesiredDirectionWorld = desiredDirectionWorld,
+                DesiredDirection = desiredDirection,
                 MovementPlaneNormal = movementPlaneNormal,
                 TangentVelocity = tangentVelocity,
                 TargetSpeed = targetSpeed,
-                AccelMaxDelta = accelMaxDelta,
-                DecelMaxDelta = decelMaxDelta,
-                IsBraking = dot < 0f,
-                SteerBoost = Mathf.Lerp(1f, steeringMod, steeringFactor)
+                AccelMaxDelta = deltas.AccelMaxDelta,
+                DecelMaxDelta = deltas.DecelMaxDelta,
+                IsBraking = deltas.IsBraking,
+                SteerBoost = deltas.SteerBoost
             };
         }
 
-        private static void EnsureCurveHasEndpoints(ref AnimationCurve curve)
+        private void TickMovement(MovementFrame frame)
         {
-            if (curve.length == 0)
+            _currentState = SelectMovementState(frame);
+
+            switch (_currentState)
             {
-                curve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
-                return;
+                case MovementStateId.GroundedIdle:
+                    ApplyGroundedIdle(frame);
+                    break;
+                case MovementStateId.GroundedMove:
+                    ApplyGroundedMove(frame);
+                    break;
+                case MovementStateId.Sliding:
+                    ApplySliding(frame);
+                    break;
+                case MovementStateId.AirborneIdle:
+                case MovementStateId.AirborneMove:
+                    ApplyAirborne(frame);
+                    break;
             }
-
-            float firstTime = curve.keys[0].time;
-            float lastTime = curve.keys[curve.length - 1].time;
-
-            if (firstTime > 0f)
-                curve.AddKey(0f, curve.Evaluate(0f));
-            if (lastTime < 1f)
-                curve.AddKey(1f, curve.Evaluate(1f));
         }
 
-        private bool IsGrounded()
+        private MovementStateId SelectMovementState(MovementFrame frame)
         {
-            return TryGetGroundHit(out _);
+            if (frame.HasWalkableGround)
+                return frame.HasInput ? MovementStateId.GroundedMove : MovementStateId.GroundedIdle;
+
+            if (frame.CanSlide)
+                return MovementStateId.Sliding;
+
+            return frame.HasInput ? MovementStateId.AirborneMove : MovementStateId.AirborneIdle;
+        }
+
+        private Vector3 GetClampedInput()
+        {
+            Vector3 inputLocal = new(_moveInput.x, 0f, _moveInput.y);
+            inputLocal = Vector3.ClampMagnitude(inputLocal, 1f);
+            _debugMoveInput = _moveInput;
+            return inputLocal;
+        }
+
+        private Vector3 GetDesiredDirectionWorld(Vector3 inputLocal)
+        {
+            GetPlanarMovementBasis(out Vector3 referenceRight, out Vector3 referenceForward);
+            return referenceRight * inputLocal.x + referenceForward * inputLocal.z;
+        }
+
+        private static Vector3 ProjectDesiredDirection(Vector3 desiredDirectionWorld, Vector3 movementPlaneNormal, bool useGroundPlane)
+        {
+            Vector3 projected = useGroundPlane
+                ? Vector3.ProjectOnPlane(desiredDirectionWorld, movementPlaneNormal)
+                : Vector3.ProjectOnPlane(desiredDirectionWorld, Vector3.up);
+
+            return projected.sqrMagnitude > InputDeadZone ? projected.normalized : Vector3.zero;
+        }
+
+        private float GetTargetSpeed(Vector3 inputLocal)
+        {
+            float sprintModifier = _isSprinting ? sprintMod : 1f;
+            float reverseModifier = inputLocal.z < 0f ? reverseMod : 1f;
+            return moveSpeed * sprintModifier * reverseModifier;
+        }
+
+        private MovementDeltas CalculateMovementDeltas(Vector3 tangentVelocity, Vector3 desiredDirection)
+        {
+            float normalizedSpeed = moveSpeed > InputDeadZone ? Mathf.Clamp01(tangentVelocity.magnitude / moveSpeed) : 0f;
+            float accelCurveMul = Mathf.Max(0f, accelerationCurve.Evaluate(normalizedSpeed));
+            float decelCurveMul = Mathf.Max(0f, decelerationCurve.Evaluate(normalizedSpeed));
+
+            float dot = tangentVelocity.sqrMagnitude > InputDeadZone && desiredDirection.sqrMagnitude > InputDeadZone
+                ? Vector3.Dot(tangentVelocity.normalized, desiredDirection)
+                : 1f;
+            float steeringFactor = 1f - Mathf.Abs(dot);
+
+            return new MovementDeltas
+            {
+                AccelMaxDelta = accelerationRate * accelCurveMul * Time.fixedDeltaTime,
+                DecelMaxDelta = decelerationRate * decelCurveMul * Time.fixedDeltaTime,
+                IsBraking = dot < 0f,
+                SteerBoost = Mathf.Lerp(1f, steeringMod, steeringFactor)
+            };
         }
 
         private bool TryGetGroundHit(out GroundHit groundHit)
@@ -485,20 +351,22 @@ namespace Konfus.Input
             bool found = false;
             float bestUpDot = float.NegativeInfinity;
 
-            foreach (Sensor.Hit hit in groundSensor.Hits)
+            foreach (SensorHit hit in groundSensor.Hits)
             {
                 if (!hit.GameObject || hit.GameObject == gameObject || hit.GameObject.transform.IsChildOf(transform))
                     continue;
 
                 float upDot = Vector3.Dot(hit.Normal.normalized, Vector3.up);
-                if (upDot <= 0f || upDot <= bestUpDot) continue;
+                if (upDot <= 0f || upDot <= bestUpDot)
+                    continue;
 
                 bestUpDot = upDot;
                 groundHit = new GroundHit
                 {
                     Point = hit.Point,
                     Normal = hit.Normal.normalized,
-                    SurfaceAngle = Vector3.Angle(hit.Normal, Vector3.up)
+                    SurfaceAngle = Vector3.Angle(hit.Normal, Vector3.up),
+                    GroundBody = hit.GameObject.GetComponentInParent<Rigidbody>()
                 };
                 found = true;
             }
@@ -506,45 +374,169 @@ namespace Konfus.Input
             return found;
         }
 
-        private void CacheGroundDebugState(bool hasGroundContact, bool walkableGround, bool jumping, GroundHit groundHit)
+        private void CacheGroundState(bool hasGroundContact, bool walkableGround, bool ascendingFromGround, GroundHit groundHit)
         {
             _hasGroundContact = hasGroundContact;
             _isWalkableGround = walkableGround;
-            _isJumpingNow = jumping;
+            _isAscendingFromGround = ascendingFromGround;
+            _isStandingOnDynamicBody = hasGroundContact && groundHit.IsDynamicBody;
             _groundSurfaceAngle = hasGroundContact ? groundHit.SurfaceAngle : 0f;
             _groundNormal = hasGroundContact ? groundHit.Normal : Vector3.up;
             _groundPoint = hasGroundContact ? groundHit.Point : transform.position;
         }
 
-        private Vector3 ComposeGroundVelocity(Vector3 tangentVelocity, Vector3 currentVelocity, Vector3 groundNormal)
+        private Vector3 ComposeGroundVelocity(Vector3 tangentVelocity, Vector3 groundNormal, bool applyGroundStickForce)
         {
-            float normalVelocity = Vector3.Dot(currentVelocity, groundNormal);
-            normalVelocity = Mathf.Min(normalVelocity, 0f) - (groundStickVelocity * Time.fixedDeltaTime);
-            return tangentVelocity + (groundNormal * normalVelocity);
+            float normalVelocity = applyGroundStickForce
+                ? -groundStickVelocity * Time.fixedDeltaTime
+                : 0f;
+
+            return tangentVelocity + groundNormal * normalVelocity;
+        }
+
+        private void ApplyGroundedIdle(MovementFrame frame)
+        {
+            if (!_rigidbody) return;
+
+            Vector3 newTangent = Vector3.MoveTowards(frame.TangentVelocity, Vector3.zero, frame.DecelMaxDelta);
+            _rigidbody.linearVelocity = ComposeGroundVelocity(
+                newTangent,
+                frame.MovementPlaneNormal,
+                applyGroundStickForce: !frame.GroundHit.IsDynamicBody);
+            CacheMovementVectors(frame.TangentVelocity, Vector3.zero, Vector3.zero, newTangent);
+        }
+
+        private void ApplyGroundedMove(MovementFrame frame)
+        {
+            if (!_rigidbody) return;
+
+            TryStepUp(frame.DesiredDirection, frame.GroundHit);
+
+            MovementFrame currentFrame = BuildFrame();
+            Vector3 desiredVelocity = currentFrame.DesiredDirection * (currentFrame.TargetSpeed * currentFrame.InputLocal.magnitude);
+            float maxDeltaV = currentFrame.IsBraking
+                ? currentFrame.DecelMaxDelta
+                : currentFrame.AccelMaxDelta * currentFrame.SteerBoost;
+            Vector3 newTangent = Vector3.MoveTowards(currentFrame.TangentVelocity, desiredVelocity, maxDeltaV);
+
+            _rigidbody.linearVelocity = ComposeGroundVelocity(
+                newTangent,
+                currentFrame.MovementPlaneNormal,
+                applyGroundStickForce: !currentFrame.GroundHit.IsDynamicBody);
+            CacheMovementVectors(currentFrame.TangentVelocity, desiredVelocity, currentFrame.DesiredDirection, newTangent);
+        }
+
+        private void ApplySliding(MovementFrame frame)
+        {
+            if (!_rigidbody) return;
+
+            Vector3 slopeTangent = Vector3.ProjectOnPlane(Vector3.down, frame.GroundHit.Normal).normalized;
+            Vector3 slideVelocity = frame.TangentVelocity + slopeTangent * (slopeSlideAcceleration * Time.fixedDeltaTime);
+            float downwardBias = frame.GroundHit.IsDynamicBody ? 0f : groundStickVelocity * Time.fixedDeltaTime;
+
+            _rigidbody.linearVelocity = new Vector3(slideVelocity.x, Mathf.Min(frame.Velocity.y, -downwardBias), slideVelocity.z);
+            CacheMovementVectors(frame.TangentVelocity, Vector3.zero, Vector3.zero, slideVelocity);
+        }
+
+        private void ApplyAirborne(MovementFrame frame)
+        {
+            if (!_rigidbody) return;
+
+            Vector3 airHorizontal = new(frame.Velocity.x, 0f, frame.Velocity.z);
+            if (!frame.HasInput)
+            {
+                CacheMovementVectors(airHorizontal, Vector3.zero, Vector3.zero, airHorizontal);
+                return;
+            }
+
+            Vector3 airDesiredDir = Vector3.ProjectOnPlane(frame.DesiredDirectionWorld, Vector3.up);
+            if (airDesiredDir.sqrMagnitude > InputDeadZone)
+                airDesiredDir.Normalize();
+            else
+                airDesiredDir = frame.DesiredDirection;
+
+            Vector3 desiredAirVelocity = airDesiredDir * (frame.TargetSpeed * frame.InputLocal.magnitude);
+
+            if (airControl <= InputDeadZone || airDesiredDir == Vector3.zero)
+            {
+                CacheMovementVectors(airHorizontal, desiredAirVelocity, airDesiredDir, airHorizontal);
+                return;
+            }
+
+            if (airHorizontal.sqrMagnitude <= InputDeadZone)
+            {
+                Vector3 newAirFromRest = Vector3.MoveTowards(
+                    airHorizontal,
+                    desiredAirVelocity,
+                    frame.AccelMaxDelta * airControl);
+
+                _rigidbody.linearVelocity = new Vector3(newAirFromRest.x, frame.Velocity.y, newAirFromRest.z);
+                CacheMovementVectors(airHorizontal, desiredAirVelocity, airDesiredDir, newAirFromRest);
+                return;
+            }
+
+            Vector3 newAirHorizontal = CalculateAirborneVelocity(frame, airHorizontal, airDesiredDir);
+            _rigidbody.linearVelocity = new Vector3(newAirHorizontal.x, frame.Velocity.y, newAirHorizontal.z);
+            CacheMovementVectors(airHorizontal, desiredAirVelocity, airDesiredDir, newAirHorizontal);
+        }
+
+        private Vector3 CalculateAirborneVelocity(MovementFrame frame, Vector3 airHorizontal, Vector3 airDesiredDir)
+        {
+            float airHorizontalSpeed = airHorizontal.magnitude;
+            float airDot = airHorizontal.sqrMagnitude > InputDeadZone && airDesiredDir.sqrMagnitude > InputDeadZone
+                ? Vector3.Dot(airHorizontal.normalized, airDesiredDir)
+                : 1f;
+            float maxDeltaVAir = (airDot < 0f ? frame.DecelMaxDelta : frame.AccelMaxDelta) * airControl * frame.SteerBoost;
+            float maxAngleRad = airHorizontalSpeed > 0.25f ? maxDeltaVAir / airHorizontalSpeed : 999f;
+
+            Vector3 newDirection = Vector3.RotateTowards(airHorizontal.normalized, airDesiredDir, maxAngleRad, 0f);
+            float newSpeed = airHorizontalSpeed < frame.TargetSpeed
+                ? Mathf.Min(frame.TargetSpeed, airHorizontalSpeed + frame.AccelMaxDelta * airControl)
+                : airHorizontalSpeed;
+            return newDirection * newSpeed;
+        }
+
+        private void CacheMovementVectors(
+            Vector3 currentHorizontal,
+            Vector3 desiredHorizontal,
+            Vector3 inputDirection,
+            Vector3 resultingHorizontal)
+        {
+            _currentHorizontalVelocity = currentHorizontal;
+            _desiredHorizontalVelocity = desiredHorizontal;
+            _inputDirectionWorld = inputDirection;
+            _resultingHorizontalVelocity = resultingHorizontal;
+            _lastAppliedVelocity = _rigidbody ? _rigidbody.linearVelocity : Vector3.zero;
         }
 
         private void TryStepUp(Vector3 moveDirection, GroundHit groundHit)
         {
-            if (!_rigidbody || !_capsuleCollider || moveDirection.sqrMagnitude <= 0.0001f || stepHeight <= 0f)
+            if (!_rigidbody || !_capsuleCollider || moveDirection.sqrMagnitude <= InputDeadZone || stepHeight <= 0f)
                 return;
 
-            GetCapsuleWorld(out Vector3 point1, out Vector3 point2, out float radius);
+            Vector3 probeDirection = Vector3.ProjectOnPlane(moveDirection, Vector3.up);
+            if (probeDirection.sqrMagnitude <= InputDeadZone)
+                return;
+            probeDirection.Normalize();
+
+            GetCapsuleWorld(out _, out Vector3 point2, out float radius);
 
             float skin = 0.05f;
             float checkDistance = Mathf.Max(stepCheckDistance, radius + skin);
-            Vector3 lowerOrigin = point2 + (transform.up * (radius + Mathf.Max(skin, 0.02f)));
+            float footClearance = Mathf.Max(skin, 0.02f);
+            Vector3 lowerOrigin = point2 + transform.up * footClearance;
             Vector3 upperOrigin = lowerOrigin + Vector3.up * stepHeight;
             LayerMask mask = groundSensor ? groundSensor.DetectionFilter : Physics.DefaultRaycastLayers;
 
-            bool lowerBlocked = Physics.SphereCast(lowerOrigin, radius * 0.9f, moveDirection, out _, checkDistance, mask, QueryTriggerInteraction.Ignore);
+            bool lowerBlocked = Physics.SphereCast(lowerOrigin, radius * 0.9f, probeDirection, out _, checkDistance, mask, QueryTriggerInteraction.Ignore);
             if (!lowerBlocked)
                 return;
 
-            bool upperBlocked = Physics.SphereCast(upperOrigin, radius * 0.9f, moveDirection, out _, checkDistance, mask, QueryTriggerInteraction.Ignore);
+            bool upperBlocked = Physics.SphereCast(upperOrigin, radius * 0.9f, probeDirection, out _, checkDistance, mask, QueryTriggerInteraction.Ignore);
             if (upperBlocked)
                 return;
 
-            Vector3 stepProbeOrigin = upperOrigin + (moveDirection * checkDistance) + Vector3.up * skin;
+            Vector3 stepProbeOrigin = upperOrigin + probeDirection * checkDistance + Vector3.up * skin;
             float downDistance = stepHeight + skin + 0.5f;
             if (!Physics.Raycast(stepProbeOrigin, Vector3.down, out RaycastHit stepHit, downDistance, mask, QueryTriggerInteraction.Ignore))
                 return;
@@ -577,19 +569,12 @@ namespace Konfus.Input
             radius = _capsuleCollider.radius * radiusScale;
 
             float height = Mathf.Max(_capsuleCollider.height * Mathf.Abs(scale.y), radius * 2f);
-            float cylinder = Mathf.Max(0f, (height * 0.5f) - radius);
+            float cylinder = Mathf.Max(0f, height * 0.5f - radius);
             Vector3 center = transform.TransformPoint(_capsuleCollider.center);
             Vector3 axis = transform.up;
 
-            point1 = center + (axis * cylinder);
-            point2 = center - (axis * cylinder);
-        }
-
-        private struct GroundHit
-        {
-            public Vector3 Point;
-            public Vector3 Normal;
-            public float SurfaceAngle;
+            point1 = center + axis * cylinder;
+            point2 = center - axis * cylinder;
         }
 
         private void AutoAssignMovementReference()
@@ -614,6 +599,23 @@ namespace Konfus.Input
             right = Vector3.Cross(Vector3.up, forward);
         }
 
+        private static void EnsureCurveHasEndpoints(ref AnimationCurve curve)
+        {
+            if (curve.length == 0)
+            {
+                curve = AnimationCurve.Linear(0f, 1f, 1f, 1f);
+                return;
+            }
+
+            float firstTime = curve.keys[0].time;
+            float lastTime = curve.keys[curve.length - 1].time;
+
+            if (firstTime > 0f)
+                curve.AddKey(0f, curve.Evaluate(0f));
+            if (lastTime < 1f)
+                curve.AddKey(1f, curve.Evaluate(1f));
+        }
+
         private void ApplyRigidbodyDefaults()
         {
             if (!_rigidbody) return;
@@ -621,6 +623,46 @@ namespace Konfus.Input
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            _baseMass = _rigidbody.mass;
+        }
+
+        private void UpdateDynamicGroundMass(bool isOnDynamicGround)
+        {
+            if (!_rigidbody)
+                return;
+
+            float targetMass = isOnDynamicGround
+                ? Mathf.Max(0.01f, _baseMass * dynamicGroundMassMultiplier)
+                : _baseMass;
+
+            if (!Mathf.Approximately(_rigidbody.mass, targetMass))
+                _rigidbody.mass = targetMass;
+        }
+
+        private void CacheDynamicSupportCollision(Collision collision)
+        {
+            if (!_rigidbody || collision.rigidbody == null || collision.rigidbody.isKinematic)
+                return;
+
+            int contactCount = collision.contactCount;
+            for (int i = 0; i < contactCount; i++)
+            {
+                ContactPoint contact = collision.GetContact(i);
+                if (Vector3.Dot(contact.normal, Vector3.up) > DynamicSupportContactUpDotThreshold)
+                {
+                    _hasDynamicSupportCollision = true;
+                    return;
+                }
+            }
+        }
+        
+        public enum MovementStateId
+        {
+            GroundedIdle,
+            GroundedMove,
+            Sliding,
+            AirborneIdle,
+            AirborneMove
         }
 
         private struct GroundHit
@@ -628,13 +670,15 @@ namespace Konfus.Input
             public Vector3 Point;
             public Vector3 Normal;
             public float SurfaceAngle;
+            public Rigidbody? GroundBody;
+
+            public bool IsDynamicBody => GroundBody != null && !GroundBody.isKinematic;
         }
 
         private struct MovementFrame
         {
             public Vector3 Velocity;
             public GroundHit GroundHit;
-            public bool HasGroundContact;
             public bool HasWalkableGround;
             public bool CanSlide;
             public bool HasInput;
@@ -650,136 +694,12 @@ namespace Konfus.Input
             public float SteerBoost;
         }
 
-        private abstract class MovementState
+        private struct MovementDeltas
         {
-            protected MovementState(RigidbodyMovement movement, MovementStateId id)
-            {
-                Movement = movement;
-                Id = id;
-            }
-
-            protected RigidbodyMovement Movement { get; }
-            public MovementStateId Id { get; protected set; }
-
-            public virtual void Enter()
-            {
-            }
-
-            public abstract void FixedTick(MovementFrame frame);
-        }
-
-        private sealed class GroundedIdleState : MovementState
-        {
-            public GroundedIdleState(RigidbodyMovement movement) : base(movement, MovementStateId.GroundedIdle)
-            {
-            }
-
-            public override void FixedTick(MovementFrame frame)
-            {
-                Movement.ApplyGroundedIdle(frame);
-            }
-        }
-
-        private sealed class GroundedMoveState : MovementState
-        {
-            public GroundedMoveState(RigidbodyMovement movement) : base(movement, MovementStateId.GroundedMove)
-            {
-            }
-
-            public override void FixedTick(MovementFrame frame)
-            {
-                Movement.ApplyGroundedMove(frame);
-            }
-        }
-
-        private sealed class SlidingState : MovementState
-        {
-            public SlidingState(RigidbodyMovement movement) : base(movement, MovementStateId.Sliding)
-            {
-            }
-
-            public override void FixedTick(MovementFrame frame)
-            {
-                Movement.ApplySliding(frame);
-            }
-        }
-
-        private sealed class AirborneState : MovementState
-        {
-            public AirborneState(RigidbodyMovement movement) : base(movement, MovementStateId.AirborneIdle)
-            {
-            }
-
-            public void SetId(MovementStateId id)
-            {
-                Id = id;
-            }
-
-            public override void FixedTick(MovementFrame frame)
-            {
-                Movement.ApplyAirborne(frame);
-            }
-        }
-
-        private sealed class MovementStateMachine
-        {
-            private GroundedIdleState? _groundedIdle;
-            private GroundedMoveState? _groundedMove;
-            private SlidingState? _sliding;
-            private AirborneState? _airborne;
-            private MovementState? _currentState;
-
-            public bool IsConfigured { get; private set; }
-            public MovementStateId CurrentStateId => _currentState?.Id ?? MovementStateId.AirborneIdle;
-
-            public void Configure(
-                GroundedIdleState groundedIdle,
-                GroundedMoveState groundedMove,
-                SlidingState sliding,
-                AirborneState airborne)
-            {
-                _groundedIdle = groundedIdle;
-                _groundedMove = groundedMove;
-                _sliding = sliding;
-                _airborne = airborne;
-                _currentState = airborne;
-                IsConfigured = true;
-            }
-
-            public void Tick(MovementFrame frame)
-            {
-                if (!IsConfigured)
-                    return;
-
-                MovementState nextState = SelectState(frame);
-                if (nextState != _currentState)
-                {
-                    _currentState = nextState;
-                    _currentState.Enter();
-                }
-
-                _currentState.FixedTick(frame);
-            }
-
-            private MovementState SelectState(MovementFrame frame)
-            {
-                if (frame.HasWalkableGround)
-                    return frame.HasInput ? _groundedMove! : _groundedIdle!;
-
-                if (frame.CanSlide)
-                    return _sliding!;
-
-                if (frame.HasInput)
-                    return AirborneWithId(MovementStateId.AirborneMove);
-
-                return AirborneWithId(MovementStateId.AirborneIdle);
-            }
-
-            private MovementState AirborneWithId(MovementStateId id)
-            {
-                _airborne!.SetId(id);
-                return _airborne!;
-            }
+            public float AccelMaxDelta;
+            public float DecelMaxDelta;
+            public bool IsBraking;
+            public float SteerBoost;
         }
     }
 }

@@ -26,7 +26,8 @@ namespace Konfus.Fx_System.Effects
                 return;
             }
 
-            _tween?.Kill();
+            target.DOKill(false);
+            _tween = null;
             _tween = target.DOLocalRotate(to.localEulerAngles, Duration, RotateMode.Fast);
             _tween.SetRelative(false);
             _tween.SetEase(easing);
@@ -37,22 +38,38 @@ namespace Konfus.Fx_System.Effects
 
         public override void Pause()
         {
-            if (_tween == null) return;
+            if (!HasActiveTween()) return;
             _tween.Pause();
         }
 
         public override void Resume()
         {
-            if (_tween == null) return;
+            if (!HasActiveTween()) return;
             _tween.Play();
         }
 
         public override void Reset()
         {
-            if (_tween == null) return;
+            if (!HasActiveTween()) return;
             _tween.Rewind();
             _tween.Kill();
             _tween = null;
+        }
+
+        private bool HasActiveTween()
+        {
+            if (_tween == null)
+            {
+                return false;
+            }
+
+            if (_tween.IsActive())
+            {
+                return true;
+            }
+
+            _tween = null;
+            return false;
         }
     }
 }

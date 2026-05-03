@@ -153,20 +153,6 @@ namespace Konfus.Input
             Cursor.visible = false;
         }
 
-        private void OnEnable()
-        {
-            if (!_jumping)
-                _jumping = GetComponentInParent<RigidbodyJumping>();
-            if (_jumping)
-                _jumping.Landed += OnLanded;
-        }
-
-        private void OnDisable()
-        {
-            if (_jumping)
-                _jumping.Landed -= OnLanded;
-        }
-
         private void LateUpdate()
         {
             if (ShouldStopLookThisFrame())
@@ -383,17 +369,6 @@ namespace Konfus.Input
 
             _perlin.AmplitudeGain = _perlinCurrentAmp;
             _perlin.FrequencyGain = _perlinCurrentFreq;
-        }
-
-        private void OnLanded(float airTime, float impactSpeed)
-        {
-            float airTime01 = maxAirTimeForLandingBounce > 0f
-                ? Mathf.Clamp01(airTime / maxAirTimeForLandingBounce)
-                : 1f;
-            float impactContribution = impactSpeed * landingImpactSpeedWeight;
-            float landingIntensity = Mathf.Clamp01(airTime01 + impactContribution);
-            float targetDrop = maxLandingDrop * landingIntensity;
-            _landingDrop = Mathf.Max(_landingDrop, targetDrop);
         }
 
         private void UpdateLandingBounce()

@@ -1,7 +1,8 @@
 using UnityEngine;
 using Konfus.Sensor_Toolkit;
 using System.Linq;
-using System;
+using UnityEngine.InputSystem;
+using SensorHit = Konfus.Sensor_Toolkit.Sensor.Hit;
 
 namespace Konfus.Input
 {
@@ -12,17 +13,28 @@ namespace Konfus.Input
 
         public void Interact()
         {
-            var scanResult = interactionSensor?.Scan() ?? false;
-            if (scanResult)
+            if (interactionSensor == null || !interactionSensor.Scan())
             {
-                var hits = interactionSensor?.Hits ?? Array.Empty<Sensor.Hit>();
-                var interactables = hits
-                    ?.Select(hit => hit.GameObject.GetComponent<Interactable>())
-                    .Where(inter => inter != null) ?? Array.Empty<Interactable>();
-                foreach (var inter in interactables)
-                {
-                    inter.Interact(this);
-                }
+                return;
+            }
+
+            var hits = interactionSensor.Hits ?? Enumerable.Empty<SensorHit>();
+            var interactables = hits
+                .Select(hit => hit.GameObject.GetComponentInParent<Interactable>())
+                .OfType<Interactable>()
+                .Distinct();
+
+            foreach (var inter in interactables)
+            {
+                inter.Interact(this);
+            }
+        }
+
+        public void HandleInteract(InputAction.CallbackContext ctx)
+        {
+            if (ctx.canceled)
+            {
+                Interact();
             }
         }
     }

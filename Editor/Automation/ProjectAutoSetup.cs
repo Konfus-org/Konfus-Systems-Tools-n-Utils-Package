@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Konfus.Editor.Context_Menu;
 using Konfus.Editor.Utility;
 using UnityEditor;
 using UnityEditor.PackageManager;
@@ -46,10 +45,8 @@ namespace Konfus.Editor.Automation
         {
             SetupIsRunning = true;
 
-            // Setup folder structure and generate menu items
+            // Setup folder structure.
             ProjectManager.SetupFolderStructure();
-            PinnedMenuItems.GenerateContextMenuItems(false);
-            ScriptTemplates.GenerateContextMenuItems(false);
 
             // Request the list of packages installed in the project so we can ensure we have all the required deps
             _request = Client.List();

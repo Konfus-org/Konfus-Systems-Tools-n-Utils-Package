@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿/*
+using System.IO;
 using System.Linq;
 using Konfus.Editor.Code_Gen;
 using Konfus.Editor.Utility;
@@ -12,9 +13,10 @@ namespace Konfus.Editor.Automation
     //[InitializeOnLoad]
     internal static class ScriptTemplates
     {
+        private const bool Disabled = true;
         private const string GeneratedSuffix = "_ScriptTemplateMenuItem";
 
-        [MenuItem("Tools/Konfus/Script Templates/Regenerate Menu Items", priority = 1)]
+        //[MenuItem("Tools/Konfus/Script Templates/Regenerate Menu Items", priority = 1)]
         private static void GenerateContextMenuItems()
         {
             GenerateContextMenuItems(true);
@@ -22,6 +24,12 @@ namespace Konfus.Editor.Automation
 
         public static void GenerateContextMenuItems(bool promptToDelete)
         {
+            if (Disabled)
+            {
+                ProjectManager.TryDeleteBySuffix(GeneratedSuffix, ProjectManager.EditorGeneratedCodePath, false);
+                return;
+            }
+
             CodeGenTemplate[]? templates = CodeGenTemplateLoader.LoadAll();
             if (templates == null) return;
 
@@ -67,15 +75,17 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
                 select new CodeGenTemplate(name, code)).ToArray());
         }
 
-        [MenuItem("Tools/Konfus/Script Templates/Preview Templates", priority = 1)]
+        //[MenuItem("Tools/Konfus/Script Templates/Preview Templates", priority = 1)]
         private static void OpenWindow()
         {
+            if (Disabled) return;
             ScriptTemplateWindow.ShowWindow();
         }
 
-        [MenuItem("Assets/Create/Script Templates/Preview Templates", priority = -2)]
+        //[MenuItem("Assets/Create/Script Templates/Preview Templates", priority = -2)]
         private static void OpenContext()
         {
+            if (Disabled) return;
             ScriptTemplateWindow.ShowWindow();
         }
 
@@ -151,9 +161,11 @@ namespace {CodeGenerator.GenerateNamespace("Generated")}
 
             public static void ShowWindow()
             {
+                if (Disabled) return;
                 var w = GetWindow<ScriptTemplateWindow>("Script Templates");
                 w.minSize = new Vector2(360, 220);
             }
         }
     }
 }
+*/

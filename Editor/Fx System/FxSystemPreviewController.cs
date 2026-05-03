@@ -146,7 +146,7 @@ namespace Konfus.Editor.Fx_System
                 FxSystem fxSystem = systems[i];
                 if (!fxSystem)
                 {
-                    States.Remove(fxSystem);
+                    States.Remove(fxSystem!);
                     continue;
                 }
 
@@ -235,7 +235,7 @@ namespace Konfus.Editor.Fx_System
             while (state.NextItemIndex < items.Count && state.ElapsedTime >= state.NextSequentialStartTime)
             {
                 FxItem fxItem = items[state.NextItemIndex++];
-                Effect effect = fxItem?.Effect;
+                Effect? effect = fxItem?.Effect;
                 if (effect == null) continue;
 
                 effect.IsPlaying = true;

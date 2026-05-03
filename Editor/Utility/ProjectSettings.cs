@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Konfus.Editor.Context_Menu;
 using UnityEditor;
 
 namespace Konfus.Editor.Utility
@@ -11,7 +10,7 @@ namespace Konfus.Editor.Utility
         public const string DoNotAskAgainId = "Konfus.DoNotAskAgainDialog.";
         public const string PinnedMenuItemsId = "Konfus.PinnedItems";
 
-        public static List<MenuItemReflection.MenuItemInfo> LoadPinnedItems(
+        /*public static List<MenuItemReflection.MenuItemInfo> LoadPinnedItems(
             IEnumerable<MenuItemReflection.MenuItemInfo> allItems)
         {
             var pinnedItems = new List<MenuItemReflection.MenuItemInfo>();
@@ -30,6 +29,6 @@ namespace Konfus.Editor.Utility
         {
             string serializedItems = string.Join(", ", pinned.Select(i => i.MenuPath).ToArray());
             EditorPrefs.SetString(PinnedMenuItemsId, serializedItems);
-        }
+        }*/
     }
 }

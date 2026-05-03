@@ -11,7 +11,7 @@ namespace Konfus.Editor.Input
         private const float DebugSphereRadius = 0.05f;
         private const float DebugVelocityScale = 0.15f;
         private const float DebugPanelWidth = 250f;
-        private static GUIStyle _debugLabelStyle;
+        private static GUIStyle? _debugLabelStyle;
 
         private void OnEnable()
         {
@@ -41,7 +41,7 @@ namespace Konfus.Editor.Input
             Vector3 origin = movement.transform.position + Vector3.up * 0.1f;
             Vector3 groundPoint = movement.GroundPoint;
             Vector3 groundNormal = movement.GroundNormal;
-            RigidbodyJumping jumping = movement.GetComponent<RigidbodyJumping>();
+            RigidbodyJumping? jumping = movement.GetComponent<RigidbodyJumping>();
 
             Vector3 horizVel = movement.CurrentHorizontalVelocity;
             Vector3 desiredVel = movement.DesiredHorizontalVelocity;
@@ -75,11 +75,12 @@ namespace Konfus.Editor.Input
             DrawDebugPanel(movement, jumping);
         }
 
-        private static string BuildDebugLabel(RigidbodyMovement movement, RigidbodyJumping jumping)
+        private static string BuildDebugLabel(RigidbodyMovement movement, RigidbodyJumping? jumping)
         {
             string jumpDebug = jumping
                 ? "<b>Jump</b>\n" +
                   $"Grounded: {jumping.IsGroundedNow}\n" +
+                  $"State: {jumping.CurrentState}\n" +
                   $"Jumping: {jumping.IsJumping}\n" +
                   $"Buffered: {jumping.HasBufferedJumpNow}\n" +
                   $"Coyote Left: {Mathf.Max(0f, jumping.CoyoteUntil - Time.unscaledTime):F2}\n" +
@@ -91,10 +92,10 @@ namespace Konfus.Editor.Input
 
             return
                 "<b>Movement</b>\n" +
-                $"State: {movement.DebugState}\n" +
+                $"State: {movement.CurrentState}\n" +
                 $"Input: {movement.MoveInput}\n" +
                 $"Sprinting: {movement.IsSprinting}\n" +
-                $"Jump Lockout: {movement.IsJumpingNow}\n" +
+                $"Ascending Release: {movement.IsAscendingFromGround}\n" +
                 $"Raw Vel: {FormatVector(movement.RawLinearVelocity)}\n" +
                 $"Applied Vel: {FormatVector(movement.LastAppliedVelocity)}\n" +
                 $"Delta: {FormatVector(movement.PositionDelta)}\n\n" +
@@ -113,7 +114,7 @@ namespace Konfus.Editor.Input
             return $"({vector.x:F2}, {vector.y:F2}, {vector.z:F2})";
         }
 
-        private static void DrawDebugPanel(RigidbodyMovement movement, RigidbodyJumping jumping)
+        private static void DrawDebugPanel(RigidbodyMovement movement, RigidbodyJumping? jumping)
         {
             Vector3 anchorWorld = movement.transform.position +
                                   (movement.transform.right * 1.1f) +
